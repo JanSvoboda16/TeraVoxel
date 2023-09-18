@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeraVoxel.Server.API", "TeraVoxel.Server.API\TeraVoxel.Server.API.csproj", "{BDD925D8-2984-4330-8309-7C13178905A5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeraVoxel.Server.Data", "TeraVoxel.Server.Data\TeraVoxel.Server.Data.csproj", "{8AC2F3C9-4A45-458E-9A60-FB93B857794A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeraVoxel.Server.Core", "TeraVoxel.Server.Core\TeraVoxel.Server.Core.csproj", "{077072DD-A93A-4DF9-A15A-689B762BFF71}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDD925D8-2984-4330-8309-7C13178905A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDD925D8-2984-4330-8309-7C13178905A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDD925D8-2984-4330-8309-7C13178905A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDD925D8-2984-4330-8309-7C13178905A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AC2F3C9-4A45-458E-9A60-FB93B857794A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AC2F3C9-4A45-458E-9A60-FB93B857794A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AC2F3C9-4A45-458E-9A60-FB93B857794A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AC2F3C9-4A45-458E-9A60-FB93B857794A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{077072DD-A93A-4DF9-A15A-689B762BFF71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{077072DD-A93A-4DF9-A15A-689B762BFF71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{077072DD-A93A-4DF9-A15A-689B762BFF71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{077072DD-A93A-4DF9-A15A-689B762BFF71}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {551D3696-BFF5-4882-8B0A-1EBC4D5C2F91}
+	EndGlobalSection
+EndGlobal

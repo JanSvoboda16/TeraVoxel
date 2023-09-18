@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{87c2334c-718d-4d92-8996-2c0f1863b042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui\Backends">
+      <UniqueIdentifier>{d38cf062-bcef-4a31-9287-e95ef80d9500}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas">
+      <UniqueIdentifier>{9a62ae84-caf7-4a53-92bd-c5a28d7fcb06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\VolumeView">
+      <UniqueIdentifier>{82b52f14-6dbb-4c8f-935a-9c1b5ba41ac2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\ProjectManagement">
+      <UniqueIdentifier>{6ed80bbe-70a8-4b4e-93bc-a4c7b640beb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\VisualizationEditor">
+      <UniqueIdentifier>{aa648596-51b7-4fc8-ba2b-b95acfd66445}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\VisualizationEditor\VisualizerPartialViews">
+      <UniqueIdentifier>{f57806f0-3cb0-413d-a7a0-e12cae1596fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\Settings">
+      <UniqueIdentifier>{d291c3d9-1844-43a6-8f93-43386ad6a59e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\Backends\imgui_impl_win32.h">
+      <Filter>ImGui\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_stdlib.h">
+      <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\Backends\imgui_impl_dx11.h">
+      <Filter>ImGui\Backends</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeViewWindow.h">
+      <Filter>Areas\VolumeView</Filter>
+    </ClInclude>
+    <ClInclude Include="VisualizerSettingsWindow.h">
+      <Filter>Areas\VisualizationEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingsWindow.h">
+      <Filter>Areas\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectManagementWindow.h">
+      <Filter>Areas\ProjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeViewContext.h">
+      <Filter>Areas\VolumeView</Filter>
+    </ClInclude>
+    <ClInclude Include="ViewContext.h" />
+    <ClInclude Include="IView.h" />
+    <ClInclude Include="FastRCView.h">
+      <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_tables.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\Backends\imgui_impl_win32.cpp">
+      <Filter>ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_stdlib.cpp">
+      <Filter>ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\Backends\imgui_impl_dx11.cpp">
+      <Filter>ImGui\Backends</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeViewWindow.cpp">
+      <Filter>Areas\VolumeView</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectManagementWindow.cpp">
+      <Filter>Areas\ProjectManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="VisualizerSettingsWindow.cpp">
+      <Filter>Areas\VisualizationEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="SettingsWindow.cpp">
+      <Filter>Areas\Settings</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="FastRCView.cpp">
+      <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>
