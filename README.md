@@ -33,7 +33,7 @@ TeraVoxel currently supports only the Nifti file format but other formats will b
 ## Startup and Configuration 
 ### Server configuration 
 In "appsettings.json" fill in the "StoragePath" which represents the directory where data will be stored. You can also edit "SegmentSize" which represents the size of one voxel block.
-The default value is 256 and this value is optimal.
+The default value is 256 and this value is optimal. The "CompressionLevel" parameter affects the lossless compression level of individual block files. Too high a compression level can slow down processing considerably. 
 
 ### Server Compiling
 Depend on your deployment. For local usage just build on the release profile.

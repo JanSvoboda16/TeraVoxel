@@ -22,7 +22,7 @@ namespace TeraVoxel.Server.Data
 
         public FileStream GetSegmentStream(string projectName, int xIndex, int yIndex, int zIndex, int downscale)
         {
-            return new FileStream($"{_options.StoragePath}{projectName}/{_options.DataDirectory}data_{xIndex}_{yIndex}_{zIndex}_{downscale}", FileMode.Open, FileAccess.Read, FileShare.Read);
+            return new FileStream($"{_options.StoragePath}/{projectName}/{_options.DataDirectory}/data_{xIndex}_{yIndex}_{zIndex}_{downscale}", FileMode.Open, FileAccess.Read, FileShare.Read);
         }
     }
 }

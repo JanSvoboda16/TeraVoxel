@@ -27,35 +27,35 @@ namespace TeraVoxel.Server.Data
 
         public async Task CreateProject(string projectName)
         {
-            var path = $"{_options.StoragePath}{projectName}";
+            var path = $"{_options.StoragePath}/{projectName}";
             
-            Directory.CreateDirectory($"{_options.StoragePath}{projectName}/{_options.SourceFileDirectory}");
-            Directory.CreateDirectory($"{_options.StoragePath}{projectName}/{_options.DataDirectory}");
+            Directory.CreateDirectory($"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}");
+            Directory.CreateDirectory($"{_options.StoragePath}/{projectName}/{_options.DataDirectory}");
 
-            var resultPath = $"{_options.StoragePath}{projectName}/{_options.DataDirectory}";
+            var resultPath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}";
             ProjectInfo info = new ProjectInfo { Name = projectName, State = ProjectState.ProjectCreated };
-            using var infoFile = File.Create($"{resultPath}info.json");
+            using var infoFile = File.Create($"{resultPath}/info.json");
             await infoFile.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(info));
         }
 
         public bool ProjectExists(string projectName)
         {
-            return Directory.Exists(_options.StoragePath + projectName);
+            return Directory.Exists($"{_options.StoragePath}/{projectName}");
         }
         
         public void DeleteProject(string projectName)
         {
             // Hides original project until it's deleted. 
-            Directory.Move(_options.StoragePath + projectName, _options.StoragePath + projectName + _deleteSuffix); 
-            Task.Run(() => { Directory.Delete(_options.StoragePath + projectName + _deleteSuffix, true); });
+            Directory.Move($"{_options.StoragePath}/{projectName}", $"{_options.StoragePath}/{projectName}{_deleteSuffix}"); 
+            Task.Run(() => { Directory.Delete($"{_options.StoragePath}/{projectName}{_deleteSuffix}", true); });
         }
 
         public async Task ConvertProject(string projectName)
         {
             try
             {
-                var sourcePath = $"{_options.StoragePath}{projectName}/{_options.SourceFileDirectory}";
-                var resultPath = $"{_options.StoragePath}{projectName}/{_options.DataDirectory}";
+                var sourcePath = $"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}";
+                var resultPath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}";
                 var sourceFiles = Directory.GetFiles(sourcePath);
 
                 if (sourceFiles.Length == 0)
@@ -112,7 +112,7 @@ namespace TeraVoxel.Server.Data
             var directories = Directory.GetDirectories(_options.StoragePath).Where(d => !d.Contains(_deleteSuffix));
             foreach (var dir in directories)
             {
-                var filePath = $"{dir}//{_options.DataDirectory}info.json";
+                var filePath = $"{dir}//{_options.DataDirectory}/info.json";
                 if (File.Exists(filePath))
                 {
                     string? data = null;
@@ -145,7 +145,7 @@ namespace TeraVoxel.Server.Data
 
         public async Task<ProjectInfo> ReadProjectInfo(string projectName)
         {
-            var filePath = $"{_options.StoragePath}{projectName}/{_options.DataDirectory}info.json";
+            var filePath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}/info.json";
             int retryCount = 0;
             string? data = null;
 
@@ -173,7 +173,7 @@ namespace TeraVoxel.Server.Data
 
         public async Task WriteProjectInfo(string projectName, ProjectInfo projectInfo)
         {
-            var filePath = $"{_options.StoragePath}{projectName}/{_options.DataDirectory}info.json";
+            var filePath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}/info.json";
             FileStream? infoFile = null;
             int retryCount = 0;
             while (infoFile == null)
@@ -204,7 +204,7 @@ namespace TeraVoxel.Server.Data
 
             try
             {
-                var sourceFileDirectoryPath = $"{_options.StoragePath}{projectName}/{_options.SourceFileDirectory}";
+                var sourceFileDirectoryPath = $"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}";
                 Directory.Delete(sourceFileDirectoryPath, true);
                 Directory.CreateDirectory(sourceFileDirectoryPath);
 
@@ -238,7 +238,7 @@ namespace TeraVoxel.Server.Data
 
         private FileStream GetSourceFileStream(string projectName, string fileName)
         {
-            return File.Open($"{_options.StoragePath}{projectName}/{_options.SourceFileDirectory}{fileName}",FileMode.OpenOrCreate);
+            return File.Open($"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}/{fileName}",FileMode.OpenOrCreate);
         }
     }
 }

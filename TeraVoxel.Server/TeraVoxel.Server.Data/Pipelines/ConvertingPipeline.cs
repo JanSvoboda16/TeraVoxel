@@ -98,10 +98,10 @@ namespace TeraVoxel.Server.Data.Pipelines
             return segments;
         }
 
-        private void CompressAndWrite(byte[] data, Stream fileStream)
+        private async Task CompressAndWrite(byte[] data, Stream fileStream)
         {
-            using var compressStream = new GZipStream(fileStream, CompressionLevel.SmallestSize, true);
-            compressStream.Write(data, 0, data.Length);
+            using var compressStream = new GZipStream(fileStream, _storageOptions.CompressionLevel, true);
+            await compressStream.WriteAsync(data, 0, data.Length);
         }
 
         public async Task Apply(ISourceFileDataReader reader, string destinationDirectoryPath)
@@ -199,7 +199,7 @@ namespace TeraVoxel.Server.Data.Pipelines
                     frameIndex++;
                 }
                 
-                // Convertiison compresion downscaling
+                // Conversion compresion downscaling
                 List<Task> tasks = new List<Task>();
                 foreach (var segment in segments)
                 {
@@ -207,10 +207,10 @@ namespace TeraVoxel.Server.Data.Pipelines
                     {
                         for (int downscale = 0; downscale < 4; downscale++)
                         {
-                            using (var segFile = File.Create($"{destinationDirectoryPath}data_{segment.XIndex}_{segment.YIndex}_{segment.ZIndex}_{downscale}"))
+                            using (var segFile = File.Create($"{destinationDirectoryPath}/data_{segment.XIndex}_{segment.YIndex}_{segment.ZIndex}_{downscale}"))
                             {
                                 // Compressing data and writing into file
-                                CompressAndWrite(segment.ConvertToByteArray(), segFile);
+                                await CompressAndWrite(segment.ConvertToByteArray(), segFile);
                                 // Downscaling
                                 await Task.Run(() => segment.Downscale());
                             }
