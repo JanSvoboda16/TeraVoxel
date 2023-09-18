@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Visualizers">
+      <UniqueIdentifier>{7c114e8b-d10d-452d-81f2-1ed22e51a4af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visualizers\Empty">
+      <UniqueIdentifier>{8e674fc3-1b82-4e49-a11c-1db749155c27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Visualizers\FastRayCasting">
+      <UniqueIdentifier>{86ee7e22-170b-4da7-9e3a-6be4864726ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data">
+      <UniqueIdentifier>{bc7a9703-c86d-43ca-808b-db496e951a45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\VolumeLoaders">
+      <UniqueIdentifier>{41a3573b-6169-4dd4-b0ba-9bb9a988aa62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{eb62c946-aa46-4a73-b36b-d8a6a04d6f1c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="VolumeVisualizerBase.h">
+      <Filter>Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="RayCastingVolumeVisualizerBase.h">
+      <Filter>Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="IVolumeVisualizerFactory.h">
+      <Filter>Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeVisualizerSetter.h">
+      <Filter>Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeVisualizerSettingsBase.h">
+      <Filter>Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="EmptyVolumeVisualizer.h">
+      <Filter>Visualizers\Empty</Filter>
+    </ClInclude>
+    <ClInclude Include="EmptyVolumeVisualizerFactory.h">
+      <Filter>Visualizers\Empty</Filter>
+    </ClInclude>
+    <ClInclude Include="EmptyVolumeVisualizerSetter.h">
+      <Filter>Visualizers\Empty</Filter>
+    </ClInclude>
+    <ClInclude Include="FastRayCastingVolumeVisualizer.h">
+      <Filter>Visualizers\FastRayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="FastRCVolumeVisualizerFactory.h">
+      <Filter>Visualizers\FastRayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="FastRcVolumeVisualizerSetter.h">
+      <Filter>Visualizers\FastRayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="FastRCVolumeVisualizerSettings.h">
+      <Filter>Visualizers\FastRayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeObjectMemory.h">
+      <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialization.h">
+      <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeSegment.h">
+      <Filter>Data</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="NetVolumeLoader.h">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="NetVolumeLoaderFactory.h">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeLoaderBase.h">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeLoaderFactory.h">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorMappingTable.h">
+      <Filter>Visualizers\FastRayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="IVolumeScene.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeScene.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeSceneFactory.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Transformations.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="VolumeLoaderBase.cpp">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClCompile>
+    <ClCompile Include="NetVolumeLoader.cpp">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClCompile>
+    <ClCompile Include="FastRayCastingVolumeVisualizer.cpp">
+      <Filter>Visualizers\FastRayCasting</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeObjectMemory.cpp">
+      <Filter>Data</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Camera.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeScene.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Transformations.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

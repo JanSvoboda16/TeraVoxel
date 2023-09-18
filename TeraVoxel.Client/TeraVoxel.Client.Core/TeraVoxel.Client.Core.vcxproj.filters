@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="WindowNotification.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="TypeToString.h" />
+    <ClInclude Include="ProjectInfo.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectManager.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerException.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpManagerBase.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingsContext.h">
+      <Filter>Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryContext.h">
+      <Filter>Settings</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="ProjectManager.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="API">
+      <UniqueIdentifier>{488f7444-48f9-438a-a14b-db07bbd26ea5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{f36e105c-7ae2-4d79-abaa-ab2e78b94e3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Settings">
+      <UniqueIdentifier>{a501e05d-f91c-4d17-815c-4b87b3323399}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
