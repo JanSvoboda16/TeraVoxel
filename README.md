@@ -10,7 +10,7 @@ TeraVoxel is an open-source software designed for real-time displaying of large 
 
 The server is used as a remote storage of volumetric datasets that are split into small blocks. The client application controls the server and retrieves volumetric data from it according to the current need. The client application displays this data on CPU.
 
-TeraVoxel currently supports only simple ray-casting visualization with optional shading and interpolation.
+TeraVoxel currently supports simple ray-casting visualization with optional shading and interpolation.
 
 ![Screenshot](/doc/images/windows.png)
 
@@ -29,6 +29,7 @@ Class diagram is included in here: [ClassDiagram](doc/TeraVoxelClientClassDiagra
 
 ## Supported Formats
 TeraVoxel currently supports only the Nifti file format but other formats will be added in the future. You can also add the other ones by yourself.
+For now to convert to this format, it is possible to use the freely available ImageJ software and software based on it. 
 
 ## Startup and Configuration 
 ### Server configuration 
