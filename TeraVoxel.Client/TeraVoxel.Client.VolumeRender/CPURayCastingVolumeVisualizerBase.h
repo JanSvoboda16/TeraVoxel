@@ -1,17 +1,25 @@
 #pragma once
 #include "VolumeVisualizerBase.h"
+#include "CPURayCastingVolumeObjectMemory.h"
 
 template <typename T>
-class RayCastingVolumeVisualizerBase : public VolumeVisualizerBase<T>
+class CPURayCastingVolumeVisualizerBase : public VolumeVisualizerBase<T>
 {
+protected:
+	CPURayCastingVolumeObjectMemory<T> _memory;
 public:
-	RayCastingVolumeVisualizerBase(std::shared_ptr<Camera> camera, std::shared_ptr<VolumeObjectMemory<T>> memory) : VolumeVisualizerBase<T>(camera, memory) { }
+	CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory);
 	virtual void ComputeFrameInternal(int downscale) override = 0;
 	bool ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop);
 };
 
+template<typename T>
+inline CPURayCastingVolumeVisualizerBase<T>::CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory)
+	: VolumeVisualizerBase<T>(camera, projectInfo, volumeLoaderFactory),
+	_memory(camera, projectInfo, volumeLoaderFactory) { }
+
 template <typename T>
-bool RayCastingVolumeVisualizerBase<T>::ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop)
+bool CPURayCastingVolumeVisualizerBase<T>::ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop)
 {
 	// intersections of lines with planes:
 	// 
@@ -33,7 +41,7 @@ bool RayCastingVolumeVisualizerBase<T>::ComputeRayIntersection(const Vector3f& r
 	// k=(y-y1)/a k>=0
 	// py=position + k*direction
 
-	auto dataSizes = this->_memory->GetDataSizes();
+	auto dataSizes = _memory.GetDataSizes();
 	Vector3f maxIndexes(dataSizes[0] - 1, dataSizes[1] - 1, dataSizes[2] - 1);
 	Vector3f position = this->_camera->GetShrankPosition();
 	Vector3f k = (-position).array() / rayDireciton.array();

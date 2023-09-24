@@ -142,7 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="FastRCView.h" />
+    <ClInclude Include="CPURayCastingView.h" />
     <ClInclude Include="ImGui\Backends\imgui_impl_dx11.h" />
     <ClInclude Include="ImGui\Backends\imgui_impl_win32.h" />
     <ClInclude Include="ImGui\imconfig.h" />
@@ -161,7 +161,7 @@
     <ClInclude Include="IView.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FastRCView.cpp" />
+    <ClCompile Include="CPURayCastingView.cpp" />
     <ClCompile Include="ImGui\Backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="ImGui\Backends\imgui_impl_win32.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />

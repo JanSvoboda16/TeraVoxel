@@ -6,7 +6,7 @@
 #include<memory>
 #include"Camera.h"
 #include <mutex>
-#include "VolumeObjectMemory.h"
+#include "CPURayCastingVolumeObjectMemory.h"
 #include <future>
 #include <memory>
 #include "ColorMappingTable.h"

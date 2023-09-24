@@ -71,7 +71,7 @@
     </ClInclude>
     <ClInclude Include="ViewContext.h" />
     <ClInclude Include="IView.h" />
-    <ClInclude Include="FastRCView.h">
+    <ClInclude Include="CPURayCastingView.h">
       <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
     </ClInclude>
   </ItemGroup>
@@ -113,7 +113,7 @@
       <Filter>Areas\Settings</Filter>
     </ClCompile>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="FastRCView.cpp">
+    <ClCompile Include="CPURayCastingView.cpp">
       <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
     </ClCompile>
   </ItemGroup>
