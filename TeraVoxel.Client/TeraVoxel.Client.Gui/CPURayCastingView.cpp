@@ -126,7 +126,6 @@ void CPURayCastingView::Update()
                     _volumeViewContext->sceneUpdated.Notify();
                 ImGui::PopItemWidth();
 
-
                 auto colorToLabel = "##ColorTo" + std::to_string(row);
                 ImGui::TableSetColumnIndex(2);
                 ImGui::PushItemWidth(-1);
@@ -160,7 +159,6 @@ void CPURayCastingView::Update()
             }
             if (ImGui::DragFloat("Reflection sharpness", &_visualizerSettings->reflectionSharpness)) {
                 _volumeViewContext->sceneUpdated.Notify();
-
             }
         }        
     }

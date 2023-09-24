@@ -1,7 +1,8 @@
 #include "VolumeLoaderBase.h"
 
 template<typename T>
-VolumeLoaderBase<T>::VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount) {
+VolumeLoaderBase<T>::VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount)
+{
 	_projectInfo = projectInfo;
 	_segmentCountX = projectInfo.sizeX / projectInfo.segmentSize;
 	_segmentCountY = projectInfo.sizeY / projectInfo.segmentSize;
@@ -25,7 +26,7 @@ VolumeLoaderBase<T>::~VolumeLoaderBase()
 	for (size_t i = 0; i < _loadedSegments.size(); i++)
 	{
 		MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-		MemoryContext::GetInstance().usedMemory 
+		MemoryContext::GetInstance().usedMemory
 			-= GetBlockRequiredMemory(_loadedSegments.front()->actualDownscale);
 		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
@@ -35,25 +36,26 @@ VolumeLoaderBase<T>::~VolumeLoaderBase()
 }
 
 template <typename T>
-void VolumeLoaderBase<T>::LoadingTask() {
-	
+void VolumeLoaderBase<T>::LoadingTask()
+{
+
 	VolumeSegment<T>* volume;
 
-	while (!_endLoopingThreads) 
+	while (!_endLoopingThreads)
 	{
 		_segmentsToLoadMutex.lock();
-		if (_segmentsToLoad.size() > 0) 
+		if (_segmentsToLoad.size() > 0)
 		{
 			volume = _segmentsToLoad.top();
 			_segmentsToLoad.pop();
 		}
-		else 
+		else
 		{
 			volume = nullptr;
 		}
 		_segmentsToLoadMutex.unlock();
 
-		if (volume == nullptr) 
+		if (volume == nullptr)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
@@ -66,13 +68,15 @@ void VolumeLoaderBase<T>::LoadingTask() {
 			auto requiredMemory = GetBlockRequiredMemory(futureDownscale);
 
 			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-			if ((requiredMemory + MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) <= MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) && unusedCount < 2) {
+			if ((requiredMemory + MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) <= MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) && unusedCount < 2)
+			{
 				MemoryContext::GetInstance().usedMemory += requiredMemory;
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
 				// Data loading
 				T* data;
-				while (true) {
+				while (true)
+				{
 					try
 					{
 						data = LoadSegment(x, y, z, futureDownscale);
@@ -103,17 +107,19 @@ void VolumeLoaderBase<T>::LoadingTask() {
 
 				_onSegmentLoaded();
 			}
-			else {
+			else
+			{
 				//FUTURE DOWNSCALE only valid when waitsToBeReloaded == true;
 				volume->waitsToBeReloaded.store(false, std::memory_order::relaxed);
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
-			}		
+			}
 		}
 	}
 }
 
 template<typename T>
-void VolumeLoaderBase<T>::AddToStack(VolumeSegment<T>* segment) {
+void VolumeLoaderBase<T>::AddToStack(VolumeSegment<T>* segment)
+{
 	_segmentsToLoadMutex.lock();
 
 	segment->waitsToBeReloaded.store(true, std::memory_order::release);
@@ -137,14 +143,15 @@ void VolumeLoaderBase<T>::Preload(int downscale, int threadCount)
 }
 
 template<typename T>
-std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& count) {
-
+std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& count)
+{
 	_loadedSegmentsMutex.lock();
 
 	count = _loadedSegments.size();
 	std::unique_ptr<VolumeSegment<T>> value(nullptr);
-	
-	if (count > 0) {
+
+	if (count > 0)
+	{
 		value = std::move(_loadedSegments.front());
 		value->waitsToBeReloaded.store(false, std::memory_order::relaxed);
 		_loadedSegments.pop();
@@ -163,7 +170,8 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		uint64_t requiredMemory = GetBlockRequiredMemory(downscale);
 		MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
 		MemoryContext::GetInstance().usedMemory += requiredMemory;
-		if (MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) > MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) {
+		if (MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) > MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire))
+		{
 			MemoryContext::GetInstance().usedMemory -= requiredMemory;
 			//TODO
 		}
@@ -180,7 +188,7 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		volume->actualDownscale = downscale;
 		volume->futureDownscale = downscale;
 		volume->lastRequiredDownscale = downscale;
-		
+
 		_loadedSegmentsMutex.lock();
 		_loadedSegments.push(std::unique_ptr<VolumeSegment<T>>(volume));
 		_loadedSegmentsMutex.unlock();
@@ -189,9 +197,9 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 
 template<typename T>
 uint64_t VolumeLoaderBase<T>::GetBlockRequiredMemory(int downscale)
-{	
+{
 	short downscaleDividerReq = (short)pow(2, downscale);
-	return (uint64_t)pow((_projectInfo.segmentSize / downscaleDividerReq), 3) * sizeof(T);	
+	return (uint64_t)pow((_projectInfo.segmentSize / downscaleDividerReq), 3) * sizeof(T);
 }
 
 template VolumeLoaderBase<uint8_t>;
