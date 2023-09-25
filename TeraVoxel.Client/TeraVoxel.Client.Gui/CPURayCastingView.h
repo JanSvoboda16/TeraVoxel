@@ -8,15 +8,15 @@
 #include <fstream>
 #include "../TeraVoxel.Client.Core/nlohman/json.hpp"
 #include "VolumeViewContext.h"
-#include "../TeraVoxel.Client.VolumeRender/FastRayCastingVolumeVisualizer.h"
+#include "../TeraVoxel.Client.VolumeRender/CPURayCastingVolumeVisualizer.h"
 
 using nlohmann::json;
 namespace fs = std::filesystem;
 
-class FastRCView : IView
+class CPURayCastingView : IView
 {
 public:
-	FastRCView(std::shared_ptr<VolumeViewContext> volumeViewContext, std::shared_ptr<FastRCVolumeVisualizerSettings> visualizerSettings) :
+	CPURayCastingView(std::shared_ptr<VolumeViewContext> volumeViewContext, std::shared_ptr<CPURCVolumeVisualizerSettings> visualizerSettings) :
 		_volumeViewContext(volumeViewContext), _visualizerSettings(visualizerSettings) 
 	{
 		LoadTables();
@@ -26,7 +26,7 @@ public:
 
 private:
 	std::vector<std::string> _mappingTables; // Names of all mapping tables
-	std::shared_ptr<FastRCVolumeVisualizerSettings> _visualizerSettings;
+	std::shared_ptr<CPURCVolumeVisualizerSettings> _visualizerSettings;
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
 
 	// Saves the current mapping table to a file

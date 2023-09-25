@@ -213,7 +213,7 @@ namespace TeraVoxel.Server.Data
                 // Much faster than CopyTo (Caused by implementation in HttpRequestStream)
                 int bytesRead;
                 do
-                {         
+                {
                     bytesRead = await sourceStream.ReadAsync(new Memory<byte>(buffer)).ConfigureAwait(false);
                     if (bytesRead > 0)
                     {
@@ -229,10 +229,13 @@ namespace TeraVoxel.Server.Data
             }
             catch
             {
-                ArrayPool<byte>.Shared.Return(buffer);
                 info.State = ProjectState.ProjectCreated;
                 await WriteProjectInfo(projectName, info);
                 throw;
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 

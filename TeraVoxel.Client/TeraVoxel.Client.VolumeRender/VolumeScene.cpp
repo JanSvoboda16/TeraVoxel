@@ -6,11 +6,12 @@
 #include "VolumeScene.h"
 
 template <typename T>
-VolumeScene<T>::VolumeScene(std::shared_ptr<Camera> camera, std::shared_ptr<VolumeObjectMemory<T>> memory, std::shared_ptr<IVolumeVisualizerFactory<T>> visualizerFac) //TODO new constructor
+VolumeScene<T>::VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac) //TODO new constructor
 {
+	_projectInfo = projectInfo;
 	_camera = camera;
-	_memory = memory;
-	_visualizer = visualizerFac->Create(camera, memory);
+	_visualizer = visualizerFac->Create(camera, projectInfo, volumeLoaderFactory);
+	_volumeLoaderFactory = volumeLoaderFactory;
 }
 
 template<typename T>
@@ -61,7 +62,7 @@ void VolumeScene<T>::ComputeFrame(int width, int height, bool _fast)
 
 	if (_visualizerChanged)
 	{
-		_visualizer = _visualizerFactory->Create(_camera, _memory);
+		_visualizer = _visualizerFactory->Create(_camera, _projectInfo, _volumeLoaderFactory);
 		_visualizerChanged = false;
 	}
 
@@ -83,7 +84,7 @@ int VolumeScene<T>::GetFrameHeight()
 template <typename T>
 bool VolumeScene<T>::DataChanged()
 {
-	return _memory->MemoryChanged();
+	return _visualizer->DataChanged();
 }
 
 template <typename T>

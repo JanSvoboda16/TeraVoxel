@@ -9,7 +9,7 @@
 #include "imgui_stdlib.h"
 #include "../TeraVoxel.Client.Core/ProjectManager.h"
 #include "VolumeViewContext.h"
-#include "../TeraVoxel.Client.VolumeRender/VolumeSceneFactory.h"
+#include "../TeraVoxel.Client.VolumeRender/NetMemoryVolumeSceneFactory.h"
 #include <thread>
 #include <vector>
 #define CONTEXT_REFRESH_RATE 10000

@@ -11,7 +11,7 @@ template <typename T>
 class EmptyVolumeVisualizer: public VolumeVisualizerBase<T>
 {
 public:
-	EmptyVolumeVisualizer(std::shared_ptr<Camera> camera, std::shared_ptr<VolumeObjectMemory<T>> memory) : VolumeVisualizerBase<T>(camera, memory) {}
+	EmptyVolumeVisualizer(std::shared_ptr<Camera> camera, const ProjectInfo& projectInfo, std::shared_ptr<VolumeLoaderFactory<T>> volumeLoderFactory) : VolumeVisualizerBase<T>(camera,projectInfo, volumeLoderFactory) {}
 	void ComputeFrameInternal(int downscale) override {
 		
 		auto sizes = this->_camera->GetScreenSize();
@@ -23,5 +23,6 @@ public:
 		}
 
 	}
+	bool DataChanged() override { return false; }
 };
 

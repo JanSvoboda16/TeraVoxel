@@ -1,8 +1,14 @@
-﻿#include "FastRayCastingVolumeVisualizer.h"
+﻿#include "CPURayCastingVolumeVisualizer.h"
 
 
 template<typename T>
-inline void FastRayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
+bool CPURayCastingVolumeVisualizer<T>::DataChanged()
+{
+	return this->_memory.MemoryChanged();
+}
+
+template<typename T>
+inline void CPURayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
 {
 	Vector4f point4(point[0], point[1], point[2], 1);
 	unsigned char* framebuffer = this->_framebuffer.get();	
@@ -29,8 +35,9 @@ inline void FastRayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
 }
 
 template<typename T>
-inline void FastRayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale)
+inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale)
 {
+	this->_memory.Prepare();
 	_settingsCopy = *_settings;
 	_settingsCopy.mappingTable.RecomputeDeltas();
 	_reneringPosition.store(0, std::memory_order_release);
@@ -39,7 +46,7 @@ inline void FastRayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscal
 	std::vector<std::future<void>> threads;
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
-		threads.push_back(std::async(std::launch::async, &FastRayCastingVolumeVisualizer<T>::ComputePartOfFrame, this, renderingThreadCount, i, downscale));
+		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame, this, renderingThreadCount, i, downscale));
 	}
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
@@ -63,11 +70,13 @@ inline void FastRayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscal
 			}
 		}
 	}
+
+	this->_memory.Revalidate();
 }
 
 
 template <typename T>
-void FastRayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threadIndex, int downscale)
+void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threadIndex, int downscale)
 {
 	unsigned char* framebuffer = this->_framebuffer.get();
 	auto screenSizes = this->_camera->GetScreenSize();
@@ -112,7 +121,7 @@ void FastRayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int thre
 }
 
 template <typename T>
-color FastRayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
+color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 {
 	ColorMappingTable mappingTable = _settingsCopy.mappingTable;
 	Vector3f stepVector = this->_camera->GetShrankRayDirection(x, y).normalized();
@@ -135,7 +144,7 @@ color FastRayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 		int qualityStepCount = 100 - (position - start).norm();
 		bool lighting = _settingsCopy.shading;
-		auto dataSizes = this->_memory->GetDataSizes();
+		auto dataSizes = this->_memory.GetDataSizes();
 
 		if (lighting) 
 		{
@@ -149,7 +158,7 @@ color FastRayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				// Hodnoty ve všech osmi nejbližších voxelů
 				int downscale;
-				double f000 = this->_memory->GetValue(x0, y0, z0, downscale);
+				double f000 = this->_memory.GetValue(x0, y0, z0, downscale);
 
 				int gridSize = (1 << downscale);
 				x0 -= x0 % gridSize;
@@ -162,13 +171,13 @@ color FastRayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				if (!(x1 >= dataSizes[0] || y1 >= dataSizes[1] || z1 >= dataSizes[2])) 
 				{
-					double f100 = this->_memory->GetValue(x1, y0, z0, downscale);
-					double f010 = this->_memory->GetValue(x0, y1, z0, downscale);
-					double f110 = this->_memory->GetValue(x1, y1, z0, downscale);
-					double f001 = this->_memory->GetValue(x0, y0, z1, downscale);
-					double f101 = this->_memory->GetValue(x1, y0, z1, downscale);
-					double f011 = this->_memory->GetValue(x0, y1, z1, downscale);
-					double f111 = this->_memory->GetValue(x1, y1, z1, downscale);
+					double f100 = this->_memory.GetValue(x1, y0, z0, downscale);
+					double f010 = this->_memory.GetValue(x0, y1, z0, downscale);
+					double f110 = this->_memory.GetValue(x1, y1, z0, downscale);
+					double f001 = this->_memory.GetValue(x0, y0, z1, downscale);
+					double f101 = this->_memory.GetValue(x1, y0, z1, downscale);
+					double f011 = this->_memory.GetValue(x0, y1, z1, downscale);
+					double f111 = this->_memory.GetValue(x1, y1, z1, downscale);
 
 					// Váhy pro interpolaci
 					double dx = positionx - x0;
@@ -284,7 +293,7 @@ color FastRayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 			{
 
 				int downscale;
-				float value = this->_memory->GetValue(positionx, positiony, positionz, downscale);
+				float value = this->_memory.GetValue(positionx, positiony, positionz, downscale);
 
 
 				stepMultiplyer = 1 << downscale; // equals 2^downscale
@@ -341,13 +350,13 @@ color FastRayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 }
 
 
-template FastRayCastingVolumeVisualizer<uint8_t>;
-template FastRayCastingVolumeVisualizer<uint16_t>;
-template FastRayCastingVolumeVisualizer<uint32_t>;
-template FastRayCastingVolumeVisualizer<uint64_t>;
-template FastRayCastingVolumeVisualizer<float>;
-template FastRayCastingVolumeVisualizer<double>;
-template FastRayCastingVolumeVisualizer<int8_t>;
-template FastRayCastingVolumeVisualizer<int16_t>;
-template FastRayCastingVolumeVisualizer<int32_t>;
-template FastRayCastingVolumeVisualizer<int64_t>;
+template CPURayCastingVolumeVisualizer<uint8_t>;
+template CPURayCastingVolumeVisualizer<uint16_t>;
+template CPURayCastingVolumeVisualizer<uint32_t>;
+template CPURayCastingVolumeVisualizer<uint64_t>;
+template CPURayCastingVolumeVisualizer<float>;
+template CPURayCastingVolumeVisualizer<double>;
+template CPURayCastingVolumeVisualizer<int8_t>;
+template CPURayCastingVolumeVisualizer<int16_t>;
+template CPURayCastingVolumeVisualizer<int32_t>;
+template CPURayCastingVolumeVisualizer<int64_t>;

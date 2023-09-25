@@ -40,10 +40,12 @@ namespace TeraVoxel.Server.API.Controllers
                 return File(_tileRepository.GetSegmentStream(projectName, xIndex, yIndex, zIndex, downscale), "application/octet-stream");                
             }
             catch
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
+            {               
                 return NotFound();
-            }            
+            }
+            finally{
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
     }
 }

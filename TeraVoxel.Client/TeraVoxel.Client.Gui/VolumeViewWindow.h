@@ -9,10 +9,10 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "../TeraVoxel.Client.VolumeRender/Camera.h"
-#include "../TeraVoxel.Client.VolumeRender/VolumeObjectMemory.h"
+#include "../TeraVoxel.Client.VolumeRender/CPURayCastingVolumeObjectMemory.h"
 #include "../TeraVoxel.Client.VolumeRender/VolumeScene.h"
 #include "../TeraVoxel.Client.VolumeRender/ColorMappingTable.h"
-#include "../TeraVoxel.Client.VolumeRender/VolumeSceneFactory.h"
+#include "../TeraVoxel.Client.VolumeRender/NetMemoryVolumeSceneFactory.h"
 #include "../VolumeViewContext.h"
 #include <future>
 
@@ -35,7 +35,7 @@ private:
 	ID3D11Device* g_pd3dDevice;
 	ID3D11ShaderResourceView* _view = NULL;
 
-	std::shared_ptr<FastRCVolumeVisualizerSettings> _visualizerSettings = std::make_shared<FastRCVolumeVisualizerSettings>();
+	std::shared_ptr<CPURCVolumeVisualizerSettings> _visualizerSettings = std::make_shared<CPURCVolumeVisualizerSettings>();
 
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
 

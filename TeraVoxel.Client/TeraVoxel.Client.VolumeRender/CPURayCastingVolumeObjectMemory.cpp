@@ -2,12 +2,12 @@
  * Author: Jan Svoboda
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
-#include "VolumeObjectMemory.h"
+#include "CPURayCastingVolumeObjectMemory.h"
 #include "../TeraVoxel.Client.Core/Logger.h"
 
 
 template<typename T>
-VolumeObjectMemory<T>::~VolumeObjectMemory()
+CPURayCastingVolumeObjectMemory<T>::~CPURayCastingVolumeObjectMemory()
 {
 	delete _volumeLoader.release();
 
@@ -19,7 +19,7 @@ VolumeObjectMemory<T>::~VolumeObjectMemory()
 }
 
 template <typename T>
-VolumeObjectMemory<T>::VolumeObjectMemory(std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, std::shared_ptr<VolumeLoaderFactory<T>>& loaderFactory)
+CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory)
 {
 	_projectInfo = projectInfo;
 	_camera = camera;
@@ -29,7 +29,7 @@ VolumeObjectMemory<T>::VolumeObjectMemory(std::shared_ptr<Camera>& camera, const
 	_oneDivSegmentSize = 1.0 / _projectInfo.segmentSize;
 	_segmentSize = _projectInfo.segmentSize;
 	_segmentSizeShifter = (int)(log2(_segmentSize) + 0.5);
-	_volumeLoader = loaderFactory->Create(projectInfo, SettingsContext::GetInstance().loadingThreadCount.load(std::memory_order::acquire));
+	_volumeLoader = volumeLoaderFactory->Create(projectInfo, SettingsContext::GetInstance().loadingThreadCount);
 
 	_segmentCount = (uint64_t)xSegmentCount * (uint64_t)ySegmentCountCount * (uint64_t)zSegmentCount;
 	_volumes.resize(_segmentCount);
@@ -43,14 +43,14 @@ VolumeObjectMemory<T>::VolumeObjectMemory(std::shared_ptr<Camera>& camera, const
 }
 
 template <typename T>
-long VolumeObjectMemory<T>::GetBlockRequiredMemory(int downscale)
+long CPURayCastingVolumeObjectMemory<T>::GetBlockRequiredMemory(int downscale)
 {
 	short downscaleDividerReq = (short)pow(2, downscale);
 	return (long)pow((_segmentSize / downscaleDividerReq), 3) * sizeof(T);
 }
 
 template <typename T>
-void VolumeObjectMemory<T>::Preload(short threadCount)
+void CPURayCastingVolumeObjectMemory<T>::Preload(short threadCount)
 {
 	_volumeLoader->Preload(3, threadCount);
 
@@ -69,7 +69,7 @@ void VolumeObjectMemory<T>::Preload(short threadCount)
 }
 
 template <typename T>
-__forceinline int VolumeObjectMemory<T>::GetRequiredDownscale(int xIndex, int yIndex, int zIndex)
+__forceinline int CPURayCastingVolumeObjectMemory<T>::GetRequiredDownscale(int xIndex, int yIndex, int zIndex)
 {
 	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex));
 	auto dist = (vecPos - _camera->GetPosition()).norm(); // Absolute distance
@@ -92,7 +92,7 @@ __forceinline int VolumeObjectMemory<T>::GetRequiredDownscale(int xIndex, int yI
 }
 
 template <typename T>
-void VolumeObjectMemory<T>::ProcessDelete(std::vector<VolumeSegment<T>*>& volumes)
+void CPURayCastingVolumeObjectMemory<T>::ProcessDelete(std::vector<VolumeSegment<T>*>& volumes)
 {
 	int size = volumes.size();
 	for (size_t i = 0; i < size; i++)
@@ -110,7 +110,7 @@ void VolumeObjectMemory<T>::ProcessDelete(std::vector<VolumeSegment<T>*>& volume
 }
 
 template <typename T>
-void VolumeObjectMemory<T>::Revalidate()
+void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 {
 	bool ramAlmostFull = MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) + 50000000 > MemoryContext::GetInstance().maxMemory.load(std::memory_order_acquire);
 
@@ -199,7 +199,7 @@ void VolumeObjectMemory<T>::Revalidate()
 }
 
 template<typename T>
-void VolumeObjectMemory<T>::Prepare()
+void CPURayCastingVolumeObjectMemory<T>::Prepare()
 {
 	int count;
 	while (true)
@@ -218,8 +218,14 @@ void VolumeObjectMemory<T>::Prepare()
 	}
 }
 
+template<typename T>
+void CPURayCastingVolumeObjectMemory<T>::FlushCachedData()
+{
+	ProcessDelete(_volumes);
+}
+
 template <typename T>
-void VolumeObjectMemory<T>::DeleteNotUsed(int maxCount)
+void CPURayCastingVolumeObjectMemory<T>::DeleteNotUsed(int maxCount)
 {
 	int count = 0;
 	for (size_t i = 0; i < _segmentCount; i++)
@@ -249,7 +255,7 @@ void VolumeObjectMemory<T>::DeleteNotUsed(int maxCount)
 }
 
 template <typename T>
-void VolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount)
+void CPURayCastingVolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount)
 {
 	int count = 0;
 	for (size_t i = 0; i < _segmentCount; i++)
@@ -307,7 +313,7 @@ void VolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount)
 }
 
 template <typename T>
-__forceinline T VolumeObjectMemory<T>::GetValue(uint_fast16_t xIndex, uint_fast16_t yIndex, uint_fast16_t zIndex, int& downscale)
+__forceinline T CPURayCastingVolumeObjectMemory<T>::GetValue(uint_fast16_t xIndex, uint_fast16_t yIndex, uint_fast16_t zIndex, int& downscale)
 {
 	uint_fast16_t xSegment = xIndex >> _segmentSizeShifter;
 	uint_fast16_t ySegent = yIndex >> _segmentSizeShifter;
@@ -339,24 +345,24 @@ __forceinline T VolumeObjectMemory<T>::GetValue(uint_fast16_t xIndex, uint_fast1
 }
 
 template <typename T>
-ProjectInfo VolumeObjectMemory<T>::GetProjectInfo()
+ProjectInfo CPURayCastingVolumeObjectMemory<T>::GetProjectInfo()
 {
 	return _projectInfo;
 }
 
 template<typename T>
-std::array<int, 3> VolumeObjectMemory<T>::GetDataSizes()
+std::array<int, 3> CPURayCastingVolumeObjectMemory<T>::GetDataSizes()
 {
 	return { _projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ };
 }
 
-template VolumeObjectMemory<uint8_t>;
-template VolumeObjectMemory<uint16_t>;
-template VolumeObjectMemory<uint32_t>;
-template VolumeObjectMemory<uint64_t>;
-template VolumeObjectMemory<float>;
-template VolumeObjectMemory<double>;
-template VolumeObjectMemory<int8_t>;
-template VolumeObjectMemory<int16_t>;
-template VolumeObjectMemory<int32_t>;
-template VolumeObjectMemory<int64_t>;
+template CPURayCastingVolumeObjectMemory<uint8_t>;
+template CPURayCastingVolumeObjectMemory<uint16_t>;
+template CPURayCastingVolumeObjectMemory<uint32_t>;
+template CPURayCastingVolumeObjectMemory<uint64_t>;
+template CPURayCastingVolumeObjectMemory<float>;
+template CPURayCastingVolumeObjectMemory<double>;
+template CPURayCastingVolumeObjectMemory<int8_t>;
+template CPURayCastingVolumeObjectMemory<int16_t>;
+template CPURayCastingVolumeObjectMemory<int32_t>;
+template CPURayCastingVolumeObjectMemory<int64_t>;

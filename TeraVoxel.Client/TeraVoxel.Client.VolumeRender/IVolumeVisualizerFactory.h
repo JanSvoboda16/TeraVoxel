@@ -5,6 +5,6 @@ template<typename T>
 class IVolumeVisualizerFactory
 {
 public:
-	virtual std::unique_ptr<VolumeVisualizerBase<T>> Create(std::shared_ptr<Camera> camera, std::shared_ptr<VolumeObjectMemory<T>> memory) = 0;
+	virtual std::unique_ptr<VolumeVisualizerBase<T>> Create(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory) = 0;
 };
 
