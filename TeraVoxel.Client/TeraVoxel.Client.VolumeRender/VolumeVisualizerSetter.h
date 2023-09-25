@@ -5,7 +5,7 @@ template <class Concrete>
 class VolumeVisualizerSetter
 {
 public:
-	static void Set(std::shared_ptr<IVolumeScene> scene, std::shared_ptr<VolumeVisualizerSettingsBase> settings)
+	static void Set(const std::shared_ptr<IVolumeScene>& scene, const std::shared_ptr<VolumeVisualizerSettingsBase>& settings)
 	{
 		const char* typeName = scene->GetDataTypeName();
 

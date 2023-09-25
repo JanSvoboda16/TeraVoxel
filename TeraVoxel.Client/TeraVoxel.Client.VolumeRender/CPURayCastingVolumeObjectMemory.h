@@ -19,11 +19,11 @@
 #include <bit>
 	
 template <typename T>
-class VolumeObjectMemory
+class CPURayCastingVolumeObjectMemory
 {
 public:
-	~VolumeObjectMemory();
-	VolumeObjectMemory(std::shared_ptr<Camera> &camera, const ProjectInfo &projectInfo, std::shared_ptr<VolumeLoaderFactory<T>> &loaderFactory);
+	~CPURayCastingVolumeObjectMemory();
+	CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory);
 		
 	/// <summary>
 	/// Gets a value at a position in the memory
@@ -58,7 +58,8 @@ public:
 	/// </summary>
 	/// <returns>true if changed</returns>
 	bool MemoryChanged() { bool res = _memoryChanged.load(std::memory_order_relaxed); _memoryChanged = false; return res; }
-
+	
+	void FlushCachedData();
 private:
 	std::vector<VolumeSegment<T>*> _volumesToDelete;		// Volume segments that will bee deleted
 	std::mutex _reloadStackMutex, _volumesToDeleteMutex;	// Mutexes

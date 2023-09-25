@@ -155,20 +155,22 @@ void ProjectManager::UploadFile(const std::string& projectName, const std::strin
 
 	std::filesystem::path p(filePath);
 	std::string filename = p.filename().string();
-
+	
 	file.seekg(0, std::ios::end);
 	long long fileSize = file.tellg();
-	long maxLength = 100000000;
+	long maxLength = 2000000;
 
 	httplib::Client cli = httplib::Client(Url);
+	cli.set_write_timeout(300);
+	std::vector<char>  buffer(maxLength);
 	auto result = cli.Post("/ProjectManagement/UploadFile?projectName=" + projectName + "&fileName=" + filename + "",
-		[&file, maxLength, fileSize](size_t offset, httplib::DataSink& sink)
+		[&file, maxLength, fileSize, &buffer](size_t offset, httplib::DataSink& sink)
 		{
 			file.seekg(offset, std::ios::beg);
 			long long bytesToEnd = fileSize - file.tellg();
 
 			long length = bytesToEnd > maxLength ? maxLength : (long long)bytesToEnd;
-			std::vector<char>  result(length);
+			
 
 			if (length == 0)
 			{
@@ -176,8 +178,8 @@ void ProjectManager::UploadFile(const std::string& projectName, const std::strin
 			}
 			else
 			{
-				file.read(&result[0], length);
-				sink.write(&result[0], result.size());
+				file.read(&buffer[0], length);
+				sink.write(&buffer[0], length);
 			}
 
 			return true;

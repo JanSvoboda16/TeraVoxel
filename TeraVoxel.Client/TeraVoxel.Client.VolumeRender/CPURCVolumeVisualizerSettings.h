@@ -2,7 +2,7 @@
 #include "ColorMappingTable.h"
 #include "VolumeVisualizerSettingsBase.h"
 
-class FastRCVolumeVisualizerSettings : public VolumeVisualizerSettingsBase
+class CPURCVolumeVisualizerSettings : public VolumeVisualizerSettingsBase
 {
 public:
 	ColorMappingTable mappingTable;

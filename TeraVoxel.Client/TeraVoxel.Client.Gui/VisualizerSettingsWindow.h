@@ -10,9 +10,9 @@
 #include <filesystem>
 #include <fstream>
 #include "../TeraVoxel.Client.Core/nlohman/json.hpp"
-#include "FastRCView.h"
+#include "CPURayCastingView.h"
 #include "../TeraVoxel.Client.VolumeRender/VolumeVisualizerSetter.h"
-#include "../TeraVoxel.Client.VolumeRender/FastRcVolumeVisualizerSetter.h"
+#include "../TeraVoxel.Client.VolumeRender/CPURCVolumeVisualizerSetter.h"
 #include "../TeraVoxel.Client.VolumeRender/EmptyVolumeVisualizerSetter.h"
 
 // Used for changing and controlling visualizers
@@ -21,7 +21,7 @@ class VisualizerSettingsWindow : IView
 public:
 	VisualizerSettingsWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) : _volumeViewContext(volumeViewContext) 
 	{
-		_fastRayCastingVisualizerSettings = std::make_shared<FastRCVolumeVisualizerSettings>();
+		_fastRayCastingVisualizerSettings = std::make_shared<CPURCVolumeVisualizerSettings>();
 		_volumeViewContext->sceneReplaced.Register([this]() { SetVisualizer(_selectedVisualizerId); });
 
 		SetVisualizer(_selectedVisualizerId);
@@ -31,7 +31,7 @@ public:
 
 private:
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
-	std::shared_ptr<FastRCVolumeVisualizerSettings> _fastRayCastingVisualizerSettings;
+	std::shared_ptr<CPURCVolumeVisualizerSettings> _fastRayCastingVisualizerSettings;
 	std::shared_ptr<IView> _view;
 
 	int _selectedVisualizerId = 1;

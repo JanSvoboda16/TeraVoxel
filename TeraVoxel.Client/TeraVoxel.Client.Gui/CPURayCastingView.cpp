@@ -1,6 +1,6 @@
-#include "FastRCView.h"
+#include "CPURayCastingView.h"
 
-void FastRCView::SaveToFile(std::string fileName)
+void CPURayCastingView::SaveToFile(std::string fileName)
 {
     std::ofstream file;
     file.open("ColorMappingTables/" + fileName);
@@ -9,7 +9,7 @@ void FastRCView::SaveToFile(std::string fileName)
     file.close();
 }
 
-void FastRCView::LoadTables()
+void CPURayCastingView::LoadTables()
 {
     std::string path = "ColorMappingTables";
     fs::create_directory(path);
@@ -19,7 +19,7 @@ void FastRCView::LoadTables()
         _mappingTables.push_back(entry.path().filename().string());
 }
 
-void FastRCView::LoadTable(std::string fileName)
+void CPURayCastingView::LoadTable(std::string fileName)
 {
     std::fstream file;
     file.open("ColorMappingTables/" + fileName);
@@ -31,7 +31,7 @@ void FastRCView::LoadTable(std::string fileName)
     _visualizerSettings->mappingTable = data.get<ColorMappingTable>();
 }
 
-void FastRCView::Update()
+void CPURayCastingView::Update()
 {
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
     ImGui::Text("Color Mapping Tables");
@@ -74,9 +74,7 @@ void FastRCView::Update()
             }
         }     
         ImGui::EndTable();
-    }
-
-    
+    }    
 
     ImGui::Text("Color Mapping Editor");
     static std::string fileName;
@@ -142,8 +140,7 @@ void FastRCView::Update()
                     _visualizerSettings->mappingTable.Table.erase(_visualizerSettings->mappingTable.Table.begin() + row);
                     _volumeViewContext->sceneUpdated.Notify();
                 }
-            }
-            
+            }            
         }
         
         ImGui::EndTable();
@@ -165,8 +162,6 @@ void FastRCView::Update()
                 _volumeViewContext->sceneUpdated.Notify();
 
             }
-        }
-
-        
+        }        
     }
 }

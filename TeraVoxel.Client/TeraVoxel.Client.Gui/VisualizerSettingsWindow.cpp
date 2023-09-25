@@ -12,7 +12,7 @@ void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
             VolumeVisualizerSetter<EmptyVolumeVisualizerSetter>::Set(_volumeViewContext->scene, std::static_pointer_cast<VolumeVisualizerSettingsBase>(std::make_shared<EmptyVolumeVisualizerSettings>()));
             break;
         case 1:            
-            VolumeVisualizerSetter<FastRcVolumeVisualizerSetter>::Set(_volumeViewContext->scene, std::static_pointer_cast<VolumeVisualizerSettingsBase>(_fastRayCastingVisualizerSettings));
+            VolumeVisualizerSetter<CPURCVolumeVisualizerSetter>::Set(_volumeViewContext->scene, std::static_pointer_cast<VolumeVisualizerSettingsBase>(_fastRayCastingVisualizerSettings));
             break;
         case 2:
             // Add your visualizer here
@@ -29,7 +29,7 @@ void VisualizerSettingsWindow::ChangeView(int visualizerId) {
         _view = nullptr;
         break;
     case 1:
-        _view = std::shared_ptr<IView>((IView*) new FastRCView(_volumeViewContext, _fastRayCastingVisualizerSettings));    
+        _view = std::shared_ptr<IView>((IView*) new CPURayCastingView(_volumeViewContext, _fastRayCastingVisualizerSettings));    
         break;
     default:
         // Add your visualizer view here
@@ -41,7 +41,7 @@ void VisualizerSettingsWindow::Update()
 {
     ImGui::Begin("Visualizer Settings");    
     
-    const char* visualizerNames[] = { "None", "Fast RC", "Your visualizer" };
+    const char* visualizerNames[] = { "None", "CPU Ray casting", "Your visualizer" };
 
     if (ImGui::Combo("combo", &_selectedVisualizerId, visualizerNames, IM_ARRAYSIZE(visualizerNames))) {
         SetVisualizer(_selectedVisualizerId);

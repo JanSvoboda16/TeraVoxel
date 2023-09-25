@@ -5,19 +5,19 @@
 #pragma once
 #include<memory>
 #include"Camera.h"
-#include "VolumeObjectMemory.h"
+#include "CPURayCastingVolumeObjectMemory.h"
 #include "NetVolumeLoader.h"
 #include "ColorMappingTable.h"
 #include "IVolumeScene.h"
 #include "VolumeScene.h"
 #include "NetVolumeLoaderFactory.h"
-#include "FastRCVolumeVisualizerFactory.h"
+#include "CPURCVolumeVisualizerFactory.h"
 #include "EmptyVolumeVisualizerFactory.h"
 
  /// <summary>
  /// Used for creating a typed instance of the VolumeScene class. 
  /// </summary>
-class VolumeSceneFactory
+class NetMemoryVolumeSceneFactory
 {
 
 public:
@@ -71,15 +71,14 @@ public:
 
 private:
 	template <typename T>
-	static std::unique_ptr<IVolumeScene> CreateInstance(std::shared_ptr<Camera> camera, const ProjectInfo& projectInfo, const std::string& serverUrl)
+	static std::unique_ptr<IVolumeScene> CreateInstance(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::string& serverUrl)
 	{
 		ProjectManager projectManager(serverUrl);
 		std::shared_ptr<VolumeLoaderFactory<T>> loaderFactory = std::make_shared<NetVolumeLoaderFactory<T>>(projectManager);
 
 		// TODO rozdelit projectInfo -> projectInfo, sourceInfo
-		auto memory = std::make_shared<VolumeObjectMemory<T>>(camera, projectInfo, loaderFactory);
 		auto emptyVisualizerFactory = std::shared_ptr<IVolumeVisualizerFactory<T>>((IVolumeVisualizerFactory<T> *) new EmptyVolumeVisualizerFactory<T>(std::make_shared<EmptyVolumeVisualizerSettings>()));
-		return std::unique_ptr<IVolumeScene>((IVolumeScene*) new VolumeScene<T>(camera, memory, emptyVisualizerFactory));
+		return std::unique_ptr<IVolumeScene>((IVolumeScene*) new VolumeScene<T>(camera, projectInfo, loaderFactory, emptyVisualizerFactory));
 	}
 };
 

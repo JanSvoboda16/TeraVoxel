@@ -99,7 +99,7 @@ void ProjectManagementWindow::Update()
                                 Vector3f voxelDimensions = Vector3f(project.voxelDimensions);
                                 Vector3f initialPosition = Vector3f(project.dataSizeX, project.dataSizeY, project.dataSizeZ).array() / 2 * voxelDimensions.array();
                                 std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2);
-                                _volumeViewContext->scene = VolumeSceneFactory::Create(camera, project, _connectedServerUrl);
+                                _volumeViewContext->scene = NetMemoryVolumeSceneFactory::Create(camera, project, _connectedServerUrl);
                                 _volumeViewContext->sceneReplaced.Notify();
                             }
                         }

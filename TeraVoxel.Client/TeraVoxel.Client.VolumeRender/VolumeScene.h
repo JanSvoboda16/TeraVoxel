@@ -6,7 +6,7 @@
 #include<memory>
 #include"Camera.h"
 #include <mutex>
-#include "VolumeObjectMemory.h"
+#include "CPURayCastingVolumeObjectMemory.h"
 #include <future>
 #include "ColorMappingTable.h"
 #include "IVolumeScene.h"
@@ -21,7 +21,7 @@ template <typename T>
 class VolumeScene : IVolumeScene
 {
 public:
-	VolumeScene(std::shared_ptr<Camera> camera, std::shared_ptr<VolumeObjectMemory<T>> memory, std::shared_ptr<IVolumeVisualizerFactory<T>> visualizerFac);
+	VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac);
 	~VolumeScene() override;
 	void ComputeFrame(int width, int height, bool fast) override;
 	int GetFrameWidth() override;
@@ -41,13 +41,15 @@ private:
 	int frameHeight2;				// Height of framebuffer2
 	bool _framebufferIndex = false; // Index of the currently used framebuffer
 
+	ProjectInfo _projectInfo;
+
 	// Framebuffers
 	std::shared_ptr<unsigned char[]> _framebuffer1;
 	std::shared_ptr<unsigned char[]> _framebuffer2;
 
 	// Scene parts
 	std::shared_ptr<Camera> _camera;
-	std::shared_ptr<VolumeObjectMemory<T>> _memory;
+	std::shared_ptr<VolumeLoaderFactory<T>> _volumeLoaderFactory;
 	std::shared_ptr<VolumeVisualizerBase<T>> _visualizer;
 	std::shared_ptr<IVolumeVisualizerFactory<T>> _visualizerFactory;
 
