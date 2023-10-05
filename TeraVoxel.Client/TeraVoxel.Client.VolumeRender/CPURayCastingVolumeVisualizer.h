@@ -7,10 +7,11 @@ template <typename T>
 class CPURayCastingVolumeVisualizer : public CPURayCastingVolumeVisualizerBase<T>
 {
 public:
-	CPURayCastingVolumeVisualizer(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings> &settings) : CPURayCastingVolumeVisualizerBase<T>(camera, projectInfo, volumeLoaderFactory) {
+	CPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings>& settings) : CPURayCastingVolumeVisualizerBase<T>(camera, projectInfo, volumeLoaderFactory)
+	{
 		_settings = settings;
 	}
-	
+
 	bool DataChanged() override;
 
 private:

@@ -9,10 +9,10 @@ class NetVolumeLoader : public VolumeLoaderBase<T>
 public:
 	NetVolumeLoader(const ProjectInfo& projectInfo, int threadCount, const ProjectManager& projectManager);
 	~NetVolumeLoader() override;
-	
+
 
 protected:
 	T* LoadSegment(int x, int y, int z, int downscale) override;
-	ProjectManager _projectManager;	
+	ProjectManager _projectManager;
 };
 

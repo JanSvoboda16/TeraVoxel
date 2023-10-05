@@ -15,11 +15,11 @@
 #include "../TeraVoxel.Client.VolumeRender/CPURCVolumeVisualizerSetter.h"
 #include "../TeraVoxel.Client.VolumeRender/EmptyVolumeVisualizerSetter.h"
 
-// Used for changing and controlling visualizers
+ // Used for changing and controlling visualizers
 class VisualizerSettingsWindow : IView
 {
 public:
-	VisualizerSettingsWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) : _volumeViewContext(volumeViewContext) 
+	VisualizerSettingsWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) : _volumeViewContext(volumeViewContext)
 	{
 		_fastRayCastingVisualizerSettings = std::make_shared<CPURCVolumeVisualizerSettings>();
 		_volumeViewContext->sceneReplaced.Register([this]() { SetVisualizer(_selectedVisualizerId); });

@@ -4,7 +4,7 @@
  */
 #include "ProjectManagementWindow.h"
 
-void ProjectManagementWindow::Update() 
+void ProjectManagementWindow::Update()
 {
 	ImGui::Begin("Projects");
 	ImGui::Text("Connect to the server");
@@ -12,211 +12,223 @@ void ProjectManagementWindow::Update()
 
 	auto clicked = ImGui::Button("Connect");
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1,0,0,1));
-    ImGui::Text(_showedErrorMessage.c_str());
-    ImGui::PopStyleColor();
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 0, 0, 1));
+	ImGui::Text(_showedErrorMessage.c_str());
+	ImGui::PopStyleColor();
 
-    // SERVER CONNECTION
-    if (clicked && !_serverUrl.empty()) 
-    {
-        try {
-            _errorMessage = "";
-            ProjectManager manager(_serverUrl);
-            _projects = manager.GetAllProjectsInfo();
-            _connectedServerUrl = _serverUrl;
-        }
-        catch (const std::exception& ex){
-            _errorMessage = ex.what();
-            _connectedServerUrl = "";
-        }        
-    }
+	// SERVER CONNECTION
+	if (clicked && !_serverUrl.empty())
+	{
+		try
+		{
+			_errorMessage = "";
+			ProjectManager manager(_serverUrl);
+			_projects = manager.GetAllProjectsInfo();
+			_connectedServerUrl = _serverUrl;
+		}
+		catch (const std::exception& ex)
+		{
+			_errorMessage = ex.what();
+			_connectedServerUrl = "";
+		}
+	}
 
-    // CREATING A NEW PROJECT OR UPLOADING A FILE
-    if (!_connectedServerUrl.empty()) 
-    {
-        ImGui::Text("Create project");
-        ImGui::InputText("Project Name", &_createProjectName);
+	// CREATING A NEW PROJECT OR UPLOADING A FILE
+	if (!_connectedServerUrl.empty())
+	{
+		ImGui::Text("Create project");
+		ImGui::InputText("Project Name", &_createProjectName);
 
-        try 
-        {
-            if (ImGui::Button("Create") && !_createProjectName.empty()) 
-            {
-                ProjectManager manager(_serverUrl);
-                manager.CreateProject(_createProjectName);
-                _refreshContext = true;
-            };
-        }
-        catch (const std::exception &ex) 
-        {
-            _errorMessage = ex.what();
-        }       
+		try
+		{
+			if (ImGui::Button("Create") && !_createProjectName.empty())
+			{
+				ProjectManager manager(_serverUrl);
+				manager.CreateProject(_createProjectName);
+				_refreshContext = true;
+			};
+		}
+		catch (const std::exception& ex)
+		{
+			_errorMessage = ex.what();
+		}
 
-        ImGui::InputText("File to upload", &_fileToUploadPath);        
-    }
+		ImGui::InputText("File to upload", &_fileToUploadPath);
+	}
 
-    static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-    
-    ImGui::Text("Projects");
-    if (ImGui::BeginTable("table_scrolly", 4, flags))
-    {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
-        ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None);
-        ImGui::TableHeadersRow();
+	static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-        if (!_connectedServerUrl.empty()) 
-        {
-            ImGuiListClipper clipper;
-            clipper.Begin(_projects.size());
+	ImGui::Text("Projects");
+	if (ImGui::BeginTable("table_scrolly", 4, flags))
+	{
+		ImGui::TableSetupScrollFreeze(0, 1);
+		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
+		ImGui::TableSetupColumn("", ImGuiTableColumnFlags_None);
+		ImGui::TableHeadersRow();
 
-            while (clipper.Step())
-            {
-                try {
+		if (!_connectedServerUrl.empty())
+		{
+			ImGuiListClipper clipper;
+			clipper.Begin(_projects.size());
 
-                    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
-                    {
-                        auto project = _projects[row];
-                        ImGui::TableNextRow();
-                        ImGui::TableSetColumnIndex(0);
-                        ImGui::Text(project.name.c_str());
-                        ImGui::Text(project.dataType.c_str());
+			while (clipper.Step())
+			{
+				try
+				{
 
-                        ImGui::TableSetColumnIndex(1);
-                        auto loadLable = "Load##" + std::to_string(row);
-                        auto unloadLable = "Unload##" + std::to_string(row);
-                        auto deleteLabel = "Delete##" + std::to_string(row);
-                        auto buildLabel = "Build##" + std::to_string(row);
-                        auto uploadLabel = "Upload##" + std::to_string(row);
+					for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
+					{
+						auto project = _projects[row];
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text(project.name.c_str());
+						ImGui::Text(project.dataType.c_str());
 
-                        // FIRST COLUMN
-                        // LOAD/UNLOAD project - only when converted
-                        if (project.name != _selectedProjectName) {
+						ImGui::TableSetColumnIndex(1);
+						auto loadLable = "Load##" + std::to_string(row);
+						auto unloadLable = "Unload##" + std::to_string(row);
+						auto deleteLabel = "Delete##" + std::to_string(row);
+						auto buildLabel = "Build##" + std::to_string(row);
+						auto uploadLabel = "Upload##" + std::to_string(row);
 
-                            if (project.state == ProjectConverted && ImGui::Button(loadLable.c_str())) {
-                                _selectedProjectIndex = row;
-                                _selectedProjectName = project.name;
+						// FIRST COLUMN
+						// LOAD/UNLOAD project - only when converted
+						if (project.name != _selectedProjectName)
+						{
 
-                                Vector3f voxelDimensions = Vector3f(project.voxelDimensions);
-                                Vector3f initialPosition = Vector3f(project.dataSizeX, project.dataSizeY, project.dataSizeZ).array() / 2 * voxelDimensions.array();
-                                std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2);
-                                _volumeViewContext->scene = NetMemoryVolumeSceneFactory::Create(camera, project, _connectedServerUrl);
-                                _volumeViewContext->sceneReplaced.Notify();
-                            }
-                        }
-                        else {
-                            if (project.state == ProjectConverted && ImGui::Button(unloadLable.c_str())) {
-                                _selectedProjectIndex = -1;
-                                _selectedProjectName = "";
-                                
-                                _volumeViewContext->scene = nullptr;     
-                                _volumeViewContext->sceneReplaced.Notify();
-                            }
-                        }
+							if (project.state == ProjectConverted && ImGui::Button(loadLable.c_str()))
+							{
+								_selectedProjectIndex = row;
+								_selectedProjectName = project.name;
 
-                        auto state = project.state;
+								Vector3f voxelDimensions = Vector3f(project.voxelDimensions);
+								Vector3f initialPosition = Vector3f(project.dataSizeX, project.dataSizeY, project.dataSizeZ).array() / 2 * voxelDimensions.array();
+								std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2);
+								_volumeViewContext->scene = NetMemoryVolumeSceneFactory::Create(camera, project, _connectedServerUrl);
+								_volumeViewContext->sceneReplaced.Notify();
+							}
+						}
+						else
+						{
+							if (project.state == ProjectConverted && ImGui::Button(unloadLable.c_str()))
+							{
+								_selectedProjectIndex = -1;
+								_selectedProjectName = "";
 
-                        // SECOND COLUMN
-                        // DELETE project - only when the project is not selected and no process is running
-                        ImGui::TableSetColumnIndex(2);
-                        if (project.name != _selectedProjectName && ImGui::Button(deleteLabel.c_str())) {
-                            if (state != ProjectConverting && state != SourceFileUploading) {
-                                ProjectManager manager(_connectedServerUrl);
-                                manager.DeleteProject(project.name.c_str());
-                                _refreshContext = true;
-                            }
-                        }
+								_volumeViewContext->scene = nullptr;
+								_volumeViewContext->sceneReplaced.Notify();
+							}
+						}
 
-                        // THIRD COLUMN
-                        // BUILD/UPLOAD 
-                        ImGui::TableSetColumnIndex(3);
-                        switch (state)
-                        {
-                        case ProjectCreated:
-                            if (ImGui::Button(uploadLabel.c_str()) && !_fileToUploadPath.empty())
-                            {
-                                std::thread([](std::string serverUrl, std::string projectName, bool& _refreshContext, std::string fileUploadPath)
-                                {
-                                    try {
-                                        ProjectManager manager(serverUrl);
-                                        manager.UploadFile(projectName, fileUploadPath);
-                                        _refreshContext = true;
-                                    }
-                                    catch (const exception& ex) {
+						auto state = project.state;
 
-                                    }
-                                }, _connectedServerUrl, project.name, std::ref(_refreshContext), _fileToUploadPath
-                                ).detach();
-                                project.state = SourceFileUploading;
-                            }
-                            break;
-                        case SourceFileUploaded:
-                            if (ImGui::Button(buildLabel.c_str()))
-                            {
-                                ProjectManager manager(_connectedServerUrl);
-                                manager.ConvertProject(project.name);
-                                _refreshContext = true;
-                                project.state = ProjectConverting;
-                            }
-                            break;
+						// SECOND COLUMN
+						// DELETE project - only when the project is not selected and no process is running
+						ImGui::TableSetColumnIndex(2);
+						if (project.name != _selectedProjectName && ImGui::Button(deleteLabel.c_str()))
+						{
+							if (state != ProjectConverting && state != SourceFileUploading)
+							{
+								ProjectManager manager(_connectedServerUrl);
+								manager.DeleteProject(project.name.c_str());
+								_refreshContext = true;
+							}
+						}
 
-                        case SourceFileUploading:
-                            ImGui::Text("Uploading...");
-                            break;
-                        case ProjectConverting:
-                            ImGui::Text("Processing...");
-                            break;
-                        default:break;
-                        }
-                    }
-                }
-                catch (const std::exception& ex) {
-                    _errorMessage = ex.what();
-                }
-            }
-        }
+						// THIRD COLUMN
+						// BUILD/UPLOAD 
+						ImGui::TableSetColumnIndex(3);
+						switch (state)
+						{
+						case ProjectCreated:
+							if (ImGui::Button(uploadLabel.c_str()) && !_fileToUploadPath.empty())
+							{
+								std::thread([](std::string serverUrl, std::string projectName, bool& _refreshContext, std::string fileUploadPath)
+									{
+										try
+										{
+											ProjectManager manager(serverUrl);
+											manager.UploadFile(projectName, fileUploadPath);
+											_refreshContext = true;
+										}
+										catch (const exception& ex)
+										{
 
-        ImGui::EndTable();      
+										}
+									}, _connectedServerUrl, project.name, std::ref(_refreshContext), _fileToUploadPath
+										).detach();
+									project.state = SourceFileUploading;
+							}
+							break;
+						case SourceFileUploaded:
+							if (ImGui::Button(buildLabel.c_str()))
+							{
+								ProjectManager manager(_connectedServerUrl);
+								manager.ConvertProject(project.name);
+								_refreshContext = true;
+								project.state = ProjectConverting;
+							}
+							break;
 
-        // Refreshing project info once per CONTEXT_REFRESH_RATE frames or when needed
-        if (clock() - _lastRefresth >= CONTEXT_REFRESH_RATE || _refreshContext)
-        {           
-            if (!_connectedServerUrl.empty()) 
-            {
-                try 
-                {
-                    ProjectManager manager(_serverUrl);
-                    _projects = manager.GetAllProjectsInfo();
-                    _connectedServerUrl = _serverUrl;
-                }
-                catch (const std::exception& ex) 
-                {
-                    _errorMessage = ex.what();
-                    _connectedServerUrl = "";
-                }                
-            }
+						case SourceFileUploading:
+							ImGui::Text("Uploading...");
+							break;
+						case ProjectConverting:
+							ImGui::Text("Processing...");
+							break;
+						default:break;
+						}
+					}
+				}
+				catch (const std::exception& ex)
+				{
+					_errorMessage = ex.what();
+				}
+			}
+		}
 
-            _lastRefresth = clock();
-            _refreshContext = false;
-        }
-    }
+		ImGui::EndTable();
 
-    // SHOW ERROR
-    if (!_errorMessage.empty()) 
-    {
-        _showedErrorMessage = _errorMessage;
-        _errorMessage = "";
-        _errorMessageDurationCounter = 0;
-    }
+		// Refreshing project info once per CONTEXT_REFRESH_RATE frames or when needed
+		if (clock() - _lastRefresth >= CONTEXT_REFRESH_RATE || _refreshContext)
+		{
+			if (!_connectedServerUrl.empty())
+			{
+				try
+				{
+					ProjectManager manager(_serverUrl);
+					_projects = manager.GetAllProjectsInfo();
+					_connectedServerUrl = _serverUrl;
+				}
+				catch (const std::exception& ex)
+				{
+					_errorMessage = ex.what();
+					_connectedServerUrl = "";
+				}
+			}
 
-    // HIDE ERROR AFTER 800 frames
-    if (_errorMessageDurationCounter > 800) 
-    {
-        _showedErrorMessage = "";
-    }
-    else 
-    {
-        _errorMessageDurationCounter++;
-    }
+			_lastRefresth = clock();
+			_refreshContext = false;
+		}
+	}
+
+	// SHOW ERROR
+	if (!_errorMessage.empty())
+	{
+		_showedErrorMessage = _errorMessage;
+		_errorMessage = "";
+		_errorMessageDurationCounter = 0;
+	}
+
+	// HIDE ERROR AFTER 800 frames
+	if (_errorMessageDurationCounter > 800)
+	{
+		_showedErrorMessage = "";
+	}
+	else
+	{
+		_errorMessageDurationCounter++;
+	}
 
 	ImGui::End();
 }
