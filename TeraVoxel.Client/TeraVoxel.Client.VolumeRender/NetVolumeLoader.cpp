@@ -1,13 +1,15 @@
 #include "NetVolumeLoader.h"
 
 template <typename T>
-NetVolumeLoader<T>::NetVolumeLoader(const ProjectInfo& projectInfo, int threadCount, const ProjectManager &projectManager) : VolumeLoaderBase<T>(projectInfo, threadCount) {
+NetVolumeLoader<T>::NetVolumeLoader(const ProjectInfo& projectInfo, int threadCount, const ProjectManager& projectManager) : VolumeLoaderBase<T>(projectInfo, threadCount)
+{
 	_projectManager = projectManager;
 }
 
 template <typename T>
-NetVolumeLoader<T>::~NetVolumeLoader() {
-	
+NetVolumeLoader<T>::~NetVolumeLoader()
+{
+
 }
 
 template <typename T>

@@ -3,14 +3,16 @@
 #include "NetVolumeLoader.h"
 
 template <typename T>
-class NetVolumeLoaderFactory: public VolumeLoaderFactory<T>
+class NetVolumeLoaderFactory : public VolumeLoaderFactory<T>
 {
 public:
-	NetVolumeLoaderFactory(const ProjectManager& projectManager) {
+	NetVolumeLoaderFactory(const ProjectManager& projectManager)
+	{
 		_projectManager = projectManager;
-	}	
+	}
 
-	std::unique_ptr<VolumeLoaderBase<T>> Create(const ProjectInfo& projectInfo, int threadCount) const override {
+	std::unique_ptr<VolumeLoaderBase<T>> Create(const ProjectInfo& projectInfo, int threadCount) const override
+	{
 		return std::unique_ptr<VolumeLoaderBase<T>>((VolumeLoaderBase<T>*) new NetVolumeLoader<T>(projectInfo, threadCount, _projectManager));
 	}
 

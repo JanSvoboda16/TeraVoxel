@@ -11,7 +11,7 @@ template<typename T>
 inline void CPURayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
 {
 	Vector4f point4(point[0], point[1], point[2], 1);
-	unsigned char* framebuffer = this->_framebuffer.get();	
+	unsigned char* framebuffer = this->_framebuffer.get();
 	Matrix4f projectionMatrix = this->_camera->GetProjectionMatrix();
 	Vector4f positionOnScreen = projectionMatrix * point4;
 	positionOnScreen = positionOnScreen.array() / positionOnScreen[3];
@@ -19,9 +19,9 @@ inline void CPURayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
 	auto screenSizes = this->_camera->GetScreenSize();
 	int width = screenSizes[1];
 	int height = screenSizes[0];
-	for (size_t x2 = positionOnScreen[0]-5; x2 < positionOnScreen[0] + 5; x2++)
+	for (size_t x2 = positionOnScreen[0] - 5; x2 < positionOnScreen[0] + 5; x2++)
 	{
-		for (size_t y2 = positionOnScreen[1]-5; y2 < positionOnScreen[1] + 5; y2++)
+		for (size_t y2 = positionOnScreen[1] - 5; y2 < positionOnScreen[1] + 5; y2++)
 		{
 			if (x2 > 0 && x2 < width && y2 >0 && y2 < height)
 			{
@@ -53,7 +53,8 @@ inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale
 		threads[i].get();
 	}
 
-	if (downscale != 1) {
+	if (downscale != 1)
+	{
 		unsigned char* framebuffer = this->_framebuffer.get();
 		auto screenSizes = this->_camera->GetScreenSize();
 		int width = screenSizes[1];
@@ -83,13 +84,15 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 	int width = screenSizes[1];
 	int height = screenSizes[0];
 
-	if (downscale == 1) 
+	if (downscale == 1)
 	{
-		while (true) {
+		while (true)
+		{
 			int i = _reneringPosition.fetch_add(1, std::memory_order_acq_rel);// operace provádí load, store naráz, nelze tedy vložit mezi tyto dva příkazy jiný příkaz. 
 			// Compiler tedy zaručí cache coherenci, protože v opačném případě by operace neodpovídaly žádnému existujícímu pořadí. Operace XCHG říká nahraď co za co. Store říká
 			// nahraj sem tohle bez ohledu na to co tam bylo předtím
-			if (i >= width * height) {
+			if (i >= width * height)
+			{
 				break;
 			}
 			auto val = ComputeRay(i % width, i / width);
@@ -99,16 +102,20 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 			framebuffer[i * 4 + 3] = val.a;
 		}
 	}
-	else {
+	else
+	{
 
-		while (true) {
+		while (true)
+		{
 			int i = _reneringPosition.fetch_add(1, std::memory_order_acq_rel);
-			if (i >= width * height) {
+			if (i >= width * height)
+			{
 				break;
 			}
 			int x = i % width;
 			int y = i / width;
-			if (y % 2 == 0 && x % 2 == 0) {
+			if (y % 2 == 0 && x % 2 == 0)
+			{
 				auto val = ComputeRay(x, y);
 
 				framebuffer[i * 4] = val.r;
@@ -146,12 +153,12 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 		bool lighting = _settingsCopy.shading;
 		auto dataSizes = this->_memory.GetDataSizes();
 
-		if (lighting) 
+		if (lighting)
 		{
 			while ((pathLengthx >= fabs(positionx - startx)) &&
 				(pathLengthy >= fabs(positiony - starty)) &&
 				(pathLengthz >= fabs(positionz - startz)))
-			{		
+			{
 				int x0 = static_cast<int>(positionx);
 				int y0 = static_cast<int>(positiony);
 				int z0 = static_cast<int>(positionz);
@@ -169,7 +176,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 				int y1 = y0 + gridSize;
 				int z1 = z0 + gridSize;
 
-				if (!(x1 >= dataSizes[0] || y1 >= dataSizes[1] || z1 >= dataSizes[2])) 
+				if (!(x1 >= dataSizes[0] || y1 >= dataSizes[1] || z1 >= dataSizes[2]))
 				{
 					double f100 = this->_memory.GetValue(x1, y0, z0, downscale);
 					double f010 = this->_memory.GetValue(x0, y1, z0, downscale);
@@ -277,14 +284,14 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 						if (a > 0.97) { a = 1; break; }
 					}
 				}
-				
+
 				positionx += stepx * stepMultiplyer;
 				positiony += stepy * stepMultiplyer;
 				positionz += stepz * stepMultiplyer;
 
 			}
 		}
-		else 
+		else
 		{
 			// While the position is inside of the volume
 			while ((pathLengthx >= fabs(positionx - startx)) &&
@@ -298,7 +305,8 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				stepMultiplyer = 1 << downscale; // equals 2^downscale
 
-				if (qualityStepCount-- > 0) {
+				if (qualityStepCount-- > 0)
+				{
 					stepMultiplyer *= 0.5;
 				}
 

@@ -16,8 +16,8 @@
 
 class ProjectManagementWindow
 {
-public:	
-	ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) 
+public:
+	ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext)
 	{
 		_volumeViewContext = volumeViewContext;
 		ProjectManager manager(_serverUrl);
