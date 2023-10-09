@@ -8,9 +8,9 @@ public:
 	ColorMappingTable mappingTable;
 
 	float ampbientIntensity = 0.5;
-	float difustionIntensity = 0.5;
-	float reflectionIntensity = 5;
-	float reflectionSharpness = 20;
+	float difustionIntensity = 1;
+	float reflectionIntensity = 1;
+	float reflectionSharpness = 5;
 
 	bool shading = false;
 };
