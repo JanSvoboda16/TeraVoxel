@@ -112,7 +112,7 @@ void CPURayCastingVolumeObjectMemory<T>::ProcessDelete(std::vector<VolumeSegment
 template <typename T>
 void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 {
-	bool ramAlmostFull = MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) + 50000000 > MemoryContext::GetInstance().maxMemory.load(std::memory_order_acquire);
+	bool ramAlmostFull = MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) + 140000000 > MemoryContext::GetInstance().maxMemory.load(std::memory_order_acquire);
 
 	for (size_t z = 0; z < zSegmentCount; z++)
 	{
@@ -163,7 +163,7 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 		DownscaleWithHigherQuality(10);
 	}
 
-	ramAlmostFull = MemoryContext::GetInstance().usedMemory.load(std::memory_order::relaxed) + 50000000 > MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire);
+	ramAlmostFull = MemoryContext::GetInstance().usedMemory.load(std::memory_order::relaxed) + 140000000 > MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire);
 
 	// Delete N of not used segments
 	if (ramAlmostFull)
