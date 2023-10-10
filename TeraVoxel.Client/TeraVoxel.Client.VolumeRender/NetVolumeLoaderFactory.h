@@ -13,7 +13,7 @@ public:
 
 	std::unique_ptr<VolumeLoaderBase<T>> Create(const ProjectInfo& projectInfo, int threadCount) const override
 	{
-		return std::unique_ptr<VolumeLoaderBase<T>>((VolumeLoaderBase<T>*) new NetVolumeLoader<T>(projectInfo, threadCount, _projectManager));
+		return std::make_unique<NetVolumeLoader<T>>(projectInfo, threadCount, _projectManager);
 	}
 
 private:

@@ -77,8 +77,8 @@ private:
 		std::shared_ptr<VolumeLoaderFactory<T>> loaderFactory = std::make_shared<NetVolumeLoaderFactory<T>>(projectManager);
 
 		// TODO rozdelit projectInfo -> projectInfo, sourceInfo
-		auto emptyVisualizerFactory = std::shared_ptr<IVolumeVisualizerFactory<T>>((IVolumeVisualizerFactory<T> *) new EmptyVolumeVisualizerFactory<T>(std::make_shared<EmptyVolumeVisualizerSettings>()));
-		return std::unique_ptr<IVolumeScene>((IVolumeScene*) new VolumeScene<T>(camera, projectInfo, loaderFactory, emptyVisualizerFactory));
+		auto emptyVisualizerFactory = std::make_shared<EmptyVolumeVisualizerFactory<T>>(std::make_shared<EmptyVolumeVisualizerSettings>());
+		return std::make_unique<VolumeScene<T>>(camera, projectInfo, loaderFactory, emptyVisualizerFactory);
 	}
 };
 
