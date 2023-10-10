@@ -13,7 +13,7 @@ public:
 
 	std::unique_ptr<VolumeVisualizerBase<T>> Create(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory) override
 	{
-		return std::unique_ptr<VolumeVisualizerBase<T>>((VolumeVisualizerBase<T>*) new CPURayCastingVolumeVisualizer<T>(camera, projectInfo, volumeLoaderFactory, _settings));
+		return std::make_unique<CPURayCastingVolumeVisualizer<T>>(camera, projectInfo, volumeLoaderFactory, _settings);
 	}
 
 private:

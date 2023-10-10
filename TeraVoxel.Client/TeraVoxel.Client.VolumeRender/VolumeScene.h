@@ -18,7 +18,7 @@ using Eigen::Vector3i;
 using Eigen::Vector4f;
 
 template <typename T>
-class VolumeScene : IVolumeScene
+class VolumeScene : public IVolumeScene
 {
 public:
 	VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac);
