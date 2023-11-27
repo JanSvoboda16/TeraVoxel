@@ -63,12 +63,11 @@ void VolumeLoaderBase<T>::LoadingTask()
 		{
 			auto futureDownscale = volume->futureDownscale.load(std::memory_order::relaxed);
 			auto unusedCount = volume->unusedCount.load(std::memory_order::relaxed);
-			auto used = volume->unusedCount.load(std::memory_order::relaxed);
 			auto x = volume->x; auto y = volume->y; auto z = volume->z;
 			auto requiredMemory = GetBlockRequiredMemory(futureDownscale);
 
 			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-			if ((requiredMemory + MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) <= MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) && unusedCount < 2)
+			if (unusedCount < 2 && (requiredMemory + MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) <= MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) && unusedCount < 2)
 			{
 				MemoryContext::GetInstance().usedMemory += requiredMemory;
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
