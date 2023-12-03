@@ -182,7 +182,23 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		auto x = mod % _segmentCountX;
 		auto volume = new VolumeSegment<T>(x, y, z);
 
-		volume->data = LoadSegment(x, y, z, downscale);
+		for (size_t i = 0; i < 100; i++)
+		{
+			try
+			{
+				volume->data = LoadSegment(x, y, z, downscale);
+				break;
+			}
+			catch (const std::exception& ex)
+			{
+				if (i == 99)
+				{
+					throw ex;
+				}
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
+		}
 
 		volume->actualDownscale = downscale;
 		volume->futureDownscale = downscale;
