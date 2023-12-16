@@ -15,8 +15,9 @@ NetVolumeLoader<T>::~NetVolumeLoader()
 template <typename T>
 T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 {
+	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
+
 	int downscaledSegmentSize = this->_projectInfo.segmentSize / (int)pow(2, downscale);
-	bool loaded = false;
 	int segmentSize = downscaledSegmentSize * downscaledSegmentSize * downscaledSegmentSize;
 	std::vector<unsigned char> byteData;
 
@@ -24,12 +25,12 @@ T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 	try
 	{
 		byteData = _projectManager.GetSegment(this->_projectInfo.name, x, y, z, downscale, segmentSize * sizeof(T));
-		loaded = true;
 	}
 	catch (const std::exception& ex)
 	{
 		throw ex;
 	}
+
 
 	T* data = new T[segmentSize];
 
@@ -40,7 +41,9 @@ T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 		sameEndianites = true;
 	}
 
-	// Deserialization
+	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Reserialization:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
+
+	// Reserialization
 	for (int i = 0; i < segmentSize; i++)
 	{
 		uint_fast16_t zpos = i / (downscaledSegmentSize * downscaledSegmentSize);
@@ -65,6 +68,9 @@ T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 			}
 		}
 	}
+	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Reserialization:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
+
+	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
 	return data;
 }

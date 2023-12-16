@@ -6,8 +6,10 @@
 #include "ProjectInfo.h"
 #include <list>
 #include <memory>
+#include <format>
 #include "HttpManagerBase.h"
 #include "nlohman/json.hpp"
+#include "Logger.h"
 #include "../TeraVoxel.Client.Core/ServerException.h"
 
 /// <summary>

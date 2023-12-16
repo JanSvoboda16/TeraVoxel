@@ -7,6 +7,6 @@ namespace TeraVoxel.Server.Data.Pipelines
 {
     public interface IConvertingPipeline
     {
-        public Task Apply(ISourceFileDataReader input, string destinatioDirectoryPath);
+        public Task Apply(IVolumetricDataReader input, string destinatioDirectoryPath, string projectName, bool restoreImcomplete = false);
     }
 }

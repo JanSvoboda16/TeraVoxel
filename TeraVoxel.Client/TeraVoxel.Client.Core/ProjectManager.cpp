@@ -86,12 +86,17 @@ void ProjectManager::ConvertProject(const std::string& projectName)
 	}
 }
 
-std::vector<unsigned char> ProjectManager::GetSegment(const std::string& projectName, int x, int y, int z, int actualDownscale, int bytesToRead)
+std::vector<unsigned char> ProjectManager::GetSegment(const std::string& projectName, int x, int y, int z, int downscale, int bytesToRead)
 {
 	httplib::Client cli = httplib::Client(Url);
 	cli.set_read_timeout(10);
 
-	httplib::Result result = cli.Get("/Data/GetBlock?projectName=" + projectName + "&xIndex=" + std::to_string(x) + "&yIndex=" + std::to_string(y) + "&zIndex=" + std::to_string(z) + "&downscale=" + std::to_string(actualDownscale));
+	Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:ServerLoading:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
+
+	httplib::Result result = cli.Get("/Data/GetBlock?projectName=" + projectName + "&xIndex=" + std::to_string(x) + "&yIndex=" + std::to_string(y) + "&zIndex=" + std::to_string(z) + "&downscale=" + std::to_string(downscale));
+	
+	Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:ServerLoading:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
+
 	if (result.error() != httplib::Error::Success)
 	{
 		throw ServerException("Unable to connect");
@@ -107,8 +112,10 @@ std::vector<unsigned char> ProjectManager::GetSegment(const std::string& project
 
 	// Decompression
 	auto data = std::vector<unsigned char>();
+	Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:Decompression:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 	data.resize(bytesToRead);
 	DecompressData((const unsigned char*)(result->body.c_str()), data.data(), result->body.length(), bytesToRead);
+	Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:Decompression:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 	return data;
 }
 

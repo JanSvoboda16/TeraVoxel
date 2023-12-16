@@ -113,9 +113,9 @@ Matrix4f Camera::GetViewPortTransformationMatrix()
 	return Transformations::GetShrinkMatrix(_screenWidth / 2, -_screenHeight / 2, 1) * Transformations::GetTranslationMatrix(1,-1,0);
 }
 
-float Camera::GetMaxVoxelSize()
+float Camera::GetVoxelSizeMean()
 {
-	return _voxelDimensions.array().maxCoeff();
+	return _voxelDimensions.array().mean();
 }
 
 float Camera::GetRealVectorLength(const Vector3f& shrankStep)

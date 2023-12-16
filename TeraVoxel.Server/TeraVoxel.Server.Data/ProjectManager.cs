@@ -6,8 +6,10 @@ using Microsoft.Extensions.Options;
 using NuGet.Configuration;
 using System.Buffers;
 using System.ComponentModel.DataAnnotations;
+using System.IO.Compression;
 using System.Text.Json;
 using TeraVoxel.Server.Core;
+using TeraVoxel.Server.Data.DataReaders.Tiff;
 using TeraVoxel.Server.Data.Models;
 using TeraVoxel.Server.Data.Pipelines;
 
@@ -15,14 +17,18 @@ namespace TeraVoxel.Server.Data
 {
     public class ProjectManager : IProjectManager
     {
-        private StorageOptions _options;
-        private IConvertingPipeline _convertor;
+        private readonly StorageOptions _options;
+        private readonly IProjectInfoProvider _projectInfoProvider;
+        private readonly IConvertingPipeline _convertor;
+        private readonly IEventLogger _logger;
         private const string _deleteSuffix = ".DELETE";
 
-        public ProjectManager(StorageOptions options, IConvertingPipeline convertor)
+        public ProjectManager(StorageOptions options, IConvertingPipeline convertor, IEventLogger logger, IProjectInfoProvider projectInfoProvider)
         {
             _options = options;
             _convertor = convertor;
+            _logger = logger;
+            _projectInfoProvider = projectInfoProvider;
         }
 
         public async Task CreateProject(string projectName)
@@ -36,6 +42,8 @@ namespace TeraVoxel.Server.Data
             ProjectInfo info = new ProjectInfo { Name = projectName, State = ProjectState.ProjectCreated };
             using var infoFile = File.Create($"{resultPath}/info.json");
             await infoFile.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(info));
+
+            _logger.Log(nameof(ProjectManager), "ProjectCreated", projectName);
         }
 
         public bool ProjectExists(string projectName)
@@ -48,12 +56,16 @@ namespace TeraVoxel.Server.Data
             // Hides original project until it's deleted. 
             Directory.Move($"{_options.StoragePath}/{projectName}", $"{_options.StoragePath}/{projectName}{_deleteSuffix}"); 
             Task.Run(() => { Directory.Delete($"{_options.StoragePath}/{projectName}{_deleteSuffix}", true); });
+
+            _logger.Log(nameof(ProjectManager), "ProjectDeleted", projectName);
         }
 
         public async Task ConvertProject(string projectName)
         {
             try
             {
+                _logger.Log(nameof(ProjectManager), "ProjectConversion:Started", projectName);
+
                 var sourcePath = $"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}";
                 var resultPath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}";
                 var sourceFiles = Directory.GetFiles(sourcePath);
@@ -64,23 +76,55 @@ namespace TeraVoxel.Server.Data
                 }
                 var sourceFile = sourceFiles[0];
 
-                ISourceFileDataReader reader;
+                IVolumetricDataReader reader;
 
                 // HERE YOU CAN ADD OTHER SUPPORTED FILE TYPES
-                if (sourceFile.Split('.').Last() == "nii")
+                var fileType = sourceFile.Split('.').Last();
+                if (fileType == "tif" || fileType == "tiff")
                 {
-                    reader = new NiftiFileDataReader(sourceFile);
+                    reader = new TiffDataReader(Directory.GetParent(sourceFile)!.FullName);
+                }
+                else if (fileType == "nii")
+                {
+                    reader = new NiftiDataReader(sourceFile);
                 }
                 else
                 {
                     throw new Exception("Unsupported file type");
                 }
 
-                await _convertor.Apply(reader, resultPath);
-                reader.Dispose();
-                File.Delete(sourceFile);
+                var projectInfo = await _projectInfoProvider.ReadProjectInfo(projectName);
+                projectInfo.State = ProjectState.ProjectConverting;
+                await _projectInfoProvider.WriteProjectInfo(projectName, projectInfo);
 
-                var volumeInfo = new ProjectInfo()
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        await _convertor.Apply(reader, resultPath, projectName, true);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        await Task.Delay(2000);
+
+                        _logger.Log(nameof(ProjectManager), "ProjectConversion:Failed", projectName, e.ToString());
+
+                        if(i == 4)
+                        {
+                            throw;
+                        }                        
+                    }
+                }
+               
+                reader.Dispose();
+
+                foreach (var file in sourceFiles)
+                {
+                    File.Delete(file);
+                }
+
+                projectInfo = new ProjectInfo()
                 {
                     DataSizeX = reader.FrameWidth,
                     DataSizeY = reader.FrameHeight,
@@ -95,13 +139,16 @@ namespace TeraVoxel.Server.Data
                     IsLittleEndian = BitConverter.IsLittleEndian,
                     State = ProjectState.ProjectConverted
                 };
-                await WriteProjectInfo(projectName, volumeInfo);
+
+                await _projectInfoProvider.WriteProjectInfo(projectName, projectInfo);
+
+                _logger.Log(nameof(ProjectManager), "ProjectConversion:Ended", projectName);
             }
             catch
             {
-                var info = await ReadProjectInfo(projectName);
+                var info = await _projectInfoProvider.ReadProjectInfo(projectName);
                 info.State = ProjectState.SourceFileUploaded;
-                await WriteProjectInfo(projectName, info);
+                await _projectInfoProvider.WriteProjectInfo(projectName, info);
                 throw;
             }
         }
@@ -133,7 +180,8 @@ namespace TeraVoxel.Server.Data
                             retryCount++;
                         }
                     }
-                    if (JsonSerializer.Deserialize<ProjectInfo>(File.ReadAllText(filePath)) is var json && json != null)
+
+                    if (JsonSerializer.Deserialize<ProjectInfo>(data) is var json && json != null)
                     {
                         infos.Add(json);
                     }                    
@@ -142,64 +190,13 @@ namespace TeraVoxel.Server.Data
 
             return infos;
         }
-
-        public async Task<ProjectInfo> ReadProjectInfo(string projectName)
-        {
-            var filePath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}/info.json";
-            int retryCount = 0;
-            string? data = null;
-
-            
-            while (data == null)
-            {
-                if (retryCount >= 10)
-                {
-                    throw new Exception("Unable to read info file");
-                }
-
-                try
-                {
-                    data = await File.ReadAllTextAsync(filePath);
-                }
-                catch
-                {
-                    await Task.Delay(200);
-                    retryCount++;
-                }
-            }
-                
-            return JsonSerializer.Deserialize<ProjectInfo>(data) ?? throw new Exception();
-        }
-
-        public async Task WriteProjectInfo(string projectName, ProjectInfo projectInfo)
-        {
-            var filePath = $"{_options.StoragePath}/{projectName}/{_options.DataDirectory}/info.json";
-            FileStream? infoFile = null;
-            int retryCount = 0;
-            while (infoFile == null)
-            {
-                if (retryCount >= 5)
-                {
-                    throw new Exception("Unable to write into info file");
-                }
-                try
-                {
-                    infoFile = File.OpenWrite(filePath);
-                }
-                catch 
-                {
-                    await Task.Delay(1000);
-                    retryCount++;
-                }                
-            }
-            
-            await infoFile.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(projectInfo));
-            await infoFile.DisposeAsync();
-        }
+        
 
         public async Task UploadSourceFile(string projectName, string fileName, Stream sourceStream)
         {
-            var info = await ReadProjectInfo(projectName);
+            _logger.Log(nameof(ProjectManager), "SourceFileUploading:Started", projectName);
+
+            var info = await _projectInfoProvider.ReadProjectInfo(projectName);
             byte[] buffer = ArrayPool<byte>.Shared.Rent(2_000_000);
 
             try
@@ -220,17 +217,29 @@ namespace TeraVoxel.Server.Data
                         await file.WriteAsync(new ReadOnlyMemory<byte>(buffer, 0, bytesRead)).ConfigureAwait(false);
                     }
                 }
-                while (bytesRead > 0);                
+                while (bytesRead > 0);
 
                 file.Close();
 
+                if (fileName.Split('.').Last() == "zip")
+                {
+                    var filePath = $"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}/{fileName}";
+                    ZipFile.ExtractToDirectory(filePath, sourceFileDirectoryPath);
+                    File.Delete(filePath);
+                }
+
                 info.State = ProjectState.SourceFileUploaded;
-                await WriteProjectInfo(projectName, info);
+                await _projectInfoProvider.WriteProjectInfo(projectName, info);
+
+                _logger.Log(nameof(ProjectManager), "SourceFileUploading:Ended", projectName);
             }
             catch
             {
                 info.State = ProjectState.ProjectCreated;
-                await WriteProjectInfo(projectName, info);
+                await _projectInfoProvider.WriteProjectInfo(projectName, info);
+
+                _logger.Log(nameof(ProjectManager), "SourceFileUploading:Failed", projectName);
+
                 throw;
             }
             finally
@@ -242,6 +251,16 @@ namespace TeraVoxel.Server.Data
         private FileStream GetSourceFileStream(string projectName, string fileName)
         {
             return File.Open($"{_options.StoragePath}/{projectName}/{_options.SourceFileDirectory}/{fileName}",FileMode.OpenOrCreate);
+        }
+
+        public async Task<ProjectInfo> ReadProjectInfo(string projectName)
+        {
+            return await _projectInfoProvider.ReadProjectInfo(projectName);
+        }
+
+        public async Task WriteProjectInfo(string projectName, ProjectInfo projectInfo)
+        {
+            await _projectInfoProvider.WriteProjectInfo(projectName, projectInfo);
         }
     }
 }

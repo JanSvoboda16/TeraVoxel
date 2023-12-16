@@ -7,17 +7,23 @@
 
 Logger::Logger(const std::string &filePath)
 {
+	timeStart = std::chrono::high_resolution_clock::now();
 	fileStream.open(filePath);
+	fileStream << "component" << ";" << "action" << ";" << "value" << ";" << "context" << ";" << "timestamp" << "\n";
 }
 
 std::string Logger::GetTimeStamp()
 {
-	std::stringstream time;
-	time  << clock();
-	return time.str();
+	auto elapsed = std::chrono::high_resolution_clock::now() - timeStart;
+
+	long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
+		elapsed).count();
+
+	return std::to_string(microseconds / 1000000.0);
 }
 
-Logger::~Logger() {
+Logger::~Logger()
+{
 	fileStream.close();
 }
 
@@ -35,9 +41,13 @@ Logger* Logger::GetInstance()
 	return logger;
 }
 
-void Logger::LogEvent(const std::string& flag, const std::string& name, const std::string& message)
+void Logger::LogEvent(const std::string& component, const std::string& action,  const std::string& value, const std::string& context)
 {
-	fileStream << flag << ";" << name << ";" << message << ";" << GetTimeStamp() << "\n";
+	/*
+	mutex.lock();
+	fileStream << component << ";" << action << ";"  << value << ";" << context << ";" << GetTimeStamp() << "\n";
+	mutex.unlock();
+	*/
 }
 
 

@@ -11,16 +11,22 @@ namespace TeraVoxel.Server.Data.Models
 {
     public abstract class VolumeSegmentBase
     {
-        public int SegmentSize { get; protected set; }
-        public int DownscaledSegmentSize { get; protected set; }
+        public int SegmentSizeX { get; protected set; }
+        public int SegmentSizeY { get; protected set; }
+        public int SegmentSizeZ { get; protected set; }
+        public int DownscaledSegmentSizeX { get; protected set; }
+        public int DownscaledSegmentSizeY { get; protected set; }
+        public int DownscaledSegmentSizeZ { get; protected set; }
         public int ActualDepth { get; protected set; } 
         public int XIndex { get; protected set; }
         public int YIndex { get; protected set; }
         public int ZIndex { get; protected set; }        
 
-        public VolumeSegmentBase(int segmentSize) 
+        public VolumeSegmentBase(int segmentSizeX, int segmentSizeY, int segmentSizeZ) 
         { 
-            SegmentSize = segmentSize;
+            SegmentSizeX = segmentSizeX;
+            SegmentSizeY = segmentSizeY;
+            SegmentSizeZ = segmentSizeZ;
         }
         public abstract VolumeSegmentBase Init(int xIndex, int yIndex, int zIndex);
         
@@ -33,12 +39,12 @@ namespace TeraVoxel.Server.Data.Models
     {
         private T[][]? Data { get; set; }
 
-        public VolumeSegment(int segmentSize) : base(segmentSize)
+        public VolumeSegment(int segmentSizeX, int segmentSizeY, int segmentSizeZ) : base(segmentSizeX, segmentSizeY, segmentSizeZ)
         {
-            Data = new T[segmentSize][];
-            for (int i = 0; i < segmentSize; i++)
+            Data = new T[segmentSizeZ][];
+            for (int i = 0; i < segmentSizeZ; i++)
             {
-                Data[i] = new T[segmentSize * segmentSize];
+                Data[i] = new T[segmentSizeX * segmentSizeY];
             }
         }
 
@@ -51,14 +57,14 @@ namespace TeraVoxel.Server.Data.Models
 
             if (genFrame?.Data != null && Data != null)
             {                
-                for (int y = 0; y < DownscaledSegmentSize; y++)
+                for (int y = 0; y < DownscaledSegmentSizeY; y++)
                 {
-                    for (int x = 0; x < DownscaledSegmentSize; x++)
+                    for (int x = 0; x < DownscaledSegmentSizeX; x++)
                     {
                         if (y < frameY && x < frameX)
-                            Data[ActualDepth][y * DownscaledSegmentSize + x] = genFrame.Data[y * frameX + x];
+                            Data[ActualDepth][y * DownscaledSegmentSizeX + x] = genFrame.Data[y * frameX + x];
                         else
-                            Data[ActualDepth][y * DownscaledSegmentSize + x] = T.MinValue;
+                            Data[ActualDepth][y * DownscaledSegmentSizeX + x] = T.MinValue;
                     }
                 }
 
@@ -73,7 +79,9 @@ namespace TeraVoxel.Server.Data.Models
             XIndex = xIndex;
             YIndex = yIndex;
             ZIndex = zIndex;
-            DownscaledSegmentSize = SegmentSize;
+            DownscaledSegmentSizeX = SegmentSizeX;
+            DownscaledSegmentSizeY = SegmentSizeY;
+            DownscaledSegmentSizeZ = SegmentSizeZ;
             ActualDepth = 0;
 
             return this;
@@ -81,11 +89,11 @@ namespace TeraVoxel.Server.Data.Models
 
         public override byte[] ConvertToByteArray()
         {
-            byte[] buffer = new byte[DownscaledSegmentSize *DownscaledSegmentSize *DownscaledSegmentSize *Marshal.SizeOf<T>()];
+            byte[] buffer = new byte[DownscaledSegmentSizeX *DownscaledSegmentSizeY *DownscaledSegmentSizeZ *Marshal.SizeOf<T>()];
 
-            for (int i = 0; i < DownscaledSegmentSize; i++)
+            for (int i = 0; i < DownscaledSegmentSizeZ; i++)
             {
-                Buffer.BlockCopy(Data[i], 0, buffer, i * DownscaledSegmentSize * DownscaledSegmentSize * Marshal.SizeOf<T>(), DownscaledSegmentSize * DownscaledSegmentSize * Marshal.SizeOf<T>());
+                Buffer.BlockCopy(Data[i], 0, buffer, i * DownscaledSegmentSizeX * DownscaledSegmentSizeY * Marshal.SizeOf<T>(), DownscaledSegmentSizeX * DownscaledSegmentSizeY * Marshal.SizeOf<T>());
             }           
 
             return buffer;
@@ -93,24 +101,26 @@ namespace TeraVoxel.Server.Data.Models
 
         public override VolumeSegmentBase Downscale()
         {
-            DownscaledSegmentSize /= 2;            
+            DownscaledSegmentSizeX /= 2;
+            DownscaledSegmentSizeY /= 2;
+            DownscaledSegmentSizeZ /= 2;
 
-            for (int z = 0; z < DownscaledSegmentSize; z++)
+            for (int z = 0; z < DownscaledSegmentSizeZ; z++)
             {
-                for (int y = 0; y < DownscaledSegmentSize; y++)
+                for (int y = 0; y < DownscaledSegmentSizeY; y++)
                 {
-                    for (int x = 0; x < DownscaledSegmentSize; x++)
+                    for (int x = 0; x < DownscaledSegmentSizeX; x++)
                     {
                         // Couted as avarage of the 8 cells
-                        var a0 = Convert.ToDouble(Data[z * 2][y * 4 * DownscaledSegmentSize + x * 2]);
-                        var a1 = Convert.ToDouble(Data[z * 2][(y * 2) * 2 * DownscaledSegmentSize + x * 2+1]);
-                        var a2 = Convert.ToDouble(Data[z * 2][(y * 2 + 1) * 2 * DownscaledSegmentSize + x * 2]);
-                        var a3 = Convert.ToDouble(Data[z * 2][(y * 2 + 1) * 2 * DownscaledSegmentSize + x * 2 + 1]);
-                        var a4 = Convert.ToDouble(Data[z * 2+1][y * 4 * DownscaledSegmentSize + x * 2]);
-                        var a5 = Convert.ToDouble(Data[z * 2+1][(y * 2) * 2 * DownscaledSegmentSize + x * 2 + 1]);
-                        var a6 = Convert.ToDouble(Data[z * 2+1][(y * 2 + 1) * 2 * DownscaledSegmentSize + x * 2]);
-                        var a7 = Convert.ToDouble(Data[z * 2+1][(y * 2 + 1) * 2 * DownscaledSegmentSize + x * 2 + 1]);
-                        Data[z][y * DownscaledSegmentSize + x] = (T)Convert.ChangeType((a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7) / 8.0, typeof(T));
+                        var a0 = Convert.ToDouble(Data[z * 2][y * 4 * DownscaledSegmentSizeX + x * 2]);
+                        var a1 = Convert.ToDouble(Data[z * 2][(y * 2) * 2 * DownscaledSegmentSizeX + x * 2 + 1]);
+                        var a2 = Convert.ToDouble(Data[z * 2][(y * 2 + 1) * 2 * DownscaledSegmentSizeX + x * 2]);
+                        var a3 = Convert.ToDouble(Data[z * 2][(y * 2 + 1) * 2 * DownscaledSegmentSizeX + x * 2 + 1]);
+                        var a4 = Convert.ToDouble(Data[z * 2 + 1][y * 4 * DownscaledSegmentSizeX + x * 2]);
+                        var a5 = Convert.ToDouble(Data[z * 2 + 1][(y * 2) * 2 * DownscaledSegmentSizeX + x * 2 + 1]);
+                        var a6 = Convert.ToDouble(Data[z * 2 + 1][(y * 2 + 1) * 2 * DownscaledSegmentSizeX + x * 2]);
+                        var a7 = Convert.ToDouble(Data[z * 2 + 1][(y * 2 + 1) * 2 * DownscaledSegmentSizeX + x * 2 + 1]);
+                        Data[z][y * DownscaledSegmentSizeX + x] = (T)Convert.ChangeType((a0 + a1 + a2 + a3 + a4 + a5 + a6 + a7) / 8.0, typeof(T));
                     }
                 }
             }
@@ -123,7 +133,7 @@ namespace TeraVoxel.Server.Data.Models
     {
         private Color[][]? Data { get; set; }
 
-        public RGBASegment(int segmentSize) : base(segmentSize) { }
+        public RGBASegment(int segmentSizeX, int segmentSizeY, int segmentSizeZ) : base(segmentSizeX, segmentSizeY, segmentSizeZ) { }
 
         public override VolumeSegmentBase Init( int xIndex, int yIndex, int zIndex)
         {
