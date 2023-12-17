@@ -3,6 +3,8 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY 
  */
 
+using System.Collections.Generic;
+
 namespace TeraVoxel.Server.Data.Models
 {
     public enum ProjectState
@@ -25,8 +27,8 @@ namespace TeraVoxel.Server.Data.Models
         public int DataSizeX { get; set; }
         public int DataSizeY { get; set; }
         public int DataSizeZ { get; set; }
+        public int LastProcessedSegmentLayer { get; set; }
         public bool IsLittleEndian { get; set; }
         public ProjectState State { get; set; }
-
     }
 }

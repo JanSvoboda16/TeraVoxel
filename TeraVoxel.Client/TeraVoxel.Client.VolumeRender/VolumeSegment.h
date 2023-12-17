@@ -10,6 +10,7 @@ template <typename T>
 class VolumeSegment
 {
 public:
+	std::atomic<float> priority = 0;
 	std::atomic<int> unusedCount = 0;				// How many times was not used (continuously)
 	std::atomic<bool> used = false;					// Was used in actual frame
 	std::atomic<bool> waitsToBeReloaded = false;	// Wait in the reload stack or is being reloaded
@@ -17,7 +18,7 @@ public:
 	
 	short actualDownscale = 500;					// High value -> will be always reloaded first
 	short x, y, z;	//READONLY						// Indexes of this segment
-	short lastRequiredDownscale = 0;				// Downscale that is requiews for actual view
+	short requiredDownscale = 0;				// Downscale that is requiews for actual view
 	
 	T* data = nullptr;								// DATA
 

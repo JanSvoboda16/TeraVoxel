@@ -4,22 +4,26 @@
  * under MIT license. For more information see LICENSE.txt.
  * His library can be found here: https://github.com/plwp/Nifti.NET.git
 -----------------------------------------------------------------------------*/
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using TeraVoxel.Server.Data.Models;
 
 namespace TeraVoxel.Server.Data
 {
-    internal class NiftiFileDataReader : ISourceFileDataReader
+    internal class NiftiDataReader : IVolumetricDataReader
     {
         private NiftiHeader _header;
         private Stream _stream;
         private bool _disposedValue;
+        private long _dataStartPosition;
         
         public int FrameWidth { get; private set; }
         public int FrameHeight { get; private set; }
@@ -27,10 +31,11 @@ namespace TeraVoxel.Server.Data
         public Type DataType { get; private set; }
         public float[] VoxelDimensions { get; private set; } = new float[3];
 
-        public NiftiFileDataReader(string filePath) 
+        public NiftiDataReader(string filePath) 
         {
             _stream = ReadStream(filePath);
             _header = ReadHeader(_stream);
+            _dataStartPosition = _stream.Position;
 
             if (FileType.HDR == TypeOf(_header))
             {
@@ -393,7 +398,7 @@ namespace TeraVoxel.Server.Data
             throw new Exception();
         }
      
-        public void ReadFrame<T>(Frame<T> frame)
+        public void ReadFrame<T>(Frame<T> frame) where T: unmanaged
         {
             var xdimlen = _header.dim[1];
             var ydimlen = _header.dim[2];
@@ -420,6 +425,11 @@ namespace TeraVoxel.Server.Data
             // Neměňte tento kód. Kód pro vyčištění vložte do metody Dispose(bool disposing).
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public void SetFrameIndex(int frameIndex)
+        {
+            _stream.Position += (long)frameIndex * FrameWidth * FrameHeight * Marshal.SizeOf(DataType!);
         }
     }
 }

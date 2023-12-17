@@ -90,6 +90,8 @@ private:
 	/// <returns>Memory in bytes</returns>
 	long GetBlockRequiredMemory(int downscale);
 
+	float GetPriority(int xIndex, int yIndex, int zIndex);
+
 	/// <summary>
 	/// Gets downscale required for a voxel on a given position
 	/// </summary>

@@ -13,6 +13,7 @@ namespace TeraVoxel.Server.Core
         public string? SourceFileDirectory { get; set; }
         public string? DataDirectory { get; set; }
         public int SegmentSize { get; set; }
+        public int ProcessLayerSize { get; set; }
         public CompressionLevel CompressionLevel { get; set; }
     }
 }

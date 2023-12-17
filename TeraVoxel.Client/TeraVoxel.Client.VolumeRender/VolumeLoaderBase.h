@@ -6,16 +6,27 @@
 #include <future>
 #include <functional>
 #include <list>
+#include <memory>
 #include "VolumeSegment.h"
 #include "../TeraVoxel.Client.Core/ProjectInfo.h"
 #include "../TeraVoxel.Client.Core/MemoryContext.h"
 #include "Serialization.h"
+#include "../TeraVoxel.Client.Core/Logger.h"
+
+template <typename T>
+struct ComparePriority
+{
+	bool operator()(VolumeSegment<T>* lhs, VolumeSegment<T>* rhs)
+	{
+		return lhs->priority.load(std::memory_order::acquire) > rhs->priority.load(std::memory_order::acquire);
+	}
+};
 
 template <typename T>
 class VolumeLoaderBase
 {
 protected:
-	std::stack<VolumeSegment<T>*> _segmentsToLoad;
+	std::list<VolumeSegment<T>*> _segmentsToLoad;
 	std::queue<std::unique_ptr<VolumeSegment<T>>> _loadedSegments;
 	std::mutex _segmentsToLoadMutex;
 	std::mutex _loadedSegmentsMutex;

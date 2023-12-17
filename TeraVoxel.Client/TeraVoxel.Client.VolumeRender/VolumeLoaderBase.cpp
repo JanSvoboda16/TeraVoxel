@@ -45,9 +45,21 @@ void VolumeLoaderBase<T>::LoadingTask()
 	{
 		_segmentsToLoadMutex.lock();
 		if (_segmentsToLoad.size() > 0)
-		{
-			volume = _segmentsToLoad.top();
-			_segmentsToLoad.pop();
+		{			
+			//int segmentIndex = 0;
+			//int iterationIndex = 0;
+			VolumeSegment<T>* minPrioritySegment = _segmentsToLoad.front();
+			for (VolumeSegment<T>* segment :_segmentsToLoad )
+			{
+				if (segment->priority < minPrioritySegment->priority)
+				{
+					minPrioritySegment = segment;
+					//segmentIndex = iterationIndex;
+				}
+				//iterationIndex++;
+			}
+			volume = minPrioritySegment;
+			_segmentsToLoad.remove(volume);
 		}
 		else
 		{
@@ -69,6 +81,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
 			if (unusedCount < 2 && (requiredMemory + MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) <= MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) && unusedCount < 2)
 			{
+				Logger::GetInstance()->LogEvent("VolumeLoaderBase", "MemoryInfo", std::to_string(MemoryContext::GetInstance().usedMemory));
 				MemoryContext::GetInstance().usedMemory += requiredMemory;
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
@@ -95,7 +108,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 				newVolume->data = data;
 				newVolume->actualDownscale = futureDownscale;
 				newVolume->futureDownscale.store(futureDownscale, std::memory_order::relaxed);
-				newVolume->lastRequiredDownscale = futureDownscale;
+				newVolume->requiredDownscale = futureDownscale;
 				newVolume->unusedCount.store(0, std::memory_order::relaxed);
 				newVolume->used.store(true, std::memory_order::relaxed);
 				newVolume->waitsToBeReloaded.store(false, std::memory_order::relaxed);
@@ -122,7 +135,7 @@ void VolumeLoaderBase<T>::AddToStack(VolumeSegment<T>* segment)
 	_segmentsToLoadMutex.lock();
 
 	segment->waitsToBeReloaded.store(true, std::memory_order::release);
-	_segmentsToLoad.push(segment);
+	_segmentsToLoad.push_back(segment);
 
 	_segmentsToLoadMutex.unlock();
 }
@@ -172,7 +185,7 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		if (MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) > MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire))
 		{
 			MemoryContext::GetInstance().usedMemory -= requiredMemory;
-			//TODO
+			//TODO Memory access type -> maybe relaxed?
 		}
 		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
@@ -182,6 +195,7 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		auto x = mod % _segmentCountX;
 		auto volume = new VolumeSegment<T>(x, y, z);
 
+
 		for (size_t i = 0; i < 100; i++)
 		{
 			try
@@ -190,19 +204,19 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 				break;
 			}
 			catch (const std::exception& ex)
-			{
+			{				
 				if (i == 99)
 				{
 					throw ex;
 				}
 
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-			}
-		}
+			}			
+		}		
 
 		volume->actualDownscale = downscale;
 		volume->futureDownscale = downscale;
-		volume->lastRequiredDownscale = downscale;
+		volume->requiredDownscale = downscale;
 
 		_loadedSegmentsMutex.lock();
 		_loadedSegments.push(std::unique_ptr<VolumeSegment<T>>(volume));
