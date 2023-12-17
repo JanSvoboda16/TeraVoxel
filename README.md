@@ -28,8 +28,8 @@ Class diagram is included in here: [ClassDiagram](doc/TeraVoxelClientClassDiagra
 * Installed .NET 7.0 runtime and ASP.NET Core 7.0 runtime, I recommend installing the .NET 7.0 SDK, which includes everything you need from: https://dotnet.microsoft.com/en-us/download, but you can also install both separately from: https://dotnet.microsoft.com/en-us/download/dotnet/7.0. 
 
 ## Supported Formats
-TeraVoxel currently supports only the Nifti file format but other formats will be added in the future. You can also add the other ones by yourself.
-For now to convert to this format, it is possible to use the freely available ImageJ software and software based on it. 
+* NIFTI file
+* TIFF sequence (zipped in .zip archive without any subfolders - 3D TIFF not supported)
 
 ## Startup and Configuration 
 ### Server configuration 
