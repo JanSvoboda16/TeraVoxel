@@ -32,6 +32,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 // Main code
 int main(int, char**)
 {
+	Logger::Initialize("log.csv");
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
 	WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, L"ImGui Example", NULL };
@@ -96,7 +97,7 @@ int main(int, char**)
 	SettingsWindow settingsWindow;
 
 	MemoryContext::GetInstance().maxMemory = 6000000000;
-	SettingsContext::GetInstance().loadingThreadCount = 16;
+	SettingsContext::GetInstance().loadingThreadCount = 5;
 	SettingsContext::GetInstance().preloadingThreadCount = 16;
 	SettingsContext::GetInstance().renderingThreadCount = 13;
 
@@ -159,7 +160,7 @@ int main(int, char**)
 	::UnregisterClassW(wc.lpszClassName, wc.hInstance);
 
 	// Logger singleton destroy
-	// Logger::DestroyInstance();
+	Logger::DestroyInstance();
 	return 0;
 }
 

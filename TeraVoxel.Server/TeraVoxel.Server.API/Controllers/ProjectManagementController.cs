@@ -44,7 +44,8 @@ namespace TeraVoxelServer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProjectsInfo()
         {
-            return Ok(await _projectManager.GetAllProjectsInfo()); 
+            var info = await _projectManager.GetAllProjectsInfo();
+            return Ok(info); 
         }
 
         [HttpGet]
@@ -108,7 +109,8 @@ namespace TeraVoxelServer.Controllers
         [DisableRequestSizeLimit]
         public async Task<IActionResult> UploadFile(string projectName, string fileName)
         {
-            if (fileName.Split('.').Last() != "nii")
+            var filetype = fileName.Split('.').Last();
+            if (filetype != "nii" && filetype != "zip")
             {
                 return BadRequest();
             }

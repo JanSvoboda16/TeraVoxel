@@ -131,7 +131,7 @@ void VolumeViewWindow::Update()
 			if ((scene->GetFrameHeight() == frameHeight) && (scene->GetFrameWidth() == frameWidth))
 			{
 				_framebuffer = scene->GetFrame();
-				_framesCount++;
+				_framesCount++;				
 			}
 		}
 

@@ -131,9 +131,11 @@ const char* VolumeScene<T>::GetDataTypeName()
 template<typename T>
 void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 {
+	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
 	_visualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
 	_frameReady.store(true, std::memory_order::release);
 	_renderingInProgress.store(false, std::memory_order::release);
+	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Ended", "", _fast ? "fast" : "full");
 }
 
 template VolumeScene<uint8_t>;

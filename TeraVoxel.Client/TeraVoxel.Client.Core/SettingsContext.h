@@ -10,7 +10,7 @@ class SettingsContext
 {
 public:
 	std::atomic<int> renderingThreadCount = 13;
-	std::atomic<int> loadingThreadCount = 8;
+	std::atomic<int> loadingThreadCount = 5;
 	std::atomic<int> preloadingThreadCount = 16;
 
 	static SettingsContext& GetInstance()

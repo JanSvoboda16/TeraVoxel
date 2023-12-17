@@ -69,11 +69,18 @@ void CPURayCastingVolumeObjectMemory<T>::Preload(short threadCount)
 }
 
 template <typename T>
+__forceinline float CPURayCastingVolumeObjectMemory<T>::GetPriority(int xIndex, int yIndex, int zIndex)
+{
+	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex));
+	return (vecPos - _camera->GetShrankPosition()).norm();
+}
+
+template <typename T>
 __forceinline int CPURayCastingVolumeObjectMemory<T>::GetRequiredDownscale(int xIndex, int yIndex, int zIndex)
 {
 	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex));
-	auto dist = (vecPos - _camera->GetPosition()).norm(); // Absolute distance
-	float quality = _camera->GetScreenSize().x() / (2 * tanf(_camera->GetViewAngle() * 0.5) * dist) * _camera->GetMaxVoxelSize();
+	auto dist = (vecPos - _camera->GetPosition()).norm();
+	float quality = _camera->GetScreenSize().x() / (2 * tanf(_camera->GetViewAngle() * 0.5) * dist) * _camera->GetVoxelSizeMean();
 	auto actualDownscale = 0;
 
 	if (quality <= 0.125)
@@ -113,6 +120,8 @@ template <typename T>
 void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 {
 	bool ramAlmostFull = MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) + 140000000 > MemoryContext::GetInstance().maxMemory.load(std::memory_order_acquire);
+	int countOfOkQuality= 0;
+	int countVisible = 0;
 
 	for (size_t z = 0; z < zSegmentCount; z++)
 	{
@@ -123,30 +132,41 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 				auto index = x + y * xSegmentCount + z * xSegmentCount * ySegmentCountCount;
 				VolumeSegment<T>* vol = _volumes[index];
 
+				if (vol->actualDownscale <= vol->requiredDownscale && vol->used)
+				{
+					countOfOkQuality++;
+				}
 
 				if (vol->used.load(std::memory_order_relaxed))
 				{
-					int lastRequiredDownscale = GetRequiredDownscale((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
+					countVisible++;
+				}
+
+				if (vol->used.load(std::memory_order_relaxed))
+				{
+					int requiredDownscale = GetRequiredDownscale((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
+
+					vol->priority.store(GetPriority((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2));
 
 					// Important for refresh after zooming on the loaded scene -> step depend on quality
-					if (vol->lastRequiredDownscale != lastRequiredDownscale)
+					if (vol->requiredDownscale != requiredDownscale)
 					{
-						vol->lastRequiredDownscale = lastRequiredDownscale;
+						vol->requiredDownscale = requiredDownscale;
 						_memoryChanged.store(true, std::memory_order_release);
 					}
 
-					if (vol->actualDownscale > lastRequiredDownscale && !ramAlmostFull)
+					if (vol->actualDownscale > requiredDownscale && !ramAlmostFull)
 					{
 						if (vol->waitsToBeReloaded.load(std::memory_order::acquire))
 						{
-							if (vol->futureDownscale > lastRequiredDownscale)
+							if (vol->futureDownscale > requiredDownscale)
 							{
-								vol->futureDownscale.store(lastRequiredDownscale, std::memory_order::release);
+								vol->futureDownscale.store(requiredDownscale, std::memory_order::release);
 							}
 						}
 						else
 						{
-							vol->futureDownscale.store(lastRequiredDownscale, std::memory_order::release);
+							vol->futureDownscale.store(requiredDownscale, std::memory_order::release);
 							_volumeLoader->AddToStack(vol);
 						}
 					}
@@ -156,6 +176,8 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 	}
 
 	int segmentCount = xSegmentCount * ySegmentCountCount * zSegmentCount;
+
+	Logger::GetInstance()->LogEvent("VolumeObjectMemory", "QualityInfo", std::to_string(countOfOkQuality / (double)countVisible));
 
 	// Downscale N of segments with higher quality
 	if (ramAlmostFull)
@@ -264,16 +286,16 @@ void CPURayCastingVolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount
 		if (vol->data != nullptr)
 		{
 			// The quality is better than we need 
-			if (!vol->waitsToBeReloaded.load(std::memory_order_acquire) && vol->actualDownscale < vol->lastRequiredDownscale)
+			if (!vol->waitsToBeReloaded.load(std::memory_order_acquire) && vol->actualDownscale < vol->requiredDownscale)
 			{
 				// NOT BEING RELOADED -> only this thread has access to this block
 
 				// Downscale a block to the required quality
-				int downscaledSegmentSize = _segmentSize >> vol->lastRequiredDownscale;
+				int downscaledSegmentSize = _segmentSize >> vol->requiredDownscale;
 				T* downscaledData = new T[downscaledSegmentSize * downscaledSegmentSize * downscaledSegmentSize];
 				int actualSegmentSize = _segmentSize >> vol->actualDownscale;
 				int downscaledVoxelCount = downscaledSegmentSize * downscaledSegmentSize * downscaledSegmentSize;
-				int downscale = vol->lastRequiredDownscale - vol->actualDownscale;
+				int downscale = vol->requiredDownscale - vol->actualDownscale;
 				int downscaleVoxCount = (size_t)1 << downscale; // 1 << downscale == 2 ^ downscale
 				downscaleVoxCount = downscaleVoxCount * downscaleVoxCount * downscaleVoxCount;
 
@@ -291,14 +313,14 @@ void CPURayCastingVolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount
 
 				// Recomputing RAM 
 				MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-				MemoryContext::GetInstance().usedMemory -= GetBlockRequiredMemory(vol->actualDownscale) - GetBlockRequiredMemory(vol->lastRequiredDownscale);
+				MemoryContext::GetInstance().usedMemory -= GetBlockRequiredMemory(vol->actualDownscale) - GetBlockRequiredMemory(vol->requiredDownscale);
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
 				// Swapping data
 				delete vol->data;
 				vol->data = downscaledData;
-				vol->actualDownscale = vol->lastRequiredDownscale;
-				vol->futureDownscale = vol->lastRequiredDownscale;
+				vol->actualDownscale = vol->requiredDownscale;
+				vol->futureDownscale = vol->requiredDownscale;
 
 				count++;
 				if (count == maxCount)

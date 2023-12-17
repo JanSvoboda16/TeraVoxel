@@ -85,7 +85,7 @@ public:
 	/// Returns max size of the voxel dimensions
 	/// </summary>
 	/// <returns>max dimension</returns>
-	float GetMaxVoxelSize();
+	float GetVoxelSizeMean();
 
 	/// <summary>
 	/// Returns the camera position in a shrank space
