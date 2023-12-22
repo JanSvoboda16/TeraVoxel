@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Visualizers">
-      <UniqueIdentifier>{7c114e8b-d10d-452d-81f2-1ed22e51a4af}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Visualizers\Empty">
-      <UniqueIdentifier>{8e674fc3-1b82-4e49-a11c-1db749155c27}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Data">
       <UniqueIdentifier>{bc7a9703-c86d-43ca-808b-db496e951a45}</UniqueIdentifier>
     </Filter>
@@ -16,51 +10,60 @@
     <Filter Include="Core">
       <UniqueIdentifier>{eb62c946-aa46-4a73-b36b-d8a6a04d6f1c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Visualizers\CPURayCasting">
+    <Filter Include="VolumeVisualizers">
+      <UniqueIdentifier>{7c114e8b-d10d-452d-81f2-1ed22e51a4af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VolumeVisualizers\Empty">
+      <UniqueIdentifier>{8e674fc3-1b82-4e49-a11c-1db749155c27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VolumeVisualizers\CPURayCasting">
       <UniqueIdentifier>{86ee7e22-170b-4da7-9e3a-6be4864726ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MeshVisualizers">
+      <UniqueIdentifier>{291745ce-d8f5-49d1-bc38-81b64b1553c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Data\DataModels">
+      <UniqueIdentifier>{55f0e871-6a2c-43b6-ba82-9dfd0159f673}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VolumeVisualizerBase.h">
-      <Filter>Visualizers</Filter>
+      <Filter>VolumeVisualizers</Filter>
     </ClInclude>
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h">
-      <Filter>Visualizers</Filter>
+      <Filter>VolumeVisualizers</Filter>
     </ClInclude>
     <ClInclude Include="IVolumeVisualizerFactory.h">
-      <Filter>Visualizers</Filter>
+      <Filter>VolumeVisualizers</Filter>
     </ClInclude>
     <ClInclude Include="VolumeVisualizerSetter.h">
-      <Filter>Visualizers</Filter>
+      <Filter>VolumeVisualizers</Filter>
     </ClInclude>
     <ClInclude Include="VolumeVisualizerSettingsBase.h">
-      <Filter>Visualizers</Filter>
+      <Filter>VolumeVisualizers</Filter>
     </ClInclude>
     <ClInclude Include="EmptyVolumeVisualizer.h">
-      <Filter>Visualizers\Empty</Filter>
+      <Filter>VolumeVisualizers\Empty</Filter>
     </ClInclude>
     <ClInclude Include="EmptyVolumeVisualizerFactory.h">
-      <Filter>Visualizers\Empty</Filter>
+      <Filter>VolumeVisualizers\Empty</Filter>
     </ClInclude>
     <ClInclude Include="EmptyVolumeVisualizerSetter.h">
-      <Filter>Visualizers\Empty</Filter>
+      <Filter>VolumeVisualizers\Empty</Filter>
     </ClInclude>
     <ClInclude Include="CPURayCastingVolumeVisualizer.h">
-      <Filter>Visualizers\CPURayCasting</Filter>
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerFactory.h">
-      <Filter>Visualizers\CPURayCasting</Filter>
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerSetter.h">
-      <Filter>Visualizers\CPURayCasting</Filter>
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerSettings.h">
-      <Filter>Visualizers\CPURayCasting</Filter>
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="Serialization.h">
-      <Filter>Data</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeSegment.h">
       <Filter>Data</Filter>
     </ClInclude>
     <ClInclude Include="pch.h" />
@@ -77,7 +80,7 @@
       <Filter>Data\VolumeLoaders</Filter>
     </ClInclude>
     <ClInclude Include="ColorMappingTable.h">
-      <Filter>Visualizers\CPURayCasting</Filter>
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Core</Filter>
@@ -95,17 +98,29 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
+    <ClInclude Include="CPURayCastingVolumeObjectMemory.h">
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Data\DataModels</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshObject.h">
+      <Filter>Data\DataModels</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeSegment.h">
+      <Filter>Data\DataModels</Filter>
+    </ClInclude>
+    <ClInclude Include="EigenBenchmark.h" />
+    <ClInclude Include="CPUMeshVisualizer.h" />
+    <ClInclude Include="MultiLayeredFramebuffer.h" />
+    <ClInclude Include="FramebufferLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
       <Filter>Data\VolumeLoaders</Filter>
     </ClCompile>
-    <ClCompile Include="NetVolumeLoader.cpp">
-      <Filter>Data\VolumeLoaders</Filter>
-    </ClCompile>
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp">
-      <Filter>Visualizers\CPURayCasting</Filter>
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Camera.cpp">
@@ -117,6 +132,21 @@
     <ClCompile Include="Transformations.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp" />
+    <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp">
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Data\DataModels</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshObject.cpp">
+      <Filter>Data\DataModels</Filter>
+    </ClCompile>
+    <ClCompile Include="EigenBenchmark.cpp" />
+    <ClCompile Include="CPUMeshVisualizer.cpp" />
+    <ClCompile Include="MultiLayeredFramebuffer.cpp" />
+    <ClCompile Include="FramebufferLayer.cpp" />
+    <ClCompile Include="NetVolumeLoader.cpp">
+      <Filter>Data\DataModels</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

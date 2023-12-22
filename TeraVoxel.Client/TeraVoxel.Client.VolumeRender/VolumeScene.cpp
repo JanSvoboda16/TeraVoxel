@@ -132,7 +132,41 @@ template<typename T>
 void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
+	
+	auto meshObject = std::make_shared<MeshObject>();
+	
+	Mesh mesh;
+	mesh.Data().push_back({Vector3f(0,0,0),Vector4b(255,0,0,255)});
+	mesh.Data().push_back({Vector3f(0,255,0),Vector4b(0,255,0,255)});
+	mesh.Data().push_back({Vector3f(255,0,0),Vector4b(0,0,255,255)});
+	mesh.Data().push_back({Vector3f(255,255,0),Vector4b(0,0,255,255) });
+	mesh.SetMode(MeshMode::Strip);
+	meshObject->meshes.push_back(mesh);
+	meshObject->transformation = Matrix4f::Identity();
+
+	
 	_visualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
+
+	CPUMeshVisualizer visualizer(meshObject, _camera);
+	visualizer.ComputeFrame();
+	auto meshBuffer = visualizer.GetFrameBuffer();
+
+	for (size_t x = 0; x < width; x++)
+	{
+		for (size_t y = 0; y < height; y++)
+		{
+			auto framebuffer = _framebufferIndex ? _framebuffer1 : _framebuffer2;
+			auto value = meshBuffer->GetFragmentsOrdered(x, y)[0];
+			if (value.a != 0)
+			{
+				framebuffer[(x + y * width) * 4] = value.r;
+				framebuffer[(x + y * width) * 4 + 1] = value.g;
+				framebuffer[(x + y * width) * 4 + 2] = value.b;
+				framebuffer[(x + y * width) * 4 + 3] = value.a;
+			}
+		}
+	}
+
 	_frameReady.store(true, std::memory_order::release);
 	_renderingInProgress.store(false, std::memory_order::release);
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Ended", "", _fast ? "fast" : "full");

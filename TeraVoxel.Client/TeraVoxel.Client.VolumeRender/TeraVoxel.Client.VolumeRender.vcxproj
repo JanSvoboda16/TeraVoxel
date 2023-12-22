@@ -149,6 +149,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CPUMeshVisualizer.h" />
+    <ClInclude Include="EigenBenchmark.h" />
     <ClInclude Include="EmptyVolumeVisualizer.h" />
     <ClInclude Include="EmptyVolumeVisualizerFactory.h" />
     <ClInclude Include="EmptyVolumeVisualizerSetter.h" />
@@ -156,9 +158,13 @@
     <ClInclude Include="CPURCVolumeVisualizerFactory.h" />
     <ClInclude Include="CPURCVolumeVisualizerSetter.h" />
     <ClInclude Include="CPURCVolumeVisualizerSettings.h" />
+    <ClInclude Include="FramebufferLayer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="IVolumeScene.h" />
     <ClInclude Include="ColorMappingTable.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshObject.h" />
+    <ClInclude Include="MultiLayeredFramebuffer.h" />
     <ClInclude Include="NetVolumeLoader.h" />
     <ClInclude Include="NetVolumeLoaderFactory.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h" />
@@ -178,7 +184,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CPUMeshVisualizer.cpp" />
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp" />
+    <ClCompile Include="EigenBenchmark.cpp" />
+    <ClCompile Include="FramebufferLayer.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshObject.cpp" />
+    <ClCompile Include="MultiLayeredFramebuffer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

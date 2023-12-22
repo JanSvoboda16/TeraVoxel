@@ -21,7 +21,7 @@ using Eigen::Matrix4f;
 class Camera
 {
 public:
-	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 100, float farPlaneDiscance = 10000);
+	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 1, float farPlaneDiscance = 10000);
 	
 	/// <summary>
 	/// Changes the position of the camera

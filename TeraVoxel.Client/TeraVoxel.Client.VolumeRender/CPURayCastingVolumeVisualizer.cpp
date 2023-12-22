@@ -133,7 +133,6 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 	ColorMappingTable mappingTable = _settingsCopy.mappingTable;
 	Vector3f stepVector = this->_camera->GetShrankRayDirection(x, y).normalized();
 
-	float stepx = stepVector[0], stepy = stepVector[1], stepz = stepVector[2];
 	Vector3f start, stop;
 	float stepMultiplyer = 1;
 	float r = 0, g = 0, b = 0, a = 0, rl = 0, gl = 0, bl = 0; // Color
@@ -145,9 +144,8 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 		Vector3f pathLength = (stop - start).array().abs(); // Lenght of the ray path
 		Vector3f position = start; // Position of the ray casting
 
-		double pathLengthx = pathLength[0], pathLengthy = pathLength[1], pathLengthz = pathLength[2];
-		double startx = start[0], starty = start[1], startz = start[2];
-		double positionx = startx, positiony = starty, positionz = startz;
+		int maxPathLengthIndex = static_cast<int>(std::distance(pathLength.data(), std::max_element(pathLength.data(), pathLength.data() + pathLength.size())));
+		double maxPathLength = pathLength[maxPathLengthIndex];
 
 		int qualityStepCount = 100 - (position - start).norm();
 		bool lighting = _settingsCopy.shading;
@@ -155,13 +153,11 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 		if (lighting)
 		{
-			while ((pathLengthx >= fabs(positionx - startx)) &&
-				(pathLengthy >= fabs(positiony - starty)) &&
-				(pathLengthz >= fabs(positionz - startz)))
+			while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
 			{
-				int x0 = static_cast<int>(positionx);
-				int y0 = static_cast<int>(positiony);
-				int z0 = static_cast<int>(positionz);
+				int x0 = static_cast<int>(position[0]);
+				int y0 = static_cast<int>(position[1]);
+				int z0 = static_cast<int>(position[2]);
 
 				// Hodnoty ve všech osmi nejbližších voxelů
 				int downscale;
@@ -187,9 +183,9 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 					double f111 = this->_memory.GetValue(x1, y1, z1, downscale);
 
 					// Váhy pro interpolaci
-					double dx = positionx - x0;
-					double dy = positiony - y0;
-					double dz = positionz - z0;
+					double dx = position[0] - x0;
+					double dy = position[1] - y0;
+					double dz = position[2] - z0;
 					double invGridSizeCube = 1.0 / (gridSize * gridSize * gridSize);
 
 					double gridSizeMinDx = (gridSize - dx);
@@ -241,9 +237,9 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 						gy *= divider;
 						gz *= divider;
 
-						double lightx = 8000 - positionx;
-						double lighty = 0 - positiony;
-						double lightz = 0 - positionz;
+						double lightx = 8000 - position[0];
+						double lighty = 0 - position[1];
+						double lightz = 0 - position[2];
 
 						divider = 1 / sqrtf(powf(lightx, 2) + powf(lighty, 2) + powf(lightz, 2));
 						lightx *= divider;
@@ -257,7 +253,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 						double ambientInt = _settingsCopy.ampbientIntensity;
 						double difusionInt = fmax(0.0, gx * lightx + gy * lighty + gz * lightz) * _settingsCopy.difustionIntensity;
-						double reflectionInt = powf(fmax(0.0, reflectionx * stepx + reflectiony * stepy + reflectionz * stepz), _settingsCopy.reflectionSharpness) * _settingsCopy.reflectionIntensity;
+						double reflectionInt = powf(fmax(0.0, reflectionx * stepVector[0] + reflectiony * stepVector[1] + reflectionz * stepVector[2]), _settingsCopy.reflectionSharpness) * _settingsCopy.reflectionIntensity;
 
 						double lightInt = (ambientInt + difusionInt);
 
@@ -285,23 +281,16 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 					}
 				}
 
-				positionx += stepx * stepMultiplyer;
-				positiony += stepy * stepMultiplyer;
-				positionz += stepz * stepMultiplyer;
-
+				position += stepVector * stepMultiplyer;
 			}
 		}
 		else
 		{
 			// While the position is inside of the volume
-			while ((pathLengthx >= fabs(positionx - startx)) &&
-				(pathLengthy >= fabs(positiony - starty)) &&
-				(pathLengthz >= fabs(positionz - startz)))
+			while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
 			{
-
 				int downscale;
-				float value = this->_memory.GetValue(positionx, positiony, positionz, downscale);
-
+				float value = this->_memory.GetValue(position[0], position[1], position[2], downscale);
 
 				stepMultiplyer = 1 << downscale; // equals 2^downscale
 
@@ -348,9 +337,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 					if (a > 0.97) { a = 1; break; }
 				}
 
-				positionx += stepx * stepMultiplyer;
-				positiony += stepy * stepMultiplyer;
-				positionz += stepz * stepMultiplyer;
+				position += stepVector * stepMultiplyer;
 			}
 		}
 	}

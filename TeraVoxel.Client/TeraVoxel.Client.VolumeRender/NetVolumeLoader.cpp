@@ -31,7 +31,6 @@ T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 		throw ex;
 	}
 
-
 	T* data = new T[segmentSize];
 
 	bool sameEndianites = false;

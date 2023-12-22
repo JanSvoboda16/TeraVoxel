@@ -132,10 +132,11 @@ void Camera::RecomputeParams()
 	float r = tanf(_viewAngle / 2)*_nearPlaneDistance;
 	float t = r * _screenHeight / _screenWidth;	
 
+	// camera is looking into positive x, not negative
 	_projectionMatrix << 
 		_nearPlaneDistance / r, 0, 0, 0,
 		0, -_nearPlaneDistance / t, 0, 0,
-		0, 0, (_nearPlaneDistance - _farPlaneDistance) / (_farPlaneDistance- _nearPlaneDistance), -2 * (_nearPlaneDistance * _farPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance),
+		0, 0, (_nearPlaneDistance - _farPlaneDistance) / (_farPlaneDistance- _nearPlaneDistance), 2 * (_nearPlaneDistance * _farPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance),
 		0, 0, 1, 0;
 
 	_projectionMatrix = _projectionMatrix * _rotation.inverse() * Transformations::GetTranslationMatrix(-_position[0], -_position[1], -_position[2]);

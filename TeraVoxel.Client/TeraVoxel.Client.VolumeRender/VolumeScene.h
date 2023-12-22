@@ -12,6 +12,7 @@
 #include "IVolumeScene.h"
 #include "IVolumeVisualizerFactory.h"
 #include "../TeraVoxel.Client.Core/TypeToString.h"
+#include "CPUMeshVisualizer.h"
 
 using Eigen::Vector3d;
 using Eigen::Vector3i;
