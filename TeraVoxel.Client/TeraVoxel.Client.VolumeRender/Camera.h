@@ -21,7 +21,7 @@ using Eigen::Matrix4f;
 class Camera
 {
 public:
-	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 1, float farPlaneDiscance = 10000);
+	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 100, float farPlaneDiscance = 10000000);
 	
 	/// <summary>
 	/// Changes the position of the camera
@@ -80,6 +80,8 @@ public:
 	/// </summary>
 	/// <returns>view port matrix</returns>
 	Matrix4f GetViewPortTransformationMatrix();
+
+	Matrix4f GetPositionMatrix();
 	
 	/// <summary>
 	/// Returns max size of the voxel dimensions
@@ -132,6 +134,8 @@ public:
 	/// </summary>
 	/// <returns>view angle</returns>
 	float GetViewAngle() { return _viewAngle; }
+	float SetViewAngle(float viewAngle)	{ _viewAngle = viewAngle; RecomputeParams(); }
+	float GedDistanceFromProjected(float zValue, int xPixel, int yPixel);
 
 	/// <summary>
 	/// Gets the camera position
@@ -141,6 +145,9 @@ public:
 
 	void SetFarPlaneDistance(float farPlaneDistance) { _farPlaneDistance = farPlaneDistance; RecomputeParams(); }
 	void SetNearPlaneDistance(float nearPlaneDistance) { _nearPlaneDistance = nearPlaneDistance; RecomputeParams(); }
+
+	float GetFarPlaneDistance() { return _farPlaneDistance; }
+	float GetNearPlaneDistance() { return _nearPlaneDistance; }
 
 private:
 	float _totalObsXAngle = 0, _totalObsYAngle = 0;			// Observer angles
@@ -154,12 +161,15 @@ private:
 	Vector3f _voxelDimensions;								// Dimensions of voxels
 	Matrix4f _rayShrankRotation;							// The transformation which is applied on each ray. (rotation && shrink)
 	Matrix4f _projectionMatrix;								// Projection matrix
+	Matrix4f _positionMatrix;
 
 	int _screenWidth, _screenHeight;	// screen sizes
 	float _viewAngle;					// View angle in RADS
 	float _depth;						// Size between camera center and view plane when pixel size is 1
 	float _nearPlaneDistance;			// Near plane distance
 	float _farPlaneDistance;			// Far plane distance
+	
+	float _zValueCoef1, _zValueCoef2;
 
 	// Recomputes precomputed parameters
 	void RecomputeParams();

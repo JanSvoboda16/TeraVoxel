@@ -141,7 +141,15 @@ void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 	mesh.Data().push_back({Vector3f(255,0,0),Vector4b(0,0,255,255)});
 	mesh.Data().push_back({Vector3f(255,255,0),Vector4b(0,0,255,255) });
 	mesh.SetMode(MeshMode::Strip);
+
+	Mesh mesh2;
+	mesh2.Data().push_back({ Vector3f(0,0,-100),Vector4b(0,255,0,255) });
+	mesh2.Data().push_back({ Vector3f(0,255,500),Vector4b(0,255,0,255) });
+	mesh2.Data().push_back({ Vector3f(255,0,500),Vector4b(0,255,0,255) });
+	mesh2.SetMode(MeshMode::Strip);
+
 	meshObject->meshes.push_back(mesh);
+	meshObject->meshes.push_back(mesh2);
 	meshObject->transformation = Matrix4f::Identity();
 
 	

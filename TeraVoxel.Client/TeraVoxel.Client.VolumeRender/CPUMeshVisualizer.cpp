@@ -2,182 +2,177 @@
 
 bool CPUMeshVisualizer::ComputeViewFrustumIntersecion(const Vector3f& A, const Vector3f& B, uint8_t plane, int16_t distance, Vector3f& outIntersection)
 {
-	// intersections of lines with planes:
-	// 
-	// position (any point on the line) (x1,y1,z1)
-	// direction (a,b,c)
-	// x = x1+a*k
-	// y = y1+b*k
-	// z = z1+c*k
-	// 
-	// the intersection of a line with a plane perpendicular to the Z-axis -> 'z' is constant
-	// k=(z-z1)/c k>=0
-	// pz=position + k*direction
-	//
-	// the intersection of a line with a plane perpendicular to the X-axis -> 'x' is constant
-	// k=(x-x1)/b k>=0
-	// px=position + k*direction
-	//
-	// the intersection of a line with a plane perpendicular to the Y-axis -> 'y' is constant
-	// k=(y-y1)/a k>=0
-	// py=position + k*direction
-
 	Vector3f direction = (B - A);
 	float k = (distance - A[plane]) / direction[plane];
 	Vector3f intersection = A + direction * k;
 	if (k > 0 && (intersection - A).norm() < direction.norm())
 	{
-		outIntersection = intersection;		
+		outIntersection = intersection;
 		return true;
 	}
 	return false;
-	
-	/*
-
-	Vector3f maxIndexes(1.f,1.f,1.f);
-	Vector3f minIndexes(-1.f, -1.f, -1.f);
-	Vector3f direction = (B - A);
-	Vector3f k = (minIndexes-A).array() / direction.array();
-	std::vector<Vector3f> intersections;
-
-	for (size_t j = 0; j < 2; j++)
-	{
-		for (size_t i = 0; i < 3; i++)
-		{
-			Vector3f intersection = A + direction * k[i];
-			if (k[i] > 0 && (intersection - A).norm() < direction.norm())
-			{
-				if ((intersection[(i + 1) % 3] >= -1.f && intersection[(i + 1) % 3] <= 1.f)
-					&& (intersection[(i + 2) % 3] >= -1.f && intersection[(i + 2) % 3] <= 1.f))
-				{
-					if (j == 0)
-					{
-						intersection[i] = minIndexes[i];
-					}
-					else
-					{
-						intersection[i] = maxIndexes[i];
-					}
-					intersections.push_back(intersection);
-				}
-			}
-		}
-		k = (maxIndexes - A).array() / direction.array();
-	}
-
-
-	int intersectionsCount = intersections.size();
-	
-	// Two walls
-	if (intersectionsCount == 2)
-	{
-		if ((intersections[0] - A).norm() > (intersections[1] - A).norm())
-		{
-			std::swap(intersections[0], intersections[1]);			
-		}
-	}
-
-	// Different -> we use the closest and the farest
-	else if (intersectionsCount >= 3)
-	{
-
-		float closest = (intersections[0] - A).norm();
-		int closestIndex = 0;
-		float farest = (intersections[0] - A).norm();
-		int farestIndex = 0;
-
-		for (int i = 1; i < intersectionsCount; i++)
-		{
-			float distance = (intersections[i] -A).norm();
-			if (distance > farest)
-			{
-				farest = distance;
-				farestIndex = i;
-			}
-			if (distance < closest)
-			{
-				closest = distance;
-				closestIndex = i;
-			}
-		}
-
-
-		auto closestPosition = intersections[closestIndex];
-		auto farestPosition = intersections[farestIndex];
-
-
-		intersections.resize(2);
-		intersections[0] = closestPosition;
-		intersections[1] = farestPosition;		
-	}
-
-	return intersections;*/
 }
 
-bool CPUMeshVisualizer::Clipping(const std::array<Vertex, 3> &triangle, std::vector<std::array<Vertex, 3>> &outTriangles)
+bool CPUMeshVisualizer::NpFpClipping(const std::array<Vertex, 3>& triangle, std::vector<std::array<Vertex, 3>>& outTriangles)
 {
 
-	std::vector<Vertex> vertices;
-	bool anyOut = false;
-
-	for (uint8_t i = 0; i < 3; i++)
+	std::vector<std::array<Vertex, 3>> inTriangles;
+	inTriangles.push_back(triangle);
+	std::array<float, 2> distances = { _camera->GetNearPlaneDistance(), _camera->GetFarPlaneDistance() };
+	for (size_t j = 0; j < 2; j++)
 	{
-		auto& vertexa = triangle[i];
-		auto& vertexb = triangle[(i + 1) % 3];
-		auto& posa = vertexa.position;
-		auto& posb = vertexb.position;
-		
-		bool aOut = (posa.array() < -1.f).any() || (posa.array() > 1.f).any();
-		bool bOut = (posb.array() < -1.f).any() || (posb.array() > 1.f).any();
-
-		anyOut |= aOut || bOut;
-
-		if (aOut || bOut)
+		float dist;
+		if (j == 0)
 		{
-			auto intersections = ComputeViewFrustumIntersecions(posa, posb);
-
-			if (!aOut)
-			{
-				vertices.push_back(vertexa);
-			}
-
-			float lineLength = (vertexa.position - vertexb.position).norm();
-			for (Vector3f intersection: intersections)
-			{
-				auto bMultiplier = lineLength > 0.00001 ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
-				Vector4b colour = InterpolateColour(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
-				vertices.push_back({ intersection, colour });
-			}
+			dist = _camera->GetNearPlaneDistance();
 		}
 		else
 		{
-			vertices.push_back(vertexa);
+			dist = _camera->GetFarPlaneDistance();
+		}
+		outTriangles.clear();
+		for (std::array<Vertex, 3>&triangle : inTriangles)
+		{
+			std::vector<Vertex> vertices;
+			for (uint8_t i = 0; i < 3; i++)
+			{
+				auto& vertexa = triangle[i];
+				auto& vertexb = triangle[(i + 1) % 3];
+				auto& posa = vertexa.position;
+				auto& posb = vertexb.position;
+
+				bool aOut;
+				bool bOut;
+				if (j==0)
+				{
+					aOut = (posa[2] < dist);
+					bOut = (posb[2] < dist);
+				}
+				else
+				{
+					aOut = (posa[2] > dist);
+					bOut = (posb[2] > dist);
+				}
+				if (aOut || bOut)
+				{
+					if (!aOut)
+					{
+						vertices.push_back(vertexa);
+					}
+
+					Vector3f intersection;
+					if (ComputeViewFrustumIntersecion(posa, posb, 2, dist, intersection))
+					{
+						float lineLength = (vertexa.position - vertexb.position).norm();
+
+						auto bMultiplier = lineLength > 0.00001 ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
+						Vector4b colour = InterpolateColour(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
+						vertices.push_back({ intersection, colour });
+					}
+				}
+				else
+				{
+					vertices.push_back(vertexa);
+				}
+
+			}
+
+			int triangleCount = vertices.size() - 2;
+			int vertexPos = 1;
+			for (int i = 0; i < triangleCount; i++)
+			{
+				outTriangles.push_back({ vertices[0], vertices[vertexPos], vertices[vertexPos + 1] });
+				vertexPos += 1;
+			}
+		}
+
+		inTriangles = outTriangles;
+
+	}
+
+	return true;
+
+}
+
+bool CPUMeshVisualizer::SidesClipping(const std::array<Vertex, 3> &triangle, std::vector<std::array<Vertex, 3>> &outTriangles)
+{
+	std::vector<std::array<Vertex, 3>> inTriangles;
+	inTriangles.push_back(triangle);
+	for (int dist = -1; dist < 3; dist +=2)
+	{
+		for (size_t plane = 0; plane < 2; plane++)
+		{
+			outTriangles.clear();
+			for (std::array<Vertex, 3>& triangle: inTriangles)
+			{			
+				std::vector<Vertex> vertices;
+				for (uint8_t i = 0; i < 3; i++)
+				{
+					auto& vertexa = triangle[i];
+					auto& vertexb = triangle[(i + 1) % 3];
+					auto& posa = vertexa.position;
+					auto& posb = vertexb.position;
+
+					bool aOut;
+					bool bOut;
+					if (dist == -1)
+					{
+						aOut = (posa[plane] < -1.f);
+						bOut = (posb[plane] < -1.f);
+					}
+					else
+					{
+						aOut = (posa[plane] > 1.f);
+						bOut = (posb[plane] > 1.f);
+					}
+					if (aOut || bOut)
+					{
+						if (!aOut)
+						{
+							vertices.push_back(vertexa);
+						}
+
+						Vector3f intersection;
+						if (ComputeViewFrustumIntersecion(posa, posb, plane, dist, intersection))
+						{
+							float lineLength = (vertexa.position - vertexb.position).norm();
+						
+							auto bMultiplier = lineLength > 0.00001 ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
+							Vector4b colour = InterpolateColour(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
+							vertices.push_back({ intersection, colour });						
+						}
+					}
+					else
+					{
+						vertices.push_back(vertexa);
+					}
+				
+				}
+				
+				int triangleCount = vertices.size() - 2;
+				int vertexPos = 1;
+				for (int i = 0; i < triangleCount; i++)
+				{
+					outTriangles.push_back({ vertices[0], vertices[vertexPos], vertices[vertexPos + 1] });
+					vertexPos += 1;
+				}
+			}
+
+			inTriangles = outTriangles;
 		}
 	}
 
-	if (anyOut == false)
-	{
-		return false;
-	}
-
-	outTriangles.clear();
-	int triangleCount = vertices.size() - 2;
-	int vertexPos = 1;
-	for (int i = 0; i < triangleCount; i++)
-	{	
-		outTriangles.push_back({vertices[0], vertices[vertexPos], vertices[vertexPos+1]});
-		vertexPos += 1;
-	}
 	return true;
-
 }
 
 void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshObject>& node, const Matrix4f &baseTransform)
 {
 	Matrix4f transform = node->transformation * baseTransform;
-	Matrix4f transformWithProjection = _camera->GetProjectionMatrix() * transform;
+	Matrix4f projection = _camera->GetProjectionMatrix();
+	Matrix4f transformWithCameraPosition = _camera->GetPositionMatrix() * transform;
 	Matrix4f viewportTransformation = _camera->GetViewPortTransformationMatrix();
 	std::vector<std::array<Vertex, 3>> clippedTriangles;
+	std::vector<std::array<Vertex, 3>> NfFpClippedTriangles;
 
 	if (node == nullptr)
 	{
@@ -192,41 +187,52 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshObject>& node, cons
 		{
 			auto triangle = mesh.GetTriangle(j);
 
-			// Projection and object tranformation
 			for (uint8_t i = 0; i < 3; i++)
 			{
 				Vertex& vertex = triangle[i];
-				Vector4f projectedPosition = transformWithProjection * vertex.position.homogeneous();
-				projectedPosition /= projectedPosition[3];
+				Vector4f projectedPosition = transformWithCameraPosition * vertex.position.homogeneous();
 				vertex.position = projectedPosition.head(3);
 			}
 
-
-
-			if (Clipping(triangle, clippedTriangles))
+			if (!NpFpClipping(triangle, NfFpClippedTriangles))
 			{
-				for (auto& triangleCl : clippedTriangles)
-				{
-					for (uint8_t i = 0; i < 3; i++)
-					{
-						Vertex& vertex = triangleCl[i];
-						Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
-						vertex.position = projectedPosition.head(3);
-					}
-
-					RasterizeTriangle(triangleCl);
-				}
+				NfFpClippedTriangles.push_back(triangle);
 			}
-			else
+
+			for (auto& triangle: NfFpClippedTriangles)
 			{
 				for (uint8_t i = 0; i < 3; i++)
 				{
 					Vertex& vertex = triangle[i];
-					Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
+					Vector4f projectedPosition = projection * vertex.position.homogeneous();
+					projectedPosition /= projectedPosition[3];
 					vertex.position = projectedPosition.head(3);
-				}
+				}		
+				if (SidesClipping(triangle, clippedTriangles))
+				{
+					for (auto& triangleCl : clippedTriangles)
+					{
+						for (uint8_t i = 0; i < 3; i++)
+						{
+							Vertex& vertex = triangleCl[i];
+							Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
+							vertex.position = projectedPosition.head(3);
+						}
 
-				RasterizeTriangle(triangle);
+						RasterizeTriangle(triangleCl);
+					}
+				}
+				else
+				{
+					for (uint8_t i = 0; i < 3; i++)
+					{
+						Vertex& vertex = triangle[i];
+						Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
+						vertex.position = projectedPosition.head(3);
+					}
+
+					RasterizeTriangle(triangle);
+				}
 			}
 		}
 	}
@@ -263,6 +269,16 @@ Vector4b CPUMeshVisualizer::InterpolateColour(const Vector4b& color1, const Vect
 	return (color1.cast<float>() * alpha + color2.cast<float>() * beta).cast<uint8_t>();
 }
 
+float CPUMeshVisualizer::InterpolateValue(const float A, const float B, const float C, float alpha, float beta, float gamma)
+{
+	return A * alpha + B * beta + C * gamma;
+}
+
+float CPUMeshVisualizer::InterpolateValue(const float A, const float B, float alpha, float beta)
+{
+	return A * alpha + B * beta;
+}
+
 void ComputeBarycentricCoordinates(const Vector2f& A, const Vector2f& B, const Vector2f& C, const Vector2f& P, float& alpha, float& beta, float& gamma)
 {
 	float denominator = ((B.y() - C.y()) * (A.x() - C.x())) + ((C.x() - B.x()) * (A.y() - C.y()));
@@ -295,11 +311,15 @@ void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const Vertex& verte
 
 	float lineLength = diff.norm();
 
+
+	Vector2f lastPos = pos;
 	for (int i = 0; i <= steps; ++i)
 	{	
 		float bMultiplyier = lineLength > 0.00001 ? (pos - A).norm() / lineLength : 0.5f ;
 		Vector4b colour = InterpolateColour(vertexA.colour, vertexB.colour, 1.f - bMultiplyier, bMultiplyier);
-		_framebuffer->SetValue(pos[0], pos[1], colour[0], colour[1], colour[2], colour[3], 0);
+		float depth = InterpolateValue(vertexA.position[2], vertexB.position[2], 1.f - bMultiplyier, bMultiplyier);
+		_framebuffer->SetValue(pos[0], pos[1], 255,0,0, colour[3], depth);
+		lastPos = pos;
 		pos += step;
 	}
 }
@@ -340,13 +360,10 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 
 	if (dda1[1] != 0.f) dda1 /= fabs(dda1[1]);
 	if (dda2[1] != 0.f) dda2 /= fabs(dda2[1]);
-
-	ddaPos1 += dda1;
-	ddaPos2 += dda2;
 	
 	for (size_t i = 0; i < 2; i++)
 	{		
-		for (size_t y = 1; y <= countOfSteps; y++)
+		for (size_t y = 0; y < countOfSteps; y++)
 		{
 			uint16_t xpos = (int)ddaPos1[0];
 			uint16_t ypos = (int)ddaPos1[1];
@@ -355,7 +372,7 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 
 			int xPosMover = xpos > ddaPos2[0] ? -1 : 1;
 			
-			for (size_t x = 0; x < countOfXSteps; x++)
+			for (size_t x = 0; x <= countOfXSteps; x++)
 			{
 				float alpha;
 				float beta;
@@ -363,7 +380,8 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 
 				ComputeBarycentricCoordinates(trianglePos1, trianglePos2,trianglePos3, Vector2f(xpos, ypos), alpha, beta, gamma);
 				Vector4b colour = InterpolateColour(triangle[0].colour, triangle[1].colour, triangle[2].colour, alpha, beta, gamma);
-				_framebuffer->SetValue(xpos, ypos, colour[0], colour[1], colour[2], colour[3], 0);
+				float depth = InterpolateValue(triangle[0].position[2], triangle[1].position[2], triangle[2].position[2], alpha, beta, gamma);
+				_framebuffer->SetValue(xpos, ypos, colour[0], colour[1], colour[2], colour[3], depth);
 				xpos += xPosMover;
 			}
 			
@@ -381,71 +399,4 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 	{
 		RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
 	}
-
-
-	/*
-	Vector3f dda1 = triangle[1].position - triangle[0].position;
-	Vector3f dda2 = triangle[2].position - triangle[0].position;
-
-	uint16_t countOfPos1Steps = fabs(dda1[1]);
-	uint16_t countOfPos2Steps = fabs(dda2[1]);
-
-	uint16_t countOfYSteps = fmax(countOfPos1Steps, countOfPos2Steps) + 1;
-
-	if (dda1[1] != 0.f) dda1 /= fabs(dda1[1]);
-	if (dda2[1] != 0.f) dda2 /= fabs(dda2[1]);
-
-	Vector3f pos1 = triangle[0].position;
-	Vector3f pos2 = triangle[0].position;
-	auto screenSize = _camera->GetScreenSize();
-
-	uint16_t yStep = 0;
-	while (yStep < countOfYSteps)
-	{
-		uint16_t countOfXSteps = abs(pos2[0] - pos1[0]) + 1;
-
-		Vector3f pixelPos = pos1;	
-
-		Vector3f pixelDda = pos2 - pos1;
-
-		if (pixelDda[0] != 0.f) pixelDda /= fabs(pixelDda[0]);
-
-		if (pos1[1] >= screenSize[0]) break;
-
-		if (pos1[1] > 0.f)
-		{
-			for (uint16_t i = 0; i < countOfXSteps; i++)
-			{
-				if (pixelPos[0] > 0.f && pixelPos[0] < screenSize[1])
-				{
-					float alpha;
-					float beta;
-					float gamma;
-
-					ComputeBarycentricCoordinates(triangle[0].position.head(2), triangle[1].position.head(2), triangle[2].position.head(2), pixelPos.head(2), alpha, beta, gamma);
-					Vector4b colour = InterpolateColour(triangle[0].colour, triangle[1].colour, triangle[2].colour, alpha, beta, gamma);
-					_framebuffer->SetValue(pixelPos[0], pixelPos[1], colour[0], colour[1], colour[2], colour[3], pixelPos[2]);
-					pixelPos += pixelDda;
-				}
-			}
-		}
-		
-		if (yStep == countOfPos1Steps)
-		{
-			dda1 = triangle[2].position - triangle[1].position;
-			pos1 = triangle[1].position;
-			if (dda1[1] != 0.f) dda1 /= fabs(dda1[1]);
-		}
-
-		if (yStep == countOfPos2Steps)
-		{
-			dda2 = triangle[1].position - triangle[2].position;
-			pos2 = triangle[2].position;
-			if (dda2[1] != 0.f) dda2 /= fabs(dda2[1]);
-		}
-
-		pos1 += dda1;
-		pos2 += dda2;
-		yStep++;
-	}*/
 }
