@@ -124,20 +124,16 @@ float Camera::GetVoxelSizeMean()
 	return _voxelDimensions.array().mean();
 }
 
-float Camera::GetRealVectorLength(const Vector3f& shrankStep)
-{
-	return ((Vector3f)(shrankStep.array() * _voxelDimensions.array())).norm();
-}
 
-__forceinline float Camera::GedDistanceFromProjected(float zValue, int xPixel, int yPixel)
+Vector3f Camera::GedDistanceFromProjected(float zValue, int xPixel, int yPixel)
 {
-	float realZValue = _zValueCoef1 / (zValue - _zValueCoef2);
+	float realZValue = _zValueCoef1 / (_zValueCoef2 - zValue);
 	float x = xPixel - _screenWidth / 2.0;
 	float y = yPixel - _screenHeight / 2.0;
 
 	float depthRation = 1/_depth * realZValue;
 
-	return Vector3f(x*depthRation, y*depthRation, realZValue).norm();
+	return (_rotation * Vector4f(x*depthRation, y*depthRation, realZValue,1)).head(3);
 }
 
 void Camera::RecomputeParams()
@@ -157,7 +153,7 @@ void Camera::RecomputeParams()
 		0, 0, 1, 0;
 
 	_zValueCoef1 = (2 * _nearPlaneDistance * _farPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
-	_zValueCoef2 = (_nearPlaneDistance - _farPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
+	_zValueCoef2 = (_farPlaneDistance+_nearPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
 
 	_positionMatrix = _rotation.inverse() * Transformations::GetTranslationMatrix(-_position[0], -_position[1], -_position[2]);
 }

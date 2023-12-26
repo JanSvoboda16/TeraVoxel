@@ -8,14 +8,14 @@ class CPURayCastingVolumeVisualizerBase : public VolumeVisualizerBase<T>
 protected:
 	CPURayCastingVolumeObjectMemory<T> _memory;
 public:
-	CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory);
+	CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode);
 	virtual void ComputeFrameInternal(int downscale) override = 0;
 	bool ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop);
 };
 
 template<typename T>
-inline CPURayCastingVolumeVisualizerBase<T>::CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory)
-	: VolumeVisualizerBase<T>(camera, projectInfo, volumeLoaderFactory),
+inline CPURayCastingVolumeVisualizerBase<T>::CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode)
+	: VolumeVisualizerBase<T>(camera, projectInfo, volumeLoaderFactory, meshNode),
 	_memory(camera, projectInfo, volumeLoaderFactory) { }
 
 template <typename T>

@@ -133,11 +133,14 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)/eigen-3.4.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
+      <AdditionalOptions>/openmp:llvm %(AdditionalOptions)</AdditionalOptions>
+      <EnableParallelCodeGeneration>
+      </EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -163,7 +166,7 @@
     <ClInclude Include="IVolumeScene.h" />
     <ClInclude Include="ColorMappingTable.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshObject.h" />
+    <ClInclude Include="MeshNode.h" />
     <ClInclude Include="MultiLayeredFramebuffer.h" />
     <ClInclude Include="NetVolumeLoader.h" />
     <ClInclude Include="NetVolumeLoaderFactory.h" />
@@ -189,7 +192,7 @@
     <ClCompile Include="EigenBenchmark.cpp" />
     <ClCompile Include="FramebufferLayer.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshObject.cpp" />
+    <ClCompile Include="MeshNode.cpp" />
     <ClCompile Include="MultiLayeredFramebuffer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp" />
     <ClCompile Include="pch.cpp">

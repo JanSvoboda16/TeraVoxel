@@ -6,12 +6,13 @@
 #include "VolumeScene.h"
 
 template <typename T>
-VolumeScene<T>::VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac) //TODO new constructor
+VolumeScene<T>::VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFactory, const std::shared_ptr<MeshNode>& meshNode) //TODO new constructor
 {
 	_projectInfo = projectInfo;
 	_camera = camera;
-	_visualizer = visualizerFac->Create(camera, projectInfo, volumeLoaderFactory);
+	_volumeVisualizer = visualizerFactory->Create(camera, projectInfo, volumeLoaderFactory, meshNode);
 	_volumeLoaderFactory = volumeLoaderFactory;
+	_meshNode = meshNode;
 }
 
 template<typename T>
@@ -62,7 +63,7 @@ void VolumeScene<T>::ComputeFrame(int width, int height, bool _fast)
 
 	if (_visualizerChanged)
 	{
-		_visualizer = _visualizerFactory->Create(_camera, _projectInfo, _volumeLoaderFactory);
+		_volumeVisualizer = _visualizerFactory->Create(_camera, _projectInfo, _volumeLoaderFactory, _meshNode);
 		_visualizerChanged = false;
 	}
 
@@ -84,7 +85,7 @@ int VolumeScene<T>::GetFrameHeight()
 template <typename T>
 bool VolumeScene<T>::DataChanged()
 {
-	return _visualizer->DataChanged();
+	return _volumeVisualizer->DataChanged();
 }
 
 template <typename T>
@@ -101,6 +102,12 @@ template<typename T>
 inline std::shared_ptr<Camera> VolumeScene<T>::GetCamera()
 {
 	return _camera;
+}
+
+template<typename T>
+std::shared_ptr<MeshNode> VolumeScene<T>::GetMeshNode()
+{
+	return _meshNode;
 }
 
 template<typename T>
@@ -133,47 +140,9 @@ void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
 	
-	auto meshObject = std::make_shared<MeshObject>();
+	auto meshObject = std::make_shared<MeshNode>();
 	
-	Mesh mesh;
-	mesh.Data().push_back({Vector3f(0,0,0),Vector4b(255,0,0,255)});
-	mesh.Data().push_back({Vector3f(0,255,0),Vector4b(0,255,0,255)});
-	mesh.Data().push_back({Vector3f(255,0,0),Vector4b(0,0,255,255)});
-	mesh.Data().push_back({Vector3f(255,255,0),Vector4b(0,0,255,255) });
-	mesh.SetMode(MeshMode::Strip);
-
-	Mesh mesh2;
-	mesh2.Data().push_back({ Vector3f(0,0,-100),Vector4b(0,255,0,255) });
-	mesh2.Data().push_back({ Vector3f(0,255,500),Vector4b(0,255,0,255) });
-	mesh2.Data().push_back({ Vector3f(255,0,500),Vector4b(0,255,0,255) });
-	mesh2.SetMode(MeshMode::Strip);
-
-	meshObject->meshes.push_back(mesh);
-	meshObject->meshes.push_back(mesh2);
-	meshObject->transformation = Matrix4f::Identity();
-
-	
-	_visualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
-
-	CPUMeshVisualizer visualizer(meshObject, _camera);
-	visualizer.ComputeFrame();
-	auto meshBuffer = visualizer.GetFrameBuffer();
-
-	for (size_t x = 0; x < width; x++)
-	{
-		for (size_t y = 0; y < height; y++)
-		{
-			auto framebuffer = _framebufferIndex ? _framebuffer1 : _framebuffer2;
-			auto value = meshBuffer->GetFragmentsOrdered(x, y)[0];
-			if (value.a != 0)
-			{
-				framebuffer[(x + y * width) * 4] = value.r;
-				framebuffer[(x + y * width) * 4 + 1] = value.g;
-				framebuffer[(x + y * width) * 4 + 2] = value.b;
-				framebuffer[(x + y * width) * 4 + 3] = value.a;
-			}
-		}
-	}
+	_volumeVisualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
 
 	_frameReady.store(true, std::memory_order::release);
 	_renderingInProgress.store(false, std::memory_order::release);

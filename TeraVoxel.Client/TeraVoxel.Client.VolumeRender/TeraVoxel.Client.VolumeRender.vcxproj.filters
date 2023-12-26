@@ -104,7 +104,7 @@
     <ClInclude Include="Mesh.h">
       <Filter>Data\DataModels</Filter>
     </ClInclude>
-    <ClInclude Include="MeshObject.h">
+    <ClInclude Include="MeshNode.h">
       <Filter>Data\DataModels</Filter>
     </ClInclude>
     <ClInclude Include="VolumeSegment.h">
@@ -138,7 +138,7 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Data\DataModels</Filter>
     </ClCompile>
-    <ClCompile Include="MeshObject.cpp">
+    <ClCompile Include="MeshNode.cpp">
       <Filter>Data\DataModels</Filter>
     </ClCompile>
     <ClCompile Include="EigenBenchmark.cpp" />

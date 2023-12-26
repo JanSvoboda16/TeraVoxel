@@ -11,9 +11,9 @@ public:
 		_settings = settings;
 	}
 
-	std::unique_ptr<VolumeVisualizerBase<T>> Create(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory) override
+	std::unique_ptr<VolumeVisualizerBase<T>> Create(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode) override
 	{
-		return std::make_unique<CPURayCastingVolumeVisualizer<T>>(camera, projectInfo, volumeLoaderFactory, _settings);
+		return std::make_unique<CPURayCastingVolumeVisualizer<T>>(camera, projectInfo, volumeLoaderFactory, _settings, meshNode);
 	}
 
 private:

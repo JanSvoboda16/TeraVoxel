@@ -37,6 +37,8 @@ inline void CPURayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
 template<typename T>
 inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale)
 {
+	_meshVisualizer.ComputeFrame();
+	_meshFramebuffer = _meshVisualizer.GetFrameBuffer();
 	this->_memory.Prepare();
 	_settingsCopy = *_settings;
 	_settingsCopy.mappingTable.RecomputeDeltas();
@@ -104,7 +106,6 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 	}
 	else
 	{
-
 		while (true)
 		{
 			int i = _reneringPosition.fetch_add(1, std::memory_order_acq_rel);
@@ -133,13 +134,15 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 	ColorMappingTable mappingTable = _settingsCopy.mappingTable;
 	Vector3f stepVector = this->_camera->GetShrankRayDirection(x, y).normalized();
 
+	auto fragments = _meshFramebuffer->GetFragmentsOrdered(x, y);
+
 	Vector3f start, stop;
 	float stepMultiplyer = 1;
 	float r = 0, g = 0, b = 0, a = 0, rl = 0, gl = 0, bl = 0; // Color
 
 	if (this->ComputeRayIntersection(stepVector, start, stop))
 	{
-		auto alphaCoeficient = this->_camera->GetRealVectorLength(stepVector);
+		auto alphaCoeficient = this->_camera->DeshrinkVector(stepVector).norm();
 
 		Vector3f pathLength = (stop - start).array().abs(); // Lenght of the ray path
 		Vector3f position = start; // Position of the ray casting
@@ -150,6 +153,38 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 		int qualityStepCount = 100 - (position - start).norm();
 		bool lighting = _settingsCopy.shading;
 		auto dataSizes = this->_memory.GetDataSizes();
+
+		Vector3f cameraPos = this->_camera->GetShrankPosition();
+		
+		float nextFragmentPahtLength = 100000000000000;
+		int fragmentIndex = 0;
+
+		for (auto fragment : fragments)
+		{
+			Vector3f fragmentVector = this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragment.depth, x, y));
+			
+			if (fragmentVector.norm() < (cameraPos - start).norm())
+			{
+				float alpha = fragment.a / 255.f;
+				r = r + fragment.r / 255.f * alpha * (1 - a);
+				g = g + fragment.g / 255.f * alpha * (1 - a);
+				b = b + fragment.b / 255.f * alpha * (1 - a);
+				a = a + alpha * (1 - a);
+				fragmentIndex++;
+				if (a > 0.97) { a = 1; break; }
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		if (fragments.size() > fragmentIndex)
+		{
+			Vector3f fragmentVector = this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragments[fragmentIndex].depth, x, y));
+			nextFragmentPahtLength = (fragmentVector + cameraPos - position).norm();
+		}		
+		
 
 		if (lighting)
 		{
@@ -281,7 +316,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 					}
 				}
 
-				position += stepVector * stepMultiplyer;
+				position += stepVector * stepMultiplyer;			
 			}
 		}
 		else
@@ -289,6 +324,28 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 			// While the position is inside of the volume
 			while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
 			{
+				if (nextFragmentPahtLength <= 0)
+				{
+					float alpha = fragments[0].a / 255.f;
+					r = r + fragments[fragmentIndex].r / 255.f * alpha * (1 - a);
+					g = g + fragments[fragmentIndex].g / 255.f * alpha * (1 - a);
+					b = b + fragments[fragmentIndex].b / 255.f * alpha * (1 - a);
+					a = a + alpha * (1 - a);
+
+					fragmentIndex++;
+
+					if (fragments.size() > fragmentIndex)
+					{
+						nextFragmentPahtLength = (this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragments[fragmentIndex].depth, x, y)) + cameraPos - position).norm();
+					}
+					else
+					{
+						nextFragmentPahtLength = 100000000;
+					}
+
+					if (a > 0.97) { a = 1; break; }
+				}
+
 				int downscale;
 				float value = this->_memory.GetValue(position[0], position[1], position[2], downscale);
 
@@ -338,7 +395,32 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 				}
 
 				position += stepVector * stepMultiplyer;
+				nextFragmentPahtLength -= stepMultiplyer;
+
+				
 			}
+		}
+
+		for (size_t i = fragmentIndex; i < fragments.size(); i++)
+		{
+			float alpha = fragments[i].a / 255.f;
+			r = r + fragments[i].r/255.f * alpha * (1 - a);
+			g = g + fragments[i].g/255.f * alpha * (1 - a);
+			b = b + fragments[i].b/255.f * alpha * (1 - a);
+			a = a + alpha * (1 - a);
+			if (a > 0.97) { a = 1; break; }
+		}
+	}
+	else
+	{
+		for(auto fragment: fragments)
+		{
+			float alpha = fragment.a / 255.f;
+			r = r + fragment.r / 255.f * alpha * (1 - a);
+			g = g + fragment.g / 255.f * alpha * (1 - a);
+			b = b + fragment.b / 255.f * alpha * (1 - a);
+			a = a + alpha * (1 - a);
+			if (a > 0.97) { a = 1; break; }
 		}
 	}
 	return color{ (uint8_t)(fmin(255,r * 255)), (uint8_t)(fmin(255,g * 255)), (uint8_t)(fmin(255,b * 255)), (uint8_t)(a * 255) };

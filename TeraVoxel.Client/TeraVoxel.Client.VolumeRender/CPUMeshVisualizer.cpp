@@ -1,6 +1,6 @@
 #include "CPUMeshVisualizer.h"
 
-bool CPUMeshVisualizer::ComputeViewFrustumIntersecion(const Vector3f& A, const Vector3f& B, uint8_t plane, int16_t distance, Vector3f& outIntersection)
+__forceinline bool CPUMeshVisualizer::ComputeViewFrustumIntersecion(const Vector3f& A, const Vector3f& B, uint8_t plane, int16_t distance, Vector3f& outIntersection)
 {
 	Vector3f direction = (B - A);
 	float k = (distance - A[plane]) / direction[plane];
@@ -13,25 +13,40 @@ bool CPUMeshVisualizer::ComputeViewFrustumIntersecion(const Vector3f& A, const V
 	return false;
 }
 
-bool CPUMeshVisualizer::NpFpClipping(const std::array<Vertex, 3>& triangle, std::vector<std::array<Vertex, 3>>& outTriangles)
+__forceinline std::vector<std::array<Vertex, 3>> CPUMeshVisualizer::NpFpClipping(const std::array<Vertex, 3>& triangle)
 {
+	std::vector<std::array<Vertex, 3>> outTriangles;
+	outTriangles.push_back(triangle);
 
-	std::vector<std::array<Vertex, 3>> inTriangles;
-	inTriangles.push_back(triangle);
-	std::array<float, 2> distances = { _camera->GetNearPlaneDistance(), _camera->GetFarPlaneDistance() };
+	auto nearplane = _camera->GetNearPlaneDistance();
+	auto farplane = _camera->GetFarPlaneDistance();
+
+	bool needed = false;
+	for (size_t i = 0; i < 3; i++)
+	{
+		needed |= triangle[i].position[2] > farplane;
+		needed |= triangle[i].position[2] < nearplane;
+	}
+
+	if (!needed)
+	{
+		return outTriangles;
+	}
+
 	for (size_t j = 0; j < 2; j++)
 	{
 		float dist;
 		if (j == 0)
 		{
-			dist = _camera->GetNearPlaneDistance();
+			dist = nearplane;
 		}
 		else
 		{
-			dist = _camera->GetFarPlaneDistance();
+			dist = farplane;
 		}
-		outTriangles.clear();
-		for (std::array<Vertex, 3>&triangle : inTriangles)
+		
+		std::vector<std::array<Vertex, 3>> triangleStash;
+		for (std::array<Vertex, 3>&triangle : outTriangles)
 		{
 			std::vector<Vertex> vertices;
 			for (uint8_t i = 0; i < 3; i++)
@@ -66,7 +81,7 @@ bool CPUMeshVisualizer::NpFpClipping(const std::array<Vertex, 3>& triangle, std:
 						float lineLength = (vertexa.position - vertexb.position).norm();
 
 						auto bMultiplier = lineLength > 0.00001 ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
-						Vector4b colour = InterpolateColour(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
+						Vector4b colour = InterpolateColor(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
 						vertices.push_back({ intersection, colour });
 					}
 				}
@@ -81,29 +96,41 @@ bool CPUMeshVisualizer::NpFpClipping(const std::array<Vertex, 3>& triangle, std:
 			int vertexPos = 1;
 			for (int i = 0; i < triangleCount; i++)
 			{
-				outTriangles.push_back({ vertices[0], vertices[vertexPos], vertices[vertexPos + 1] });
+				triangleStash.push_back({ vertices[0], vertices[vertexPos], vertices[vertexPos + 1] });
 				vertexPos += 1;
 			}
 		}
 
-		inTriangles = outTriangles;
-
+		outTriangles = std::move(triangleStash);
 	}
 
-	return true;
-
+	return outTriangles;
 }
 
-bool CPUMeshVisualizer::SidesClipping(const std::array<Vertex, 3> &triangle, std::vector<std::array<Vertex, 3>> &outTriangles)
+__forceinline std::vector<std::array<Vertex, 3>> CPUMeshVisualizer::SidesClipping(const std::array<Vertex, 3> &triangle)
 {
-	std::vector<std::array<Vertex, 3>> inTriangles;
-	inTriangles.push_back(triangle);
+	std::vector<std::array<Vertex, 3>> outTriangles;
+	outTriangles.push_back(triangle);
+
+	bool needed = false;
+	for (size_t i = 0; i < 3; i++)
+	{
+		needed |= (triangle[i].position.array() > 1.f).any();
+		needed |= (triangle[i].position.array() < -1.f).any();
+	}
+
+	if (!needed)
+	{
+		return outTriangles;
+	}
+
 	for (int dist = -1; dist < 3; dist +=2)
 	{
 		for (size_t plane = 0; plane < 2; plane++)
-		{
-			outTriangles.clear();
-			for (std::array<Vertex, 3>& triangle: inTriangles)
+		{		
+			std::vector<std::array<Vertex, 3>> triangleStash;
+
+			for (std::array<Vertex, 3>& triangle: outTriangles)
 			{			
 				std::vector<Vertex> vertices;
 				for (uint8_t i = 0; i < 3; i++)
@@ -117,13 +144,13 @@ bool CPUMeshVisualizer::SidesClipping(const std::array<Vertex, 3> &triangle, std
 					bool bOut;
 					if (dist == -1)
 					{
-						aOut = (posa[plane] < -1.f);
-						bOut = (posb[plane] < -1.f);
+						aOut = (posa[plane] < dist);
+						bOut = (posb[plane] < dist);
 					}
 					else
 					{
-						aOut = (posa[plane] > 1.f);
-						bOut = (posb[plane] > 1.f);
+						aOut = (posa[plane] > dist);
+						bOut = (posb[plane] > dist);
 					}
 					if (aOut || bOut)
 					{
@@ -138,7 +165,7 @@ bool CPUMeshVisualizer::SidesClipping(const std::array<Vertex, 3> &triangle, std
 							float lineLength = (vertexa.position - vertexb.position).norm();
 						
 							auto bMultiplier = lineLength > 0.00001 ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
-							Vector4b colour = InterpolateColour(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
+							Vector4b colour = InterpolateColor(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
 							vertices.push_back({ intersection, colour });						
 						}
 					}
@@ -153,19 +180,19 @@ bool CPUMeshVisualizer::SidesClipping(const std::array<Vertex, 3> &triangle, std
 				int vertexPos = 1;
 				for (int i = 0; i < triangleCount; i++)
 				{
-					outTriangles.push_back({ vertices[0], vertices[vertexPos], vertices[vertexPos + 1] });
+					triangleStash.push_back({ vertices[0], vertices[vertexPos], vertices[vertexPos + 1] });
 					vertexPos += 1;
 				}
 			}
 
-			inTriangles = outTriangles;
+			outTriangles = std::move(triangleStash);
 		}
 	}
 
-	return true;
+	return outTriangles;
 }
 
-void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshObject>& node, const Matrix4f &baseTransform)
+void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const Matrix4f &baseTransform)
 {
 	Matrix4f transform = node->transformation * baseTransform;
 	Matrix4f projection = _camera->GetProjectionMatrix();
@@ -183,6 +210,7 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshObject>& node, cons
 	{
 		auto mesh = node->meshes[i];
 
+		
 		for (size_t j = 0; j < mesh.GetTriangleCount(); j++)
 		{
 			auto triangle = mesh.GetTriangle(j);
@@ -193,23 +221,23 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshObject>& node, cons
 				Vector4f projectedPosition = transformWithCameraPosition * vertex.position.homogeneous();
 				vertex.position = projectedPosition.head(3);
 			}
+			
+			auto NfFpClippedTriangles = NpFpClipping(triangle);
 
-			if (!NpFpClipping(triangle, NfFpClippedTriangles))
-			{
-				NfFpClippedTriangles.push_back(triangle);
-			}
-
+			
 			for (auto& triangle: NfFpClippedTriangles)
 			{
-				for (uint8_t i = 0; i < 3; i++)
 				{
-					Vertex& vertex = triangle[i];
-					Vector4f projectedPosition = projection * vertex.position.homogeneous();
-					projectedPosition /= projectedPosition[3];
-					vertex.position = projectedPosition.head(3);
-				}		
-				if (SidesClipping(triangle, clippedTriangles))
-				{
+					for (uint8_t i = 0; i < 3; i++)
+					{
+						Vertex& vertex = triangle[i];
+						Vector4f projectedPosition = projection * vertex.position.homogeneous();
+						projectedPosition /= projectedPosition[3];
+						vertex.position = projectedPosition.head(3);
+					}
+
+					auto clippedTriangles = SidesClipping(triangle);
+
 					for (auto& triangleCl : clippedTriangles)
 					{
 						for (uint8_t i = 0; i < 3; i++)
@@ -222,28 +250,18 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshObject>& node, cons
 						RasterizeTriangle(triangleCl);
 					}
 				}
-				else
-				{
-					for (uint8_t i = 0; i < 3; i++)
-					{
-						Vertex& vertex = triangle[i];
-						Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
-						vertex.position = projectedPosition.head(3);
-					}
-
-					RasterizeTriangle(triangle);
-				}
 			}
+			
 		}
 	}
 
-	for (size_t i = 0; i < node->subobjects.size(); i++)
+	for (auto& subnode: node->subNodes)
 	{
-		RenderNode(node->subobjects[i], transform);
+		RenderNode(subnode, transform);
 	}	
 }
 
-CPUMeshVisualizer::CPUMeshVisualizer(const std::shared_ptr<MeshObject>& rootObject, const std::shared_ptr<Camera>& camera): _rootObject(rootObject), _camera(camera)
+CPUMeshVisualizer::CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject, const std::shared_ptr<Camera>& camera): _rootObject(rootObject), _camera(camera)
 {
 	auto screenSize = _camera->GetScreenSize();
 	_framebuffer = std::make_shared<MultiLayeredFramebuffer>(screenSize[1], screenSize[0]);
@@ -256,30 +274,41 @@ void CPUMeshVisualizer::ComputeFrame()
 	{
 		_framebuffer->Resize(screenSize[1], screenSize[0]);
 	}
+	_framebuffer->Clear();
 	RenderNode(_rootObject, Matrix4f::Identity());
 }
 
-Vector4b CPUMeshVisualizer::InterpolateColour(const Vector4b& color1, const Vector4b& color2, const Vector4b& color3, float alpha, float beta, float gamma)
+__forceinline Vector4b CPUMeshVisualizer::InterpolateColor(const Vector4b& color1, const Vector4b& color2, const Vector4b& color3, float alpha, float beta, float gamma)
 {
-	return (color1.cast<float>() * alpha + color2.cast<float>() * beta + color3.cast<float>() * gamma).cast<uint8_t>();
+	Vector4f color = (color1.cast<float>() * alpha + color2.cast<float>() * beta + color3.cast<float>() * gamma);
+	color[0] = std::max(0.0f, std::min(color[0], 255.f));
+	color[1] = std::max(0.0f, std::min(color[1], 255.f));
+	color[2] = std::max(0.0f, std::min(color[2], 255.f));
+	color[3] = std::max(0.0f, std::min(color[3], 255.f));
+	return color.cast<uint8_t>();
 }
 
-Vector4b CPUMeshVisualizer::InterpolateColour(const Vector4b& color1, const Vector4b& color2, float alpha, float beta)
+__forceinline Vector4b CPUMeshVisualizer::InterpolateColor(const Vector4b& color1, const Vector4b& color2, float alpha, float beta)
 {
-	return (color1.cast<float>() * alpha + color2.cast<float>() * beta).cast<uint8_t>();
+	Vector4f color(color1.cast<float>() * alpha + color2.cast<float>() * beta);
+	color[0] = std::max(0.0f, std::min(color[0], 255.f));
+	color[1] = std::max(0.0f, std::min(color[1], 255.f));
+	color[2] = std::max(0.0f, std::min(color[2], 255.f));
+	color[3] = std::max(0.0f, std::min(color[3], 255.f));
+	return color.cast<uint8_t>();
 }
 
-float CPUMeshVisualizer::InterpolateValue(const float A, const float B, const float C, float alpha, float beta, float gamma)
+__forceinline float CPUMeshVisualizer::InterpolateValue(const float A, const float B, const float C, float alpha, float beta, float gamma)
 {
 	return A * alpha + B * beta + C * gamma;
 }
 
-float CPUMeshVisualizer::InterpolateValue(const float A, const float B, float alpha, float beta)
+__forceinline float CPUMeshVisualizer::InterpolateValue(const float A, const float B, float alpha, float beta)
 {
 	return A * alpha + B * beta;
 }
 
-void ComputeBarycentricCoordinates(const Vector2f& A, const Vector2f& B, const Vector2f& C, const Vector2f& P, float& alpha, float& beta, float& gamma)
+__forceinline void ComputeBarycentricCoordinates(const Vector2f& A, const Vector2f& B, const Vector2f& C, const Vector2f& P, float& alpha, float& beta, float& gamma)
 {
 	float denominator = ((B.y() - C.y()) * (A.x() - C.x())) + ((C.x() - B.x()) * (A.y() - C.y()));
 	if (fabs(denominator) < 0.0000001)
@@ -295,7 +324,7 @@ void ComputeBarycentricCoordinates(const Vector2f& A, const Vector2f& B, const V
 	gamma = 1.0f - alpha - beta;
 }
 
-void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const Vertex& vertexB)
+__forceinline void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const Vertex& vertexB)
 {
 	Vector2f A = vertexA.position.head(2).cast<int>().cast<float>();
 	Vector2f B = vertexB.position.head(2).cast<int>().cast<float>();
@@ -312,19 +341,17 @@ void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const Vertex& verte
 	float lineLength = diff.norm();
 
 
-	Vector2f lastPos = pos;
 	for (int i = 0; i <= steps; ++i)
 	{	
-		float bMultiplyier = lineLength > 0.00001 ? (pos - A).norm() / lineLength : 0.5f ;
-		Vector4b colour = InterpolateColour(vertexA.colour, vertexB.colour, 1.f - bMultiplyier, bMultiplyier);
+		float bMultiplyier = lineLength > 0.00000001f ? (pos - A).norm() / lineLength : 0.5f ;
+		Vector4b colour = InterpolateColor(vertexA.colour, vertexB.colour, 1.f - bMultiplyier, bMultiplyier);
 		float depth = InterpolateValue(vertexA.position[2], vertexB.position[2], 1.f - bMultiplyier, bMultiplyier);
-		_framebuffer->SetValue(pos[0], pos[1], 255,0,0, colour[3], depth);
-		lastPos = pos;
+		_framebuffer->SetValue(pos[0], pos[1],colour[0], colour[1], colour[2], colour[3], depth);
 		pos += step;
 	}
 }
 
-void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
+__forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 {
 	int minY = triangle[0].position[1];
 	int minYIndex = 0;
@@ -362,7 +389,7 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 	if (dda2[1] != 0.f) dda2 /= fabs(dda2[1]);
 	
 	for (size_t i = 0; i < 2; i++)
-	{		
+	{
 		for (size_t y = 0; y < countOfSteps; y++)
 		{
 			uint16_t xpos = (int)ddaPos1[0];
@@ -379,7 +406,7 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 				float gamma;
 
 				ComputeBarycentricCoordinates(trianglePos1, trianglePos2,trianglePos3, Vector2f(xpos, ypos), alpha, beta, gamma);
-				Vector4b colour = InterpolateColour(triangle[0].colour, triangle[1].colour, triangle[2].colour, alpha, beta, gamma);
+				Vector4b colour = InterpolateColor(triangle[0].colour, triangle[1].colour, triangle[2].colour, alpha, beta, gamma);
 				float depth = InterpolateValue(triangle[0].position[2], triangle[1].position[2], triangle[2].position[2], alpha, beta, gamma);
 				_framebuffer->SetValue(xpos, ypos, colour[0], colour[1], colour[2], colour[3], depth);
 				xpos += xPosMover;
@@ -397,6 +424,6 @@ void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
 
 	for (size_t i = 0; i < 3; i++)
 	{
-		RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
+		//RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
 	}
 }

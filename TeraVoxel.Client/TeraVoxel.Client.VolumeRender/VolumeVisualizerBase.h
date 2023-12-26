@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "../TeraVoxel.Client.Core/ProjectInfo.h"
 #include "VolumeLoaderFactory.h"
+#include "MeshNode.h"
 #include <thread>
 
 struct color
@@ -16,6 +17,7 @@ class VolumeVisualizerBase
 protected:
 
 	std::shared_ptr<Camera> _camera;
+	std::shared_ptr<MeshNode> _meshNode;
 	std::shared_ptr<unsigned char[]> _framebuffer;
 	std::shared_ptr<VolumeLoaderFactory<T>> _volumeLoaderFactory;
 	ProjectInfo _projectInfo;
@@ -23,22 +25,23 @@ protected:
 	virtual void ComputeFrameInternal(int downscale) = 0;
 
 public:
-	VolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory);
+	VolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode);
 	virtual ~VolumeVisualizerBase() {};
 	void ComputeFrame(std::shared_ptr<unsigned char[]> _framebuffer, int width, int height, int downscale);
 	virtual bool DataChanged() = 0;
 };
 
 template<typename T>
-inline VolumeVisualizerBase<T>::VolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory)
+inline VolumeVisualizerBase<T>::VolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode)
 {
 	_camera = camera;
 	_volumeLoaderFactory = _volumeLoaderFactory;
 	_projectInfo = projectInfo;
+	_meshNode = meshNode;
 }
 
 template<typename T>
-void VolumeVisualizerBase<T>::ComputeFrame(std::shared_ptr<unsigned char[]> framebuffer, int width, int height, int downscale)
+inline void VolumeVisualizerBase<T>::ComputeFrame(std::shared_ptr<unsigned char[]> framebuffer, int width, int height, int downscale)
 {
 	_framebuffer = framebuffer;
 	_camera->ChangeScreenSize(width, height);

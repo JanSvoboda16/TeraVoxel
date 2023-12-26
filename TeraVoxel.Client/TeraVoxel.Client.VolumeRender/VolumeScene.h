@@ -22,7 +22,7 @@ template <typename T>
 class VolumeScene : public IVolumeScene
 {
 public:
-	VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac);
+	VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac, const std::shared_ptr<MeshNode>& meshNode);
 	~VolumeScene() override;
 	void ComputeFrame(int width, int height, bool fast) override;
 	int GetFrameWidth() override;
@@ -30,6 +30,7 @@ public:
 	bool DataChanged() override;
 	std::shared_ptr<unsigned char[]> GetFrame() override;
 	std::shared_ptr<Camera> GetCamera() override;
+	std::shared_ptr<MeshNode> GetMeshNode() override;
 	bool FrameReady() override;
 	bool RenderingInProgress() override;
 	void ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory<T>> visualizerFac);
@@ -50,8 +51,9 @@ private:
 
 	// Scene parts
 	std::shared_ptr<Camera> _camera;
+	std::shared_ptr<MeshNode> _meshNode;
 	std::shared_ptr<VolumeLoaderFactory<T>> _volumeLoaderFactory;
-	std::shared_ptr<VolumeVisualizerBase<T>> _visualizer;
+	std::shared_ptr<VolumeVisualizerBase<T>> _volumeVisualizer;
 	std::shared_ptr<IVolumeVisualizerFactory<T>> _visualizerFactory;
 
 	bool _visualizerChanged = false;

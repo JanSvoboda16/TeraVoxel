@@ -10,6 +10,7 @@
 #include <future>
 #include <memory>
 #include "ColorMappingTable.h"
+#include "MeshNode.h"
 
 class IVolumeScene
 {
@@ -32,6 +33,7 @@ public:
 	virtual int GetFrameWidth() = 0;
 	virtual int GetFrameHeight() = 0;
 
+
 	/// <summary>
 	/// Signalize that data in data memmory has changed
 	/// </summary>
@@ -44,6 +46,8 @@ public:
 	/// <returns>Name of the data type</returns>
 	virtual const char* GetDataTypeName() = 0;
 	virtual shared_ptr<Camera> GetCamera() = 0;
+
+	virtual std::shared_ptr<MeshNode> GetMeshNode() = 0;
 
 	/// <summary>
 	/// Infors if rendering successfully ended

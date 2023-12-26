@@ -3,10 +3,10 @@
 
 using Eigen::Matrix4f;
 
-struct MeshObject
+struct MeshNode
 {
 	std::vector<Mesh> meshes;
 	Matrix4f transformation;
-	std::vector<std::shared_ptr<MeshObject>> subobjects;
+	std::list<std::shared_ptr<MeshNode>> subNodes;
 };
 

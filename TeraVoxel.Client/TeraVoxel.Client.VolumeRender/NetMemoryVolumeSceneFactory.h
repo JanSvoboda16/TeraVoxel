@@ -21,47 +21,47 @@ class NetMemoryVolumeSceneFactory
 {
 
 public:
-	static std::unique_ptr<IVolumeScene> Create(std::shared_ptr<Camera> camera, const ProjectInfo& projectInfo, const std::string& serverUrl)
+	static std::unique_ptr<IVolumeScene> Create(std::shared_ptr<Camera> camera, const ProjectInfo& projectInfo, const std::string& serverUrl, const std::shared_ptr<MeshNode>& meshNode)
 	{
 		if (projectInfo.dataType == "System.Sbyte")
 		{
-			return CreateInstance<int8_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<int8_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.Byte")
 		{
-			return CreateInstance<uint8_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<uint8_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.Int16")
 		{
-			return CreateInstance<int16_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<int16_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.UInt16")
 		{
-			return CreateInstance<uint16_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<uint16_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.Int32")
 		{
-			return CreateInstance<int32_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<int32_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.UInt32")
 		{
-			return CreateInstance<uint32_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<uint32_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.Single")
 		{
-			return CreateInstance<float>(camera, projectInfo, serverUrl);
+			return CreateInstance<float>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.Double")
 		{
-			return CreateInstance<double>(camera, projectInfo, serverUrl);
+			return CreateInstance<double>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.Int64")
 		{
-			return CreateInstance<int64_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<int64_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else if (projectInfo.dataType == "System.UInt64")
 		{
-			return CreateInstance<uint64_t>(camera, projectInfo, serverUrl);
+			return CreateInstance<uint64_t>(camera, projectInfo, serverUrl, meshNode);
 		}
 		else
 		{
@@ -71,14 +71,14 @@ public:
 
 private:
 	template <typename T>
-	static std::unique_ptr<IVolumeScene> CreateInstance(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::string& serverUrl)
+	static std::unique_ptr<IVolumeScene> CreateInstance(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::string& serverUrl, const std::shared_ptr<MeshNode>& meshNode)
 	{
 		ProjectManager projectManager(serverUrl);
 		std::shared_ptr<VolumeLoaderFactory<T>> loaderFactory = std::make_shared<NetVolumeLoaderFactory<T>>(projectManager);
 
 		// TODO rozdelit projectInfo -> projectInfo, sourceInfo
 		auto emptyVisualizerFactory = std::make_shared<EmptyVolumeVisualizerFactory<T>>(std::make_shared<EmptyVolumeVisualizerSettings>());
-		return std::make_unique<VolumeScene<T>>(camera, projectInfo, loaderFactory, emptyVisualizerFactory);
+		return std::make_unique<VolumeScene<T>>(camera, projectInfo, loaderFactory, emptyVisualizerFactory, meshNode);
 	}
 };
 

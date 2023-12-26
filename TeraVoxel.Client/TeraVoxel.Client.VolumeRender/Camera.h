@@ -21,7 +21,7 @@ using Eigen::Matrix4f;
 class Camera
 {
 public:
-	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 100, float farPlaneDiscance = 10000000);
+	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 20, float farPlaneDiscance = 100000);
 	
 	/// <summary>
 	/// Changes the position of the camera
@@ -110,13 +110,6 @@ public:
 	Vector3f DeshrinkVector(Vector3f vector) { return vector.array() * _voxelDimensions.array(); }
 
 	/// <summary>
-	/// Returns length of the vector in a normal space
-	/// </summary>
-	/// <param name="vector">vector</param>
-	/// <returns>length</returns>
-	float GetRealVectorLength(const Vector3f& vector);
-
-	/// <summary>
 	/// Changes size of the screen in pixels
 	/// </summary>
 	/// <param name="width">width in pixels</param>
@@ -135,7 +128,7 @@ public:
 	/// <returns>view angle</returns>
 	float GetViewAngle() { return _viewAngle; }
 	float SetViewAngle(float viewAngle)	{ _viewAngle = viewAngle; RecomputeParams(); }
-	float GedDistanceFromProjected(float zValue, int xPixel, int yPixel);
+	Vector3f GedDistanceFromProjected(float zValue, int xPixel, int yPixel);
 
 	/// <summary>
 	/// Gets the camera position
