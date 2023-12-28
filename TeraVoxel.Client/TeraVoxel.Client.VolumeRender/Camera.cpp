@@ -5,7 +5,8 @@
 #include "pch.h"
 #include "Camera.h"
 
-Camera::Camera(const Vector3f& observerCenter, int observerDistance, const  Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance, float farPlaneDistance)
+Camera::Camera(const Vector3f& observerCenter, int observerDistance, const  Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance, float farPlaneDistance, const std::shared_ptr<MeshNode> orbiterMeshNode)
+	: _orbiterMeshNode(orbiterMeshNode)
 {
 	_correction = 1 / voxelDimensions.array();
 	_voxelDimensions = voxelDimensions;
@@ -17,6 +18,7 @@ Camera::Camera(const Vector3f& observerCenter, int observerDistance, const  Vect
 	_viewAngle = viewAngle;
 	_nearPlaneDistance = nearPlaneDistance;
 	_farPlaneDistance = farPlaneDistance;
+
 	RecomputeParams();
 }
 
@@ -64,8 +66,7 @@ void Camera::Observe(float deltaXAngle, float deltaYAngle, float deltaDistance, 
 	Vector4f centerMovement(deltaXCenter * _totalObsDistance / 500, deltaYCenter * _totalObsDistance / 500, deltaZCenter * _totalObsDistance / 500, 1);
 	_observerCenter += (_rotation * centerMovement).head<3>();
 
-	_position = _observerCenter + Vector3f(0, 0, -_totalObsDistance);
-	_position -= _observerCenter;
+	_position = Vector3f(0, 0, -_totalObsDistance);
 	_position = (_rotation * Vector4f(_position[0], _position[1], _position[2], 1)).head<3>();
 	_position += _observerCenter;
 
@@ -156,4 +157,14 @@ void Camera::RecomputeParams()
 	_zValueCoef2 = (_farPlaneDistance+_nearPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
 
 	_positionMatrix = _rotation.inverse() * Transformations::GetTranslationMatrix(-_position[0], -_position[1], -_position[2]);
+
+	if (_orbiterMeshNode != nullptr)
+	{
+		_orbiterMeshNode->transformation = Transformations::GetTranslationMatrix(_observerCenter[0], _observerCenter[1], _observerCenter[2]) ;
+	}	
+}
+
+void Camera::BindOrbiterMeshNode(const std::shared_ptr<MeshNode>& meshNode)
+{
+	_orbiterMeshNode = meshNode;
 }

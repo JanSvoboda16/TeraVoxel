@@ -40,7 +40,7 @@ Vector4b CalculateRainbowColor(float theta, float phi)
 	int green = static_cast<int>(g * 255.0f);
 	int blue = static_cast<int>(b * 255.0f);
 
-	return { static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue), 255 }; // Nastavení alfa kanálu na 255
+	return { static_cast<uint8_t>(red), static_cast<uint8_t>(green), static_cast<uint8_t>(blue), 50 }; // Nastavení alfa kanálu na 255
 }
 
 void CreateSphere(Mesh& mesh,int numSegments, float radius)
@@ -209,6 +209,35 @@ void ProjectManagementWindow::Update()
 
 								meshNode->subNodes.push_back(eye);
 								meshNode->subNodes.push_back(eye2);
+
+
+								auto orbiterNode = std::make_shared<MeshNode>();
+								
+								Mesh orbiterMesh;
+								CreateSphere(orbiterMesh, 50, 10);
+								orbiterNode->meshes.push_back(orbiterMesh);
+
+								Mesh axisMesh;
+								axisMesh.Data().push_back({ Vector3f(-1000,0,0), Vector4b(0,0,255,255) });
+								axisMesh.Data().push_back({ Vector3f(1000,0,0), Vector4b(0,0,255,255) });
+								axisMesh.Data().push_back({ Vector3f(1000,0,0), Vector4b(0,0,255,255) });
+
+								auto axisNodeX = std::make_shared<MeshNode>();
+								axisNodeX->meshes.push_back(axisMesh);
+								auto axisNodeY = std::make_shared<MeshNode>();
+								axisNodeY->meshes.push_back(axisMesh);
+								axisNodeY->transformation = Transformations::GetRotationMatrix('z', EIGEN_PI / 2.f);
+								auto axisNodeZ = std::make_shared<MeshNode>();
+								axisNodeZ->meshes.push_back(axisMesh);
+								axisNodeZ->transformation = Transformations::GetRotationMatrix('y', EIGEN_PI / 2.f);
+
+								orbiterNode->subNodes.push_back(axisNodeX);
+								orbiterNode->subNodes.push_back(axisNodeY);
+								orbiterNode->subNodes.push_back(axisNodeZ);
+
+								camera->BindOrbiterMeshNode(orbiterNode);
+
+								meshNode->subNodes.push_back(orbiterNode);
 
 								_volumeViewContext->scene = NetMemoryVolumeSceneFactory::Create(camera, project, _connectedServerUrl, meshNode);
 								_volumeViewContext->sceneReplaced.Notify();

@@ -193,7 +193,6 @@
     <ClCompile Include="FramebufferLayer.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshNode.cpp" />
-    <ClCompile Include="MultiLayeredFramebuffer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

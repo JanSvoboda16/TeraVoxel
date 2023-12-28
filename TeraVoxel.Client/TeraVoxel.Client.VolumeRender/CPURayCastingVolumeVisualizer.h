@@ -16,13 +16,14 @@ public:
 	bool DataChanged() override;
 
 private:
-	void DisplayPoint(Vector3f point); // usefull for testing direct projection
 	virtual void ComputeFrameInternal(int downscale) override;
-	void ComputePartOfFrame(int threads, int threadIndex, int downscale);
+	void ComputePartOfFrame(int threads, int threadIndex, int framebufferWidth, int framebufferHeight, int downscale);
+	void MixColors(float& r, float& g, float& b, float& a, const float ra, const float ga, const float ba, const float ca);
 	color ComputeRay(int x, int y);
 	std::shared_ptr<CPURCVolumeVisualizerSettings> _settings;
 	std::atomic<int> _reneringPosition = 0;
 	CPURCVolumeVisualizerSettings _settingsCopy;
 	CPUMeshVisualizer _meshVisualizer;
 	std::shared_ptr<MultiLayeredFramebuffer> _meshFramebuffer;
+
 };

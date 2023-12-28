@@ -6,9 +6,10 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <algorithm>
+#include <string>
 #include "Transformations.h"
 #include "../TeraVoxel.Client.Core/Logger.h"
-#include <string>
+#include "MeshNode.h"
 
 using Eigen::Vector2i;
 using Eigen::Vector2f;
@@ -21,7 +22,7 @@ using Eigen::Matrix4f;
 class Camera
 {
 public:
-	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 20, float farPlaneDiscance = 100000);
+	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 20, float farPlaneDiscance = 10000, std::shared_ptr<MeshNode> orbiterMeshNode = nullptr);
 	
 	/// <summary>
 	/// Changes the position of the camera
@@ -142,6 +143,8 @@ public:
 	float GetFarPlaneDistance() { return _farPlaneDistance; }
 	float GetNearPlaneDistance() { return _nearPlaneDistance; }
 
+	void BindOrbiterMeshNode(const std::shared_ptr<MeshNode>& meshNode);
+
 private:
 	float _totalObsXAngle = 0, _totalObsYAngle = 0;			// Observer angles
 	float _totalObsDistance = 0;							// Distance from the center of rotation to the observer camera
@@ -155,6 +158,8 @@ private:
 	Matrix4f _rayShrankRotation;							// The transformation which is applied on each ray. (rotation && shrink)
 	Matrix4f _projectionMatrix;								// Projection matrix
 	Matrix4f _positionMatrix;
+
+	std::shared_ptr<MeshNode> _orbiterMeshNode;
 
 	int _screenWidth, _screenHeight;	// screen sizes
 	float _viewAngle;					// View angle in RADS

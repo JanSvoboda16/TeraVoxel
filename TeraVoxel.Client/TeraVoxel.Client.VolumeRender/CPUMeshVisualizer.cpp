@@ -80,7 +80,7 @@ __forceinline std::vector<std::array<Vertex, 3>> CPUMeshVisualizer::NpFpClipping
 					{
 						float lineLength = (vertexa.position - vertexb.position).norm();
 
-						auto bMultiplier = lineLength > 0.00001 ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
+						auto bMultiplier = lineLength > 0.00001f ? (vertexa.position - intersection).norm() / lineLength : 0.5f;
 						Vector4b colour = InterpolateColor(vertexa.colour, vertexb.colour, 1.f - bMultiplier, bMultiplier);
 						vertices.push_back({ intersection, colour });
 					}
@@ -194,7 +194,7 @@ __forceinline std::vector<std::array<Vertex, 3>> CPUMeshVisualizer::SidesClippin
 
 void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const Matrix4f &baseTransform)
 {
-	Matrix4f transform = node->transformation * baseTransform;
+	Matrix4f transform = baseTransform * node->transformation;
 	Matrix4f projection = _camera->GetProjectionMatrix();
 	Matrix4f transformWithCameraPosition = _camera->GetPositionMatrix() * transform;
 	Matrix4f viewportTransformation = _camera->GetViewPortTransformationMatrix();
@@ -274,7 +274,11 @@ void CPUMeshVisualizer::ComputeFrame()
 	{
 		_framebuffer->Resize(screenSize[1], screenSize[0]);
 	}
-	_framebuffer->Clear();
+	else
+	{
+		_framebuffer->Clear();
+	}
+	
 	RenderNode(_rootObject, Matrix4f::Identity());
 }
 
@@ -311,11 +315,25 @@ __forceinline float CPUMeshVisualizer::InterpolateValue(const float A, const flo
 __forceinline void ComputeBarycentricCoordinates(const Vector2f& A, const Vector2f& B, const Vector2f& C, const Vector2f& P, float& alpha, float& beta, float& gamma)
 {
 	float denominator = ((B.y() - C.y()) * (A.x() - C.x())) + ((C.x() - B.x()) * (A.y() - C.y()));
-	if (fabs(denominator) < 0.0000001)
+	
+	// if denominator is small linear interpolation is used
+	if (fabs(denominator) < 0.000001)
 	{
-		alpha = 1.f/3.f;
-		beta = 1.f / 3.f;
-		gamma = 1.f / 3.f;
+		float abDist = (A - B).norm();
+		float acDist = (A - C).norm();
+		
+		if (abDist > acDist)
+		{
+			beta = (A - P).norm() / abDist;
+			alpha = (1.f - beta);
+			gamma = 0;
+		}
+		else
+		{
+			gamma = (A - P).norm() / acDist;
+			alpha = (1.f - gamma);
+			beta = 0;
+		}
 		return;
 	}
 
@@ -343,7 +361,7 @@ __forceinline void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const
 
 	for (int i = 0; i <= steps; ++i)
 	{	
-		float bMultiplyier = lineLength > 0.00000001f ? (pos - A).norm() / lineLength : 0.5f ;
+		float bMultiplyier = lineLength > 0.00001f ? (pos - A).norm() / lineLength : 0.5f;
 		Vector4b colour = InterpolateColor(vertexA.colour, vertexB.colour, 1.f - bMultiplyier, bMultiplyier);
 		float depth = InterpolateValue(vertexA.position[2], vertexB.position[2], 1.f - bMultiplyier, bMultiplyier);
 		_framebuffer->SetValue(pos[0], pos[1],colour[0], colour[1], colour[2], colour[3], depth);
@@ -389,7 +407,7 @@ __forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& t
 	if (dda2[1] != 0.f) dda2 /= fabs(dda2[1]);
 	
 	for (size_t i = 0; i < 2; i++)
-	{
+	{	
 		for (size_t y = 0; y < countOfSteps; y++)
 		{
 			uint16_t xpos = (int)ddaPos1[0];
@@ -424,6 +442,6 @@ __forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& t
 
 	for (size_t i = 0; i < 3; i++)
 	{
-		//RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
+		RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
 	}
 }

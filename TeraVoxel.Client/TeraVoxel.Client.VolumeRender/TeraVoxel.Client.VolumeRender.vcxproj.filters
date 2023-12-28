@@ -111,16 +111,19 @@
       <Filter>Data\DataModels</Filter>
     </ClInclude>
     <ClInclude Include="EigenBenchmark.h" />
-    <ClInclude Include="CPUMeshVisualizer.h" />
-    <ClInclude Include="MultiLayeredFramebuffer.h" />
-    <ClInclude Include="FramebufferLayer.h" />
+    <ClInclude Include="CPUMeshVisualizer.h">
+      <Filter>MeshVisualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="FramebufferLayer.h">
+      <Filter>MeshVisualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiLayeredFramebuffer.h">
+      <Filter>MeshVisualizers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
       <Filter>Data\VolumeLoaders</Filter>
-    </ClCompile>
-    <ClCompile Include="CPURayCastingVolumeVisualizer.cpp">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Camera.cpp">
@@ -142,11 +145,17 @@
       <Filter>Data\DataModels</Filter>
     </ClCompile>
     <ClCompile Include="EigenBenchmark.cpp" />
-    <ClCompile Include="CPUMeshVisualizer.cpp" />
-    <ClCompile Include="MultiLayeredFramebuffer.cpp" />
-    <ClCompile Include="FramebufferLayer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp">
       <Filter>Data\DataModels</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUMeshVisualizer.cpp">
+      <Filter>MeshVisualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="FramebufferLayer.cpp">
+      <Filter>MeshVisualizers</Filter>
+    </ClCompile>
+    <ClCompile Include="CPURayCastingVolumeVisualizer.cpp">
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
