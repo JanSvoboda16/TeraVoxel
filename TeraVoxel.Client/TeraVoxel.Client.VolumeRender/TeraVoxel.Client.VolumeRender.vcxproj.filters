@@ -120,6 +120,7 @@
     <ClInclude Include="MultiLayeredFramebuffer.h">
       <Filter>MeshVisualizers</Filter>
     </ClInclude>
+    <ClInclude Include="MeshGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
@@ -157,5 +158,6 @@
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp">
       <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClCompile>
+    <ClCompile Include="MeshGenerator.cpp" />
   </ItemGroup>
 </Project>

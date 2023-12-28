@@ -206,10 +206,8 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const 
 		return;
 	}
 	
-	for (size_t i = 0; i < node->meshes.size(); i++)
+	for (auto& mesh: node->meshes)
 	{
-		auto mesh = node->meshes[i];
-
 		
 		for (size_t j = 0; j < mesh.GetTriangleCount(); j++)
 		{
@@ -247,7 +245,7 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const 
 							vertex.position = projectedPosition.head(3);
 						}
 
-						RasterizeTriangle(triangleCl);
+						RasterizeTriangle(triangleCl, mesh.OutliningEnabled());
 					}
 				}
 			}
@@ -361,7 +359,7 @@ __forceinline void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const
 
 	for (int i = 0; i <= steps; ++i)
 	{	
-		float bMultiplyier = lineLength > 0.00001f ? (pos - A).norm() / lineLength : 0.5f;
+		float bMultiplyier = (pos - A).norm() / lineLength;
 		Vector4b colour = InterpolateColor(vertexA.colour, vertexB.colour, 1.f - bMultiplyier, bMultiplyier);
 		float depth = InterpolateValue(vertexA.position[2], vertexB.position[2], 1.f - bMultiplyier, bMultiplyier);
 		_framebuffer->SetValue(pos[0], pos[1],colour[0], colour[1], colour[2], colour[3], depth);
@@ -369,7 +367,7 @@ __forceinline void CPUMeshVisualizer::RasterizeLine(const Vertex& vertexA, const
 	}
 }
 
-__forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle)
+__forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& triangle, bool outlining)
 {
 	int minY = triangle[0].position[1];
 	int minYIndex = 0;
@@ -417,7 +415,13 @@ __forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& t
 
 			int xPosMover = xpos > ddaPos2[0] ? -1 : 1;
 			
-			for (size_t x = 0; x <= countOfXSteps; x++)
+			// rightest pixel must be empty -> another triangle can be rasterized there
+			if (xPosMover < 0)
+			{
+				xpos += xPosMover;
+			}
+
+			for (size_t x = 0; x < countOfXSteps; x++)
 			{
 				float alpha;
 				float beta;
@@ -440,8 +444,11 @@ __forceinline void CPUMeshVisualizer::RasterizeTriangle(std::array<Vertex, 3>& t
 		if (dda2[1] != 0.f) dda2 /= fabs(dda2[1]);		
 	}
 
-	for (size_t i = 0; i < 3; i++)
+	if (outlining)
 	{
-		RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
+		for (size_t i = 0; i < 3; i++)
+		{
+			RasterizeLine(triangle[i], triangle[(i + 1) % 3]);
+		}
 	}
 }

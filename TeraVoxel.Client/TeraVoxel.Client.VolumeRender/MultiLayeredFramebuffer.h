@@ -38,10 +38,11 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 		int layerIndex = 0;
 		while (true)
 		{
+			//float enabledDepthError = (2 / ((depth + 1.f))*10) * 0.001;
 			if (layerIndex + 1 > _alphaLayers.size())
 			{
 				_alphaLayers.push_back(FramebufferLayer(_width, _height));
-				_alphaLayers[layerIndex].SetValue(x, y, r, g, b, a, depth);
+				_alphaLayers[layerIndex].SetValue(x, y, r, g, depth*b, a, depth);
 				break;
 			}
 			else
@@ -49,9 +50,9 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 				auto& layer = _alphaLayers[layerIndex];
 				auto layerValue = layer.GetValue(x, y);
 
-				if (layerValue.depth > 1.f || fabs(layerValue.depth - depth) < (2.f-(depth+1.f))*0.01)
+				if (layerValue.depth > 1.f)
 				{
-					layer.SetValue(x, y, r, g, b, a, depth);
+					layer.SetValue(x, y, r, g, depth*b, a, depth);
 					break;
 				}
 				else
@@ -78,7 +79,7 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, con
 		int layerIndex = 0;
 		while (true)
 		{
-			float enabledDepthError = (2.f - (fragment.depth + 1.f)) * 0.01;
+			float enabledDepthError = 1;
 			if (layerIndex + 1 > _alphaLayers.size())
 			{
 				_alphaLayers.push_back(FramebufferLayer(_width, _height));
@@ -90,7 +91,7 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, con
 				auto& layer = _alphaLayers[layerIndex];
 				auto layerValue = layer.GetValue(x, y);
 
-				if (layerValue.depth > 1.f || fabs(layerValue.depth - fragment.depth) < enabledDepthError)
+				if (layerValue.depth > 1.f || true)
 				{
 					layer.SetValue(x, y, fragment);
 					break;

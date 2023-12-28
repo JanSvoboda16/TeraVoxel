@@ -322,7 +322,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 		else
 		{
 			// While the position is inside of the volume
-			/*while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
+			while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
 			{
 				// Use fragment if RC is on correct position and prepare for next
 				if (nextFragmentPahtLength <= 0)
@@ -386,7 +386,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				position += stepVector * stepMultiplyer;
 				nextFragmentPahtLength -= stepMultiplyer;				
-			}*/
+			}
 		}		
 	}
 

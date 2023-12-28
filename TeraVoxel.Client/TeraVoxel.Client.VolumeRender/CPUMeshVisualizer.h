@@ -26,6 +26,6 @@ public:
 
 	std::shared_ptr<MultiLayeredFramebuffer> GetFrameBuffer() { return _framebuffer; }
 	void RasterizeLine(const Vertex& A, const Vertex& B);
-	void RasterizeTriangle(std::array<Vertex, 3> &triangle);
+	void RasterizeTriangle(std::array<Vertex, 3> &triangle, bool outlining);
 };
 
