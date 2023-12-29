@@ -25,6 +25,9 @@
     <Filter Include="Data\DataModels">
       <UniqueIdentifier>{55f0e871-6a2c-43b6-ba82-9dfd0159f673}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MeshManagement">
+      <UniqueIdentifier>{bb2b6b67-07d1-4147-8d30-ae31134d2197}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VolumeVisualizerBase.h">
@@ -120,8 +123,12 @@
     <ClInclude Include="MultiLayeredFramebuffer.h">
       <Filter>MeshVisualizers</Filter>
     </ClInclude>
-    <ClInclude Include="MeshGenerator.h" />
-    <ClInclude Include="MeshTreeExplorer.h" />
+    <ClInclude Include="MeshGenerator.h">
+      <Filter>MeshManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshTreeExplorer.h">
+      <Filter>MeshManagement</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
@@ -147,9 +154,6 @@
       <Filter>Data\DataModels</Filter>
     </ClCompile>
     <ClCompile Include="EigenBenchmark.cpp" />
-    <ClCompile Include="NetVolumeLoader.cpp">
-      <Filter>Data\DataModels</Filter>
-    </ClCompile>
     <ClCompile Include="CPUMeshVisualizer.cpp">
       <Filter>MeshVisualizers</Filter>
     </ClCompile>
@@ -159,7 +163,14 @@
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp">
       <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClCompile>
-    <ClCompile Include="MeshGenerator.cpp" />
-    <ClCompile Include="MeshTreeExplorer.cpp" />
+    <ClCompile Include="MeshGenerator.cpp">
+      <Filter>MeshManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshTreeExplorer.cpp">
+      <Filter>MeshManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="NetVolumeLoader.cpp">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

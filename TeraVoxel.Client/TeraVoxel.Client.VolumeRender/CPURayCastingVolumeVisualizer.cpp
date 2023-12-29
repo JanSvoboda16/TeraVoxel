@@ -17,9 +17,7 @@ inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale
 
 	Vector2i screenSize = this->_camera->GetScreenSize();
 	this->_camera->ChangeScreenSize(std::ceil(screenSize[0] / (float)downscale), std::ceil(screenSize[1] / (float)downscale));
-	Logger::GetInstance()->LogEvent("CPURCVis", "MeshRendering:Start", "", std::to_string(downscale));
 	_meshVisualizer.ComputeFrame();
-	Logger::GetInstance()->LogEvent("CPURCVis", "MeshRendering:End", "", std::to_string(downscale));
 	_meshFramebuffer = _meshVisualizer.GetFrameBuffer();
 
 	auto renderingThreadCount = SettingsContext::GetInstance().renderingThreadCount.load(std::memory_order::acquire);

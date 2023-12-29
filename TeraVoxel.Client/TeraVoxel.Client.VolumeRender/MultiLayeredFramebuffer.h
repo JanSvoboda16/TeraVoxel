@@ -12,13 +12,49 @@ class MultiLayeredFramebuffer
 	uint16_t _width, _height, _tileSize = 16, _usedAlphaLayers = 0;
 
 public:
-	MultiLayeredFramebuffer(uint16_t width, uint16_t height);;
+	MultiLayeredFramebuffer(uint16_t width, uint16_t height);
+	
+	/// <summary>
+	/// Changes a virtual size of the internal buffers
+	/// </summary>
+	/// <param name="width"></param>
+	/// <param name="height"></param>
 	void Resize(uint16_t width, uint16_t height);
+
 	uint16_t GetWidth() { return _width; }
 	uint16_t GetHeight() { return _height; }
+
+	/// <summary>
+	/// Sets a value to the internal buffers.
+	/// </summary>
+	/// <param name="x"></param>
+	/// <param name="y"></param>
+	/// <param name="r"></param>
+	/// <param name="g"></param>
+	/// <param name="b"></param>
+	/// <param name="a"></param>
+	/// <param name="depth"></param>
 	void SetValue(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, float depth);
+	
+	/// <summary>
+	/// Sets a value to the internal buffers.
+	/// </summary>
+	/// <param name="x"></param>
+	/// <param name="y"></param>
+	/// <param name="fragment"></param>
 	void SetValue(uint16_t x, uint16_t y, const Fragment& fragment);
+
+	/// <summary>
+	/// Clears the internal buffers. 
+	/// </summary>
 	void Clear();
+
+	/// <summary>
+	/// Return fragments on a give position ordered from the nearest to the farest one.
+	/// </summary>
+	/// <param name="x"></param>
+	/// <param name="y"></param>
+	/// <returns></returns>
 	std::vector<Fragment> GetFragmentsOrdered(uint16_t x, uint16_t y);
 };
 

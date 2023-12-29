@@ -42,7 +42,7 @@ public:
 	}
 
 	/// <summary>
-	/// Sets value to the internal buffer if fragment is in front of the old value. 
+	/// Sets a value to the internal buffer if fragment is in front of the old value. 
 	/// </summary>
 	/// <param name="x"></param>
 	/// <param name="y"></param>

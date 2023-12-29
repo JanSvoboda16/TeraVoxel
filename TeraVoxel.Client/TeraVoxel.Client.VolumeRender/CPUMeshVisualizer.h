@@ -8,6 +8,22 @@ using Eigen::Vector3d;
 
 class CPUMeshVisualizer
 {
+public:
+	CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject, const std::shared_ptr<Camera>& camera);
+	
+	/// <summary>
+	/// Computes a frame based on the current camera settings.
+	/// The frame is stored in the internal buffer.
+	/// </summary>
+	void ComputeFrame();
+	
+	/// <summary>
+	/// Returns the pointer to the internal buffer
+	/// </summary>
+	/// <returns></returns>
+	std::shared_ptr<MultiLayeredFramebuffer> GetFrameBuffer() { return _framebuffer; }
+
+private:
 	std::shared_ptr<MultiLayeredFramebuffer> _framebuffer;
 	std::shared_ptr<MeshNode> _rootObject;
 	std::shared_ptr<Camera> _camera;
@@ -21,12 +37,6 @@ class CPUMeshVisualizer
 	float InterpolateValue(const float A, const float B, float alpha, float beta);
 	void RasterizeLine(const Vertex& A, const Vertex& B);
 	void RasterizeTriangle(std::array<Vertex, 3>& triangle, bool outlining);
-
-public:
-	CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject, const std::shared_ptr<Camera>& camera);
-	void ComputeFrame();
-
-	std::shared_ptr<MultiLayeredFramebuffer> GetFrameBuffer() { return _framebuffer; }
 	
 };
 
