@@ -6,7 +6,7 @@
 #include "Camera.h"
 
 Camera::Camera(const Vector3f& observerCenter, int observerDistance, const  Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance, float farPlaneDistance, const std::shared_ptr<MeshNode> orbiterMeshNode)
-	: _orbiterMeshNode(orbiterMeshNode)
+	: _observerCenterMeshNode(orbiterMeshNode)
 {
 	_correction = 1 / voxelDimensions.array();
 	_voxelDimensions = voxelDimensions;
@@ -158,13 +158,13 @@ void Camera::RecomputeParams()
 
 	_positionMatrix = _rotation.inverse() * Transformations::GetTranslationMatrix(-_position[0], -_position[1], -_position[2]);
 
-	if (_orbiterMeshNode != nullptr)
+	if (_observerCenterMeshNode != nullptr)
 	{
-		_orbiterMeshNode->transformation = Transformations::GetTranslationMatrix(_observerCenter[0], _observerCenter[1], _observerCenter[2]) ;
+		_observerCenterMeshNode->transformation = Transformations::GetTranslationMatrix(_observerCenter[0], _observerCenter[1], _observerCenter[2]) ;
 	}	
 }
 
-void Camera::BindOrbiterMeshNode(const std::shared_ptr<MeshNode>& meshNode)
+void Camera::BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>& meshNode)
 {
-	_orbiterMeshNode = meshNode;
+	_observerCenterMeshNode = meshNode;
 }

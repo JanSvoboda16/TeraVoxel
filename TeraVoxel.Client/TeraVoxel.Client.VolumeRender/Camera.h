@@ -143,7 +143,7 @@ public:
 	float GetFarPlaneDistance() { return _farPlaneDistance; }
 	float GetNearPlaneDistance() { return _nearPlaneDistance; }
 
-	void BindOrbiterMeshNode(const std::shared_ptr<MeshNode>& meshNode);
+	void BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>& meshNode);
 
 private:
 	float _totalObsXAngle = 0, _totalObsYAngle = 0;			// Observer angles
@@ -159,7 +159,7 @@ private:
 	Matrix4f _projectionMatrix;								// Projection matrix
 	Matrix4f _positionMatrix;
 
-	std::shared_ptr<MeshNode> _orbiterMeshNode;
+	std::shared_ptr<MeshNode> _observerCenterMeshNode;
 
 	int _screenWidth, _screenHeight;	// screen sizes
 	float _viewAngle;					// View angle in RADS

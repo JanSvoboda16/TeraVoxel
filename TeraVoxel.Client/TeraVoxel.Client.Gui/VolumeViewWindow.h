@@ -27,6 +27,7 @@ public:
 		// if the scene has changed, the view must be rerendered
 		_volumeViewContext->sceneUpdated.Register([this]() { _rerender = true; });
 		_volumeViewContext->sceneReplaced.Register([this]() { _rerender = true; });
+
 	}
 	void RGBAToTexture(const unsigned char* _renderingFramebuffer, ID3D11ShaderResourceView** out_srv, int width, int height);
 	void Update();

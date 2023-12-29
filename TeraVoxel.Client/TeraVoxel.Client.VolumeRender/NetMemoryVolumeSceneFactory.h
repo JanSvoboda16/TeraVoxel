@@ -91,7 +91,7 @@ private:
 		auto rootMeshNode = std::make_shared<MeshNode>();
 		rootMeshNode->subNodes.push_back(axisCross);
 
-		camera->BindOrbiterMeshNode(axisCross);
+		camera->BindObserverCenterMeshNode(axisCross);
 
 		// Scene
 		auto emptyVisualizerFactory = std::make_shared<EmptyVolumeVisualizerFactory<T>>(std::make_shared<EmptyVolumeVisualizerSettings>());

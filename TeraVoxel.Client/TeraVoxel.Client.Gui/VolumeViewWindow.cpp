@@ -3,6 +3,7 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #include "VolumeViewWindow.h"
+#include "../TeraVoxel.Client.VolumeRender/MeshTreeExplorer.h"
 
 void VolumeViewWindow::RGBAToTexture(const unsigned char* data, ID3D11ShaderResourceView** out_srv, int  width, int height)
 {
@@ -137,6 +138,7 @@ void VolumeViewWindow::Update()
 
 		if (!scene->RenderingInProgress())
 		{
+			_volumeViewContext->sceneEditable.Notify();
 			if (_volumeViewContext->scene->DataChanged() || _rerender)
 			{
 				scene->GetCamera()->ChangeObserverAxis(_observerAxis, _axisRotate);
@@ -149,7 +151,7 @@ void VolumeViewWindow::Update()
 				_yCenterDelta = 0;
 				_zCenterDelta = 0;
 
-				scene->ComputeFrame(frameWidth, frameHeight, _fast);
+				scene->ComputeFrame(frameWidth, frameHeight, _fast);				
 
 				if (_fast)
 				{
