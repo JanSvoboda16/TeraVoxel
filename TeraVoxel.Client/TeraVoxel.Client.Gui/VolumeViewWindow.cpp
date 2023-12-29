@@ -4,6 +4,9 @@
  */
 #include "VolumeViewWindow.h"
 #include "../TeraVoxel.Client.VolumeRender/MeshTreeExplorer.h"
+#include "imgui.h"
+#include "time.h"
+#include "imgui_stdlib.h"
 
 void VolumeViewWindow::RGBAToTexture(const unsigned char* data, ID3D11ShaderResourceView** out_srv, int  width, int height)
 {

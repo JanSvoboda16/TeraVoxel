@@ -3,6 +3,16 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #include "ProjectManagementWindow.h"
+#include "../TeraVoxel.Client.VolumeRender/NetMemoryVolumeSceneFactory.h"
+#include "imgui.h"
+#include "imgui_stdlib.h"
+#include "../TeraVoxel.Client.Core/ProjectManager.h"
+
+ProjectManagementWindow::ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext)
+{
+	_volumeViewContext = volumeViewContext;
+	ProjectManager manager(_serverUrl);
+}
 
 void ProjectManagementWindow::Update()
 {

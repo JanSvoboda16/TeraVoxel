@@ -3,9 +3,6 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #pragma once
-#include "imgui.h"
-#include "time.h"
-#include "imgui_stdlib.h"
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "../TeraVoxel.Client.VolumeRender/Camera.h"

@@ -2,10 +2,6 @@
 #include "IView.h"
 #include "imgui.h"
 #include "../TeraVoxel.Client.VolumeRender/ColorMappingTable.h"
-#include "imgui_stdlib.h"
-#include <iostream>
-#include <filesystem>
-#include <fstream>
 #include "../TeraVoxel.Client.Core/nlohman/json.hpp"
 #include "VolumeViewContext.h"
 #include "../TeraVoxel.Client.VolumeRender/CPURayCastingVolumeVisualizer.h"

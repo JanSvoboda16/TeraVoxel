@@ -6,9 +6,9 @@
 
 void MeshDemoWindow::PrepareMeshes()
 {
-	_sphere = MeshGenerator::Sphere(500, 50, [this](float a, float b) { return MeshGenerator::SphereRainbowColor(a, b, _alpha); });
+	_sphere = MeshGenerator::Sphere(200, 50, [this](float a, float b) { return MeshGenerator::SphereRainbowColor(a, b, _alpha); });
 	
-	_cube = MeshGenerator::Cube(100, 100,100, [this](bool a, bool b, bool c) { return Vector4b(a ? 0 : 255, b ? 0 : 255, c ? 0 : 255, _alpha); });
+	_cube = MeshGenerator::Cube(200, 200,200, [this](bool a, bool b, bool c) { return Vector4b(a ? 0 : 255, b ? 0 : 255, c ? 0 : 255, _alpha); });
 }
 
 void MeshDemoWindow::UpdateScene()
