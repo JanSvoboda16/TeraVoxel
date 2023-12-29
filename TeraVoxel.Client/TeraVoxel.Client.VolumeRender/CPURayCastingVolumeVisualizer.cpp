@@ -16,28 +16,30 @@ inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale
 	_reneringPosition.store(0, std::memory_order_release);
 
 	Vector2i screenSize = this->_camera->GetScreenSize();
-	this->_camera->ChangeScreenSize(std::ceil(screenSize[1] / (float)downscale), std::ceil(screenSize[0] / (float)downscale));
+	this->_camera->ChangeScreenSize(std::ceil(screenSize[0] / (float)downscale), std::ceil(screenSize[1] / (float)downscale));
+	Logger::GetInstance()->LogEvent("CPURCVis", "MeshRendering:Start", "", std::to_string(downscale));
 	_meshVisualizer.ComputeFrame();
+	Logger::GetInstance()->LogEvent("CPURCVis", "MeshRendering:End", "", std::to_string(downscale));
 	_meshFramebuffer = _meshVisualizer.GetFrameBuffer();
 
 	auto renderingThreadCount = SettingsContext::GetInstance().renderingThreadCount.load(std::memory_order::acquire);
 	std::vector<std::future<void>> threads;
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
-		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame, this, renderingThreadCount, i, screenSize[1], screenSize[0], downscale));
+		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame, this, renderingThreadCount, i, screenSize[0], screenSize[1], downscale));
 	}
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
 		threads[i].get();
 	}
-	this->_camera->ChangeScreenSize(screenSize[1], screenSize[0]);
+	this->_camera->ChangeScreenSize(screenSize[0], screenSize[1]);
 
 	if (downscale != 1)
 	{
 		unsigned char* framebuffer = this->_framebuffer.get();
 		auto screenSizes = this->_camera->GetScreenSize();
-		int width = screenSizes[1];
-		int height = screenSizes[0];
+		int width = screenSizes[0];
+		int height = screenSizes[1];
 
 		for (int x = 0; x < width; x++)
 		{

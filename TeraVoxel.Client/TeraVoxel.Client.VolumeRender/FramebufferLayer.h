@@ -41,11 +41,47 @@ public:
 		Clear();
 	}
 
+	/// <summary>
+	/// Sets value to the internal buffer if fragment is in front of the old value. 
+	/// </summary>
+	/// <param name="x"></param>
+	/// <param name="y"></param>
+	/// <param name="r"></param>
+	/// <param name="g"></param>
+	/// <param name="b"></param>
+	/// <param name="a"></param>
+	/// <param name="depth"></param>
 	void SetValue(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, float depth);
+
+	/// <summary>
+	/// Sets a value to the internal buffer if the fragment is in front of the old one. 
+	/// </summary>
+	/// <param name="x"></param>
+	/// <param name="y"></param>
+	/// <param name="fragment"></param>
 	void SetValue(uint16_t x, uint16_t y, const Fragment &fragment);
+
+	/// <summary>
+	/// Clears buffer.
+	/// Depth is set to 2.0f;
+	/// </summary>
 	void Clear();
+
+	/// <summary>
+	/// Changes the virtual size of the buffer (real buffer can be larger)
+	/// </summary>
+	/// <param name="width"></param>
+	/// <param name="height"></param>
 	void Resize(int width, int height);
+
+	/// <summary>
+	/// Returns a fragment on a given position. 
+	/// </summary>
+	/// <param name="x"></param>
+	/// <param name="y"></param>
+	/// <returns></returns>
 	Fragment GetValue(uint16_t x, uint16_t y);
+
 	uint16_t GetWidht() { return _width; }
 	uint16_t GetHeight() { return _height; }
 };

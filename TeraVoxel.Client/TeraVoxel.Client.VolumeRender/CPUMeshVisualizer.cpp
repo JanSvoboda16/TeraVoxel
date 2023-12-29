@@ -262,15 +262,15 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const 
 CPUMeshVisualizer::CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject, const std::shared_ptr<Camera>& camera): _rootObject(rootObject), _camera(camera)
 {
 	auto screenSize = _camera->GetScreenSize();
-	_framebuffer = std::make_shared<MultiLayeredFramebuffer>(screenSize[1], screenSize[0]);
+	_framebuffer = std::make_shared<MultiLayeredFramebuffer>(screenSize[0], screenSize[1]);
 }
 
 void CPUMeshVisualizer::ComputeFrame()
 {
 	auto screenSize = _camera->GetScreenSize();
-	if (screenSize[1] != _framebuffer->GetWidth() || screenSize[0] != _framebuffer->GetHeight())
+	if (screenSize[0] != _framebuffer->GetWidth() || screenSize[1] != _framebuffer->GetHeight())
 	{
-		_framebuffer->Resize(screenSize[1], screenSize[0]);
+		_framebuffer->Resize(screenSize[0], screenSize[1]);
 	}
 	else
 	{
@@ -312,6 +312,7 @@ __forceinline float CPUMeshVisualizer::InterpolateValue(const float A, const flo
 
 __forceinline void ComputeBarycentricCoordinates(const Vector2f& A, const Vector2f& B, const Vector2f& C, const Vector2f& P, float& alpha, float& beta, float& gamma)
 {
+	// Inspired by solutions here: https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
 	float denominator = ((B.y() - C.y()) * (A.x() - C.x())) + ((C.x() - B.x()) * (A.y() - C.y()));
 	
 	// if denominator is small linear interpolation is used
@@ -335,8 +336,9 @@ __forceinline void ComputeBarycentricCoordinates(const Vector2f& A, const Vector
 		return;
 	}
 
-	alpha = ((B.y() - C.y()) * (P.x() - C.x()) + (C.x() - B.x()) * (P.y() - C.y())) / denominator;
-	beta = ((C.y() - A.y()) * (P.x() - C.x()) + (A.x() - C.x()) * (P.y() - C.y())) / denominator;
+	float denomReverse = 1.0 / denominator;
+	alpha = ((B.y() - C.y()) * (P.x() - C.x()) + (C.x() - B.x()) * (P.y() - C.y())) *denomReverse;
+	beta = ((C.y() - A.y()) * (P.x() - C.x()) + (A.x() - C.x()) * (P.y() - C.y())) *denomReverse;
 	gamma = 1.0f - alpha - beta;
 }
 

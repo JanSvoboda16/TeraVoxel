@@ -19,13 +19,14 @@ class CPUMeshVisualizer
 	Vector4b InterpolateColor(const Vector4b& color1, const Vector4b& color2, float alpha, float beta);
 	float InterpolateValue(const float A, const float B, const float C, float alpha, float beta, float gamma);
 	float InterpolateValue(const float A, const float B, float alpha, float beta);
+	void RasterizeLine(const Vertex& A, const Vertex& B);
+	void RasterizeTriangle(std::array<Vertex, 3>& triangle, bool outlining);
 
 public:
 	CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject, const std::shared_ptr<Camera>& camera);
 	void ComputeFrame();
 
 	std::shared_ptr<MultiLayeredFramebuffer> GetFrameBuffer() { return _framebuffer; }
-	void RasterizeLine(const Vertex& A, const Vertex& B);
-	void RasterizeTriangle(std::array<Vertex, 3> &triangle, bool outlining);
+	
 };
 

@@ -29,13 +29,13 @@ void MeshDemoWindow::UpdateScene()
 		default: demoMesh = nullptr; break;
 		}
 
+		auto meshNode = _volumeViewContext->scene->GetMeshNode();
+		MeshTreeExplorer::Delete(meshNode, "demo");
 		if (demoMesh != nullptr)
 		{
 			demoMesh->transformation = Transformations::GetTranslationMatrix(_meshPosition[0], _meshPosition[1], _meshPosition[2]) * Transformations::GetShrinkMatrix(_meshScale[0], _meshScale[1], _meshScale[2]);
 			demoMesh->name = "demo";
-
-			auto meshNode = _volumeViewContext->scene->GetMeshNode();
-			MeshTreeExplorer::Delete(meshNode, "demo");
+			
 			meshNode->subNodes.push_back(demoMesh);
 		}
 

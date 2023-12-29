@@ -35,6 +35,12 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 	}
 	else
 	{
+		// Behind not transparent fragment
+		if (_mainLayer.GetValue(x, y).depth < depth)
+		{
+			return;
+		}
+
 		int layerIndex = 0;
 		while (true)
 		{
@@ -70,43 +76,7 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 
 __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, const Fragment& fragment)
 {
-	if(fragment.a >= 253)
-	{
-		_mainLayer.SetValue(x, y, fragment);
-	}
-	else
-	{
-		int layerIndex = 0;
-		while (true)
-		{
-			float enabledDepthError = 1;
-			if (layerIndex + 1 > _alphaLayers.size())
-			{
-				_alphaLayers.push_back(FramebufferLayer(_width, _height));
-				_alphaLayers[layerIndex].SetValue(x, y, fragment);
-				break;
-			}
-			else
-			{
-				auto& layer = _alphaLayers[layerIndex];
-				auto layerValue = layer.GetValue(x, y);
-
-				if (layerValue.depth > 1.f || true)
-				{
-					layer.SetValue(x, y, fragment);
-					break;
-				}
-				else
-				{
-					layerIndex++;
-				}
-			}
-		}
-		if (layerIndex + 1 > _usedAlphaLayers)
-		{
-			_usedAlphaLayers = layerIndex + 1;
-		}
-	}
+	SetValue(x, y, fragment.r, fragment.g, fragment.b, fragment.a, fragment.depth);
 }
 
 __forceinline void SortFragments(std::vector<Fragment>& fragments)
