@@ -85,13 +85,7 @@ private:
 		ProjectManager projectManager(serverUrl);
 		std::shared_ptr<VolumeLoaderFactory<T>> loaderFactory = std::make_shared<NetVolumeLoaderFactory<T>>(projectManager);
 
-		// Scene controlling meshes
-		auto axisCross = MeshGenerator::AxisCross(size.maxCoeff(), Vector4b(255,0,0,255));
-
 		auto rootMeshNode = std::make_shared<MeshNode>();
-		rootMeshNode->subNodes.push_back(axisCross);
-
-		camera->BindObserverCenterMeshNode(axisCross);
 
 		// Scene
 		auto emptyVisualizerFactory = std::make_shared<EmptyVolumeVisualizerFactory<T>>(std::make_shared<EmptyVolumeVisualizerSettings>());

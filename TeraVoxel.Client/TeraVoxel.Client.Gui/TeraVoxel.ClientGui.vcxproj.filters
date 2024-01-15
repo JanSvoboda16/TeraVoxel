@@ -77,7 +77,7 @@
     <ClInclude Include="CPURayCastingView.h">
       <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
     </ClInclude>
-    <ClInclude Include="MeshDemoWindow.h">
+    <ClInclude Include="SceneObjectsWindow.h">
       <Filter>Areas\MeshDemo</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,7 +122,7 @@
     <ClCompile Include="CPURayCastingView.cpp">
       <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
     </ClCompile>
-    <ClCompile Include="MeshDemoWindow.cpp">
+    <ClCompile Include="SceneObjectsWindow.cpp">
       <Filter>Areas\MeshDemo</Filter>
     </ClCompile>
   </ItemGroup>

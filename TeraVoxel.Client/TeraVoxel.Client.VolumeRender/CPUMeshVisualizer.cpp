@@ -268,6 +268,7 @@ CPUMeshVisualizer::CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject
 void CPUMeshVisualizer::ComputeFrame()
 {
 	auto screenSize = _camera->GetScreenSize();
+
 	if (screenSize[0] != _framebuffer->GetWidth() || screenSize[1] != _framebuffer->GetHeight())
 	{
 		_framebuffer->Resize(screenSize[0], screenSize[1]);

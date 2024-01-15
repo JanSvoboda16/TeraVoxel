@@ -77,5 +77,11 @@ public:
 	/// </summary>
 	/// <returns>True if rendering is in progress</returns>
 	virtual bool RenderingInProgress() = 0;	
+
+	/// <summary>
+	/// Gets project info
+	/// </summary>
+	/// <returns></returns>
+	virtual ProjectInfo GetProjectInfo() = 0;
 };
 

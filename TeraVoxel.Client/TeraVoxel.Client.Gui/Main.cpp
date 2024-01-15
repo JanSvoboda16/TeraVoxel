@@ -16,7 +16,7 @@
 #include "../TeraVoxel.Client.Core/SettingsContext.h"
 #include "SettingsWindow.h"
 #include "../TeraVoxel.Client.VolumeRender/EigenBenchmark.h"
-#include "MeshDemoWindow.h"
+#include "SceneObjectsWindow.h"
 
  // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -97,7 +97,7 @@ int main(int, char**){
 	VolumeViewWindow sceneWindow(g_pd3dDevice, volumeViewContext);
 	VisualizerSettingsWindow colorMappingWindow(volumeViewContext);
 	SettingsWindow settingsWindow;
-	MeshDemoWindow meshDemoWindow(volumeViewContext);
+	SceneObjectsWindow SceneObjectsWindow(volumeViewContext);
 
 	MemoryContext::GetInstance().maxMemory = 6000000000;
 	SettingsContext::GetInstance().loadingThreadCount = 5;
@@ -134,7 +134,7 @@ int main(int, char**){
 		sceneWindow.Update();
 		colorMappingWindow.Update();
 		settingsWindow.Update();
-		meshDemoWindow.Update();
+		SceneObjectsWindow.Update();
 
 		// Rendering
 		ImGui::Render();

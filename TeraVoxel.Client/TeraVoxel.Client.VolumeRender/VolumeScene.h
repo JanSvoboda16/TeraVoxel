@@ -35,6 +35,7 @@ public:
 	bool RenderingInProgress() override;
 	void ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory<T>> visualizerFac);
 	const char* GetDataTypeName() override;
+	ProjectInfo GetProjectInfo() override;;
 
 private:
 	int frameWidth1;				// Width of framebuffer1

@@ -136,6 +136,12 @@ const char* VolumeScene<T>::GetDataTypeName()
 }
 
 template<typename T>
+ProjectInfo VolumeScene<T>::GetProjectInfo() 
+{ 
+	return _projectInfo;
+}
+
+template<typename T>
 void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
