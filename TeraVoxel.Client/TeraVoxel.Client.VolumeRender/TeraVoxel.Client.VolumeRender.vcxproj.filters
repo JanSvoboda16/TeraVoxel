@@ -96,6 +96,7 @@
     </ClInclude>
     <ClInclude Include="framework.h" />
     <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
+    <ClInclude Include="TrackableCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">

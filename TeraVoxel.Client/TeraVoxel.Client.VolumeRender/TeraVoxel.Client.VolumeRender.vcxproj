@@ -163,6 +163,7 @@
     <ClInclude Include="NetVolumeLoaderFactory.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h" />
     <ClInclude Include="Serialization.h" />
+    <ClInclude Include="TrackableCamera.h" />
     <ClInclude Include="Transformations.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="VolumeLoaderBase.h" />

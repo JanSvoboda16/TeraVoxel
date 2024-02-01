@@ -23,6 +23,8 @@ class Camera
 public:
 	Camera(const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 100, float farPlaneDiscance = 10000);
 	
+	virtual ~Camera() {};
+
 	/// <summary>
 	/// Changes the position of the camera
 	/// </summary>
@@ -52,6 +54,10 @@ public:
 	/// </summary>
 	/// <param name="rotation">rotation matrix</param>
 	void Rotate(const Vector3f& rotation);
+
+	Matrix4f GetRotationMatrix();
+
+	void SetRotationMatrix(const Matrix4f& matrix);
 
 	/// <summary>
 	/// Returns ray direction for the pixel in a shrank space.
