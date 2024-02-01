@@ -15,5 +15,6 @@ namespace TeraVoxel.Server.Core
         public int SegmentSize { get; set; }
         public int ProcessLayerSize { get; set; }
         public CompressionLevel CompressionLevel { get; set; }
+        public bool ZTransformation { get; set; } = false;
     }
 }

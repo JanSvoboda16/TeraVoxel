@@ -82,6 +82,18 @@ void Camera::Rotate(const Vector3f& rotation)
 	RecomputeParams();
 }
 
+Matrix4f Camera::GetRotationMatrix()
+{
+	return _rotation;
+}
+
+void Camera::SetRotationMatrix(const Matrix4f &matrix)
+{;
+	_rotation = matrix;
+	RecomputeParams();
+
+}
+
 void Camera::ChangeScreenSize(int width, int height)
 {
 	_screenHeight = height;

@@ -11,6 +11,9 @@ using TeraVoxel.Server.Data.Models;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using System;
+using System.Buffers;
+using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
 
 namespace TeraVoxel.Server.Data.Pipelines
 {
@@ -18,6 +21,8 @@ namespace TeraVoxel.Server.Data.Pipelines
     {
         private readonly StorageOptions _storageOptions;
         private readonly IProjectInfoProvider _projectInfoProvider;
+
+        private const uint Z_CURVE_MASK = 0b1001001001001001001001001001;
 
         public ConvertingPipeline(StorageOptions options, IProjectInfoProvider projectInfoProvider)
         {
@@ -117,7 +122,8 @@ namespace TeraVoxel.Server.Data.Pipelines
         {
             FrameBase? frame = null;
             VolumeSegmentBase[]? subsegments = null;
-            int segmentSize = _storageOptions.SegmentSize;            
+            int segmentSize = _storageOptions.SegmentSize;
+            int bytesPerItem = 0;
             
             int xCount = (int)Math.Round(reader.FrameWidth/ (decimal)segmentSize, 0, MidpointRounding.ToPositiveInfinity);
             int yCount = (int)Math.Round(reader.FrameHeight / (decimal)segmentSize, 0, MidpointRounding.ToPositiveInfinity);
@@ -128,56 +134,67 @@ namespace TeraVoxel.Server.Data.Pipelines
             {
                 frame = new Frame<sbyte>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<sbyte>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(sbyte);
             }
             else if (reader.DataType == typeof(byte))
             {
                 frame = new Frame<byte>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<byte>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(byte);
             }
             else if (reader.DataType == typeof(short))
             {
                 frame = new Frame<short>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<short>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(short);
             }
             else if (reader.DataType == typeof(ushort))
             {
                 frame = new Frame<ushort>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<ushort>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(ushort);
             }
             else if (reader.DataType == typeof(int))
             {
                 frame = new Frame<int>(reader.FrameWidth, reader.FrameHeight);
-                subsegments = MakeSegments<int>(segmentSize, xCount * yCount);                
+                subsegments = MakeSegments<int>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(int);
             }
             else if (reader.DataType == typeof(uint))
             {
                 frame = new Frame<uint>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<uint>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(uint);
             }
             else if (reader.DataType == typeof(float))
             {
                 frame = new Frame<float>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<float>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(float);
             }
             else if (reader.DataType == typeof(double))
             {
                 frame = new Frame<double>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<double>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(double);
             }
             else if (reader.DataType == typeof(long))
             {
                 frame = new Frame<long>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<long>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(long);
             }
             else if (reader.DataType == typeof(ulong))
             {
                 frame = new Frame<ulong>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeSegments<ulong>(segmentSize, xCount * yCount);
+                bytesPerItem = sizeof(ulong);
             }
             else if (reader.DataType == typeof(Color))
             {
                 frame = new Frame<Color>(reader.FrameWidth, reader.FrameHeight);
                 subsegments = MakeRGBASegments(segmentSize, xCount * yCount);
+                bytesPerItem = 4;
             }           
             else
             {
@@ -233,7 +250,7 @@ namespace TeraVoxel.Server.Data.Pipelines
                                 int subsegmentsPerSegment = segmentSize / _storageOptions.ProcessLayerSize;
                                 string rawPath = $"{destinationDirectoryPath}/data_{subsegment.XIndex}_{subsegment.YIndex}_{subsegment.ZIndex / subsegmentsPerSegment}_{downscale}.raw";
 
-                                // Compressing data and writing into file
+                                // Writing into file
                                 await WriteToFile(subsegment.ConvertToByteArray(), rawPath, subsegment.ZIndex % subsegmentsPerSegment == 0 ? FileMode.Create : FileMode.Append);
                                 
                                 // Downscaling
@@ -244,7 +261,7 @@ namespace TeraVoxel.Server.Data.Pipelines
                                 {
                                     int segmentLayer = subsegment.ZIndex / subsegmentsPerSegment;
                                     string resultPath = $"{destinationDirectoryPath}/data_{subsegment.XIndex}_{subsegment.YIndex}_{segmentLayer}_{downscale}";
-                                    await CompressAndDelete(resultPath, rawPath);                                  
+                                    await TransformAndDelete(resultPath, rawPath, bytesPerItem, downscale);                                  
                                 }
                             }
                         }));
@@ -261,14 +278,63 @@ namespace TeraVoxel.Server.Data.Pipelines
             }
         }
 
-        private async Task CompressAndDelete(string resultPath, string rawPath)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint GetZetCurveIndex(UInt16 x, UInt16 y, UInt16 z)
+        {
+            return Bmi2.ParallelBitDeposit(x, Z_CURVE_MASK) | Bmi2.ParallelBitDeposit(y, Z_CURVE_MASK << 1) | Bmi2.ParallelBitDeposit(z, Z_CURVE_MASK << 2);
+        }
+
+        private async Task TransformAndDelete(string resultPath, string rawPath, int bytesPerItem, int downscale)
         {
             using (var segFileRaw = File.Open(rawPath, FileMode.Open))
-            {               
-                using var segFileCompressed = File.Open(resultPath, FileMode.Create);
-                await Compress(segFileRaw, segFileCompressed);
+            {
+                using var resultFile = File.Open(resultPath, FileMode.Create);
+
+                if (_storageOptions.ZTransformation)
+                {
+                    var segmentSize = _storageOptions.SegmentSize >> downscale;
+                    var buffer = ArrayPool<byte>.Shared.Rent(segmentSize * segmentSize * segmentSize * bytesPerItem);
+
+                    for (ushort z = 0; z < segmentSize; z++)
+                    {
+                        for (ushort y = 0; y < segmentSize; y++)
+                        {
+                            for (ushort x = 0; x < segmentSize; x++)
+                            {
+                                for (int i = 0; i < bytesPerItem; i++)
+                                {
+                                    buffer[GetZetCurveIndex(x, y, z) * bytesPerItem + i] = (byte)segFileRaw.ReadByte();
+                                }
+                            }
+                        }
+                    }
+
+                    using var inputStream = new MemoryStream(buffer,0, segmentSize * segmentSize * segmentSize * bytesPerItem);
+                    
+                    if (_storageOptions.CompressionLevel == CompressionLevel.NoCompression)
+                    {
+                        await inputStream.CopyToAsync(resultFile);
+                    }
+                    else
+                    {
+                        await Compress(inputStream, resultFile);
+                    }
+                    
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
+                else
+                {
+                    if (_storageOptions.CompressionLevel == CompressionLevel.NoCompression)
+                    {
+                        await segFileRaw.CopyToAsync(resultFile);
+                    }
+                    else
+                    {
+                        await Compress(segFileRaw, resultFile);
+                    }                    
+                }                
             };
-            File.Delete(rawPath);
+            File.Delete(rawPath);          
         }
     }
 }

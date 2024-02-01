@@ -377,7 +377,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 					float blue = item.DblDivDra() * valminran0 + item.ColorFrom[2];
 					float alpha = item.DalDivDra() * valminran0 + item.ColorFrom[3];
 
-					alpha = 1.0 - pow(1 - alpha, alphaCoeficient * stepMultiplyer);//changes projection: (fabsf(red - rl) + fabsf(green - gl) + fabsf(blue - bl)) * alpha /3;
+					alpha = 1.0 - pow(1 - alpha, alphaCoeficient * stepMultiplyer);
 
 					MixColors(r, g, b, a, red, green, blue, alpha);
 

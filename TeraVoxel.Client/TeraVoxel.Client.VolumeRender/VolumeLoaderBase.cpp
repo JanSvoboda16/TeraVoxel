@@ -100,6 +100,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 						{
 							return;
 						}
+						std::this_thread::sleep_for(std::chrono::milliseconds(100));
 					}
 				}
 

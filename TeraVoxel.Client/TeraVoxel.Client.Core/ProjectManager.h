@@ -21,7 +21,7 @@ public:
 	ProjectManager(const std::string& url) : HttpManagerBase(url) { }
 	ProjectManager() : HttpManagerBase("") { }
 	std::vector<ProjectInfo> GetAllProjectsInfo();
-	std::vector<unsigned char> GetSegment(const std::string& projectName, int x, int y, int z, int downscale, int bytesToRead);
+	std::vector<unsigned char> GetSegment(const std::string& projectName, int x, int y, int z, int downscale, int bytesToRead, bool compressed);
 	void CreateProject(const std::string &projectName);
 	void DeleteProject(const std::string &projectName);
 	void ConvertProject(const std::string& projectName);

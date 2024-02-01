@@ -129,6 +129,8 @@
     <ClInclude Include="MeshTreeExplorer.h">
       <Filter>MeshManagement</Filter>
     </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
+    <ClInclude Include="TrackableCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
