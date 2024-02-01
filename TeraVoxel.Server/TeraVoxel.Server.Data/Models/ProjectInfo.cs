@@ -29,6 +29,8 @@ namespace TeraVoxel.Server.Data.Models
         public int DataSizeZ { get; set; }
         public int LastProcessedSegmentLayer { get; set; }
         public bool IsLittleEndian { get; set; }
+        public bool ZTransformed { get; set; }
+        public bool Compressed { get; set; } = true;
         public ProjectState State { get; set; }
     }
 }
