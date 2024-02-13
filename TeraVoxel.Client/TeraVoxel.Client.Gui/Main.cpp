@@ -15,6 +15,8 @@
 #include "VisualizerSettingsWindow.h"
 #include "../TeraVoxel.Client.Core/SettingsContext.h"
 #include "SettingsWindow.h"
+#include "../TeraVoxel.Client.VolumeRender/EigenBenchmark.h"
+#include "SceneObjectsWindow.h"
 
  // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -30,8 +32,8 @@ void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Main code
-int main(int, char**)
-{
+int main(int, char**){
+
 	Logger::Initialize("log.csv");
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
@@ -95,6 +97,7 @@ int main(int, char**)
 	VolumeViewWindow sceneWindow(g_pd3dDevice, volumeViewContext);
 	VisualizerSettingsWindow colorMappingWindow(volumeViewContext);
 	SettingsWindow settingsWindow;
+	SceneObjectsWindow SceneObjectsWindow(volumeViewContext);
 
 	MemoryContext::GetInstance().maxMemory = 6000000000;
 	SettingsContext::GetInstance().loadingThreadCount = 5;
@@ -131,6 +134,7 @@ int main(int, char**)
 		sceneWindow.Update();
 		colorMappingWindow.Update();
 		settingsWindow.Update();
+		SceneObjectsWindow.Update();
 
 		// Rendering
 		ImGui::Render();

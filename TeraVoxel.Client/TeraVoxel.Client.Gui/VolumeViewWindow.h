@@ -3,9 +3,6 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #pragma once
-#include "imgui.h"
-#include "time.h"
-#include "imgui_stdlib.h"
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "../TeraVoxel.Client.VolumeRender/Camera.h"
@@ -27,6 +24,7 @@ public:
 		// if the scene has changed, the view must be rerendered
 		_volumeViewContext->sceneUpdated.Register([this]() { _rerender = true; });
 		_volumeViewContext->sceneReplaced.Register([this]() { _rerender = true; });
+
 	}
 	void RGBAToTexture(const unsigned char* _renderingFramebuffer, ID3D11ShaderResourceView** out_srv, int width, int height);
 	void Update();

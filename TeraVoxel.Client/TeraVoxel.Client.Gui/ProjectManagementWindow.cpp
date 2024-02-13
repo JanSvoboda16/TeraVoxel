@@ -3,6 +3,16 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #include "ProjectManagementWindow.h"
+#include "../TeraVoxel.Client.VolumeRender/NetMemoryVolumeSceneFactory.h"
+#include "imgui.h"
+#include "imgui_stdlib.h"
+#include "../TeraVoxel.Client.Core/ProjectManager.h"
+
+ProjectManagementWindow::ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext)
+{
+	_volumeViewContext = volumeViewContext;
+	ProjectManager manager(_serverUrl);
+}
 
 void ProjectManagementWindow::Update()
 {
@@ -75,7 +85,6 @@ void ProjectManagementWindow::Update()
 			{
 				try
 				{
-
 					for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
 					{
 						auto project = _projects[row];
@@ -101,10 +110,7 @@ void ProjectManagementWindow::Update()
 								_selectedProjectIndex = row;
 								_selectedProjectName = project.name;
 
-								Vector3f voxelDimensions = Vector3f(project.voxelDimensions);
-								Vector3f initialPosition = Vector3f(project.dataSizeX, project.dataSizeY, project.dataSizeZ).array() / 2 * voxelDimensions.array();
-								std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2);
-								_volumeViewContext->scene = NetMemoryVolumeSceneFactory::Create(camera, project, _connectedServerUrl);
+								_volumeViewContext->scene = NetMemoryVolumeSceneFactory::Create(project, _connectedServerUrl);
 								_volumeViewContext->sceneReplaced.Notify();
 							}
 						}

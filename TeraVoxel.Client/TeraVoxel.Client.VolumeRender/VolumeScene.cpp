@@ -6,12 +6,13 @@
 #include "VolumeScene.h"
 
 template <typename T>
-VolumeScene<T>::VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFac) //TODO new constructor
+VolumeScene<T>::VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFactory, const std::shared_ptr<MeshNode>& meshNode) //TODO new constructor
 {
 	_projectInfo = projectInfo;
 	_camera = camera;
-	_visualizer = visualizerFac->Create(camera, projectInfo, volumeLoaderFactory);
+	_volumeVisualizer = visualizerFactory->Create(camera, projectInfo, volumeLoaderFactory, meshNode);
 	_volumeLoaderFactory = volumeLoaderFactory;
+	_meshNode = meshNode;
 }
 
 template<typename T>
@@ -62,7 +63,7 @@ void VolumeScene<T>::ComputeFrame(int width, int height, bool _fast)
 
 	if (_visualizerChanged)
 	{
-		_visualizer = _visualizerFactory->Create(_camera, _projectInfo, _volumeLoaderFactory);
+		_volumeVisualizer = _visualizerFactory->Create(_camera, _projectInfo, _volumeLoaderFactory, _meshNode);
 		_visualizerChanged = false;
 	}
 
@@ -84,7 +85,7 @@ int VolumeScene<T>::GetFrameHeight()
 template <typename T>
 bool VolumeScene<T>::DataChanged()
 {
-	return _visualizer->DataChanged();
+	return _volumeVisualizer->DataChanged();
 }
 
 template <typename T>
@@ -101,6 +102,12 @@ template<typename T>
 inline std::shared_ptr<Camera> VolumeScene<T>::GetCamera()
 {
 	return _camera;
+}
+
+template<typename T>
+std::shared_ptr<MeshNode> VolumeScene<T>::GetMeshNode()
+{
+	return _meshNode;
 }
 
 template<typename T>
@@ -129,10 +136,20 @@ const char* VolumeScene<T>::GetDataTypeName()
 }
 
 template<typename T>
+ProjectInfo VolumeScene<T>::GetProjectInfo() 
+{ 
+	return _projectInfo;
+}
+
+template<typename T>
 void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
-	_visualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
+	
+	auto meshObject = std::make_shared<MeshNode>();
+	
+	_volumeVisualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
+
 	_frameReady.store(true, std::memory_order::release);
 	_renderingInProgress.store(false, std::memory_order::release);
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Ended", "", _fast ? "fast" : "full");
