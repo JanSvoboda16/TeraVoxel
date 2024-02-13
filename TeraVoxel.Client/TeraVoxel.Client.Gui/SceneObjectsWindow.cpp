@@ -47,7 +47,7 @@ void SceneObjectsWindow::Update()
 		_sceneUpdateNeeded = true;
 	}
 
-	if (ImGui::Checkbox("Bonding box", &_boundingBoxVisible))
+	if (ImGui::Checkbox("Bounding box", &_boundingBoxVisible))
 	{
 		_sceneUpdateNeeded = true;
 	}
