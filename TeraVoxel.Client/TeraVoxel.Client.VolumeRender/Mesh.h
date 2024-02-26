@@ -75,6 +75,7 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	uint32_t GetTriangleCount();
+
 private:
 	std::vector<Vertex> _vertices;
 	MeshMode _mode = MeshMode::List;

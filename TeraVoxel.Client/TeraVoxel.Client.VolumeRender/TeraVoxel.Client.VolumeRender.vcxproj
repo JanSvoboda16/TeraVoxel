@@ -191,7 +191,6 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CPUMeshVisualizer.cpp" />
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp" />
-    <ClCompile Include="EigenBenchmark.cpp" />
     <ClCompile Include="FramebufferLayer.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshGenerator.cpp" />

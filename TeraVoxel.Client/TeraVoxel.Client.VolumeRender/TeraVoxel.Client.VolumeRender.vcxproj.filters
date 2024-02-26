@@ -152,7 +152,6 @@
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp">
       <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClCompile>
-    <ClCompile Include="EigenBenchmark.cpp" />
     <ClCompile Include="CPUMeshVisualizer.cpp">
       <Filter>Mesh\Visualizers</Filter>
     </ClCompile>
