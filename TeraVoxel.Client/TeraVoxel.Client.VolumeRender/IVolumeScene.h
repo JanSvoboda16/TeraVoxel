@@ -52,7 +52,7 @@ public:
 	/// Gets name of the data type used in scene template
 	/// </summary>
 	/// <returns>Name of the data type</returns>
-	virtual const char* GetDataTypeName() = 0;
+	virtual std::string GetDataTypeName() = 0;
 
 	/// <summary>
 	/// Gets pointer to the internal camera

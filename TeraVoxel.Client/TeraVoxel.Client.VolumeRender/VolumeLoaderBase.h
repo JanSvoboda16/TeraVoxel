@@ -8,10 +8,10 @@
 #include <list>
 #include <memory>
 #include "VolumeSegment.h"
-#include "../TeraVoxel.Client.Core/ProjectInfo.h"
 #include "../TeraVoxel.Client.Core/MemoryContext.h"
 #include "Serialization.h"
 #include "../TeraVoxel.Client.Core/Logger.h"
+#include "VolumeLoaderGenericBase.h"
 
 template <typename T>
 struct ComparePriority
@@ -23,14 +23,14 @@ struct ComparePriority
 };
 
 template <typename T>
-class VolumeLoaderBase
+class VolumeLoaderBase : public VolumeLoaderGenericBase
 {
 protected:
 	std::list<VolumeSegment<T>*> _segmentsToLoad;
 	std::queue<std::unique_ptr<VolumeSegment<T>>> _loadedSegments;
 	std::mutex _segmentsToLoadMutex;
 	std::mutex _loadedSegmentsMutex;
-	ProjectInfo _projectInfo;
+	
 	int _segmentCountX, _segmentCountY, _segmentCountZ, _threadCount;
 
 	std::list<std::future<void>> _loadingTreads;
@@ -44,7 +44,6 @@ protected:
 	void LoadingTask();
 
 public:
-
 	VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount);
 	virtual ~VolumeLoaderBase();
 	void AddToStack(VolumeSegment<T>* segment);

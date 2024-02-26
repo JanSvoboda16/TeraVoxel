@@ -39,9 +39,6 @@
     <ClInclude Include="IVolumeVisualizerFactory.h">
       <Filter>VolumeVisualizers</Filter>
     </ClInclude>
-    <ClInclude Include="VolumeVisualizerSetter.h">
-      <Filter>VolumeVisualizers</Filter>
-    </ClInclude>
     <ClInclude Include="VolumeVisualizerSettingsBase.h">
       <Filter>VolumeVisualizers</Filter>
     </ClInclude>
@@ -51,16 +48,10 @@
     <ClInclude Include="EmptyVolumeVisualizerFactory.h">
       <Filter>VolumeVisualizers\Empty</Filter>
     </ClInclude>
-    <ClInclude Include="EmptyVolumeVisualizerSetter.h">
-      <Filter>VolumeVisualizers\Empty</Filter>
-    </ClInclude>
     <ClInclude Include="CPURayCastingVolumeVisualizer.h">
       <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerFactory.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
-    </ClInclude>
-    <ClInclude Include="CPURCVolumeVisualizerSetter.h">
       <Filter>VolumeVisualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerSettings.h">
@@ -101,9 +92,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="CPURayCastingVolumeObjectMemory.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
-    </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Data\DataModels</Filter>
     </ClInclude>
@@ -131,6 +119,15 @@
     </ClInclude>
     <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
     <ClInclude Include="TrackableCamera.h" />
+    <ClInclude Include="VolumeLoaderGenericBase.h">
+      <Filter>Data\VolumeLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeObjectMemoryBase.h">
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeObjectMemory.h">
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">

@@ -1,16 +1,22 @@
 ﻿#include "CPURayCastingVolumeVisualizer.h"
 
-
-template<typename T>
-bool CPURayCastingVolumeVisualizer<T>::DataChanged()
+template <typename T>
+bool CPURayCastingVolumeVisualizer::DataChangedTemplated()
 {
-	return this->_memory.MemoryChanged();
+	return (std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory))->MemoryChanged();
+}
+
+
+bool CPURayCastingVolumeVisualizer::DataChanged()
+{	
+	return CALL_TEMPLATED_FUNCTION(DataChangedTemplated, _volumeLoaderFactory->GetProjectInfo().dataType.c_str());
 }
 
 template<typename T>
-inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale)
+void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale)
 {
-	this->_memory.Prepare();
+	auto memory = std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory);
+	memory->Prepare();
 	_settingsCopy = *_settings;
 	_settingsCopy.mappingTable.RecomputeDeltas();
 	_reneringPosition.store(0, std::memory_order_release);
@@ -24,7 +30,7 @@ inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale
 	std::vector<std::future<void>> threads;
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
-		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame, this, renderingThreadCount, i, screenSize[0], screenSize[1], downscale));
+		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer::ComputePartOfFrame<T>, this, renderingThreadCount, i, screenSize[0], screenSize[1], downscale, memory));
 	}
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
@@ -50,13 +56,18 @@ inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale
 			}
 		}
 	}
-	
-	this->_memory.Revalidate();
+
+	memory->Revalidate();
+}
+
+void CPURayCastingVolumeVisualizer::ComputeFrameInternal(int downscale)
+{
+	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetProjectInfo().dataType.c_str(),downscale);
 }
 
 
 template <typename T>
-void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threadIndex, int framebufferWidth, int framebufferHeight, int downscale)
+void CPURayCastingVolumeVisualizer::ComputePartOfFrame(int threads, int threadIndex, int framebufferWidth, int framebufferHeight, int downscale, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>> &memory)
 {
 	unsigned char* framebuffer = this->_framebuffer.get();
 
@@ -71,7 +82,7 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 			{
 				break;
 			}
-			auto val = ComputeRay(i % framebufferWidth, i / framebufferWidth);
+			auto val = ComputeRay<T>(i % framebufferWidth, i / framebufferWidth, memory);
 			framebuffer[i * 4] = val.r;
 			framebuffer[i * 4 + 1] = val.g;
 			framebuffer[i * 4 + 2] = val.b;
@@ -91,7 +102,7 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 			int y = i / framebufferWidth;
 			if (y % downscale == 0 && x % downscale == 0)
 			{
-				auto val = ComputeRay(x/downscale, y/downscale);
+				auto val = ComputeRay<T>(x/downscale, y/downscale, memory);
 
 				framebuffer[i * 4] = val.r;
 				framebuffer[i * 4 + 1] = val.g;
@@ -103,8 +114,7 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 }
 
 
-template <typename T>
-__forceinline void CPURayCastingVolumeVisualizer<T>::MixColors(float& r, float& g, float& b, float& a, const float ra, const float ga, const float ba, const float aa)
+__forceinline void CPURayCastingVolumeVisualizer::MixColors(float& r, float& g, float& b, float& a, const float ra, const float ga, const float ba, const float aa)
 {
 	r = r + ra * aa * (1 - a);
 	g = g + ga * aa * (1 - a);
@@ -114,7 +124,7 @@ __forceinline void CPURayCastingVolumeVisualizer<T>::MixColors(float& r, float& 
 
 
 template <typename T>
-color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
+color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>& memory)
 {
 	ColorMappingTable mappingTable = _settingsCopy.mappingTable;
 	Vector3f stepVector = this->_camera->GetShrankRayDirection(x, y).normalized();
@@ -139,7 +149,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 		int qualityStepCount = 100 - (position - start).norm();
 		bool lighting = _settingsCopy.shading;
-		auto dataSizes = this->_memory.GetDataSizes();
+		auto dataSizes = memory->GetDataSizes();
 
 		Vector3f cameraPos = this->_camera->GetShrankPosition();
 
@@ -199,7 +209,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				// Hodnoty ve všech osmi nejbližších voxelů
 				int downscale;
-				double f000 = this->_memory.GetValue(x0, y0, z0, downscale);
+				double f000 = memory->GetValue(x0, y0, z0, downscale);
 
 				int gridSize = (1 << downscale);
 				x0 -= x0 % gridSize;
@@ -212,13 +222,13 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				if (!(x1 >= dataSizes[0] || y1 >= dataSizes[1] || z1 >= dataSizes[2]))
 				{
-					double f100 = this->_memory.GetValue(x1, y0, z0, downscale);
-					double f010 = this->_memory.GetValue(x0, y1, z0, downscale);
-					double f110 = this->_memory.GetValue(x1, y1, z0, downscale);
-					double f001 = this->_memory.GetValue(x0, y0, z1, downscale);
-					double f101 = this->_memory.GetValue(x1, y0, z1, downscale);
-					double f011 = this->_memory.GetValue(x0, y1, z1, downscale);
-					double f111 = this->_memory.GetValue(x1, y1, z1, downscale);
+					double f100 = memory->GetValue(x1, y0, z0, downscale);
+					double f010 = memory->GetValue(x0, y1, z0, downscale);
+					double f110 = memory->GetValue(x1, y1, z0, downscale);
+					double f001 = memory->GetValue(x0, y0, z1, downscale);
+					double f101 = memory->GetValue(x1, y0, z1, downscale);
+					double f011 = memory->GetValue(x0, y1, z1, downscale);
+					double f111 = memory->GetValue(x1, y1, z1, downscale);
 
 					// Váhy pro interpolaci
 					double dx = position[0] - x0;
@@ -344,7 +354,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 				}
 
 				int downscale;
-				float value = this->_memory.GetValue(position[0], position[1], position[2], downscale);
+				float value = memory->GetValue(position[0], position[1], position[2], downscale);
 
 				stepMultiplyer = 1 << downscale; // equals 2^downscale
 
@@ -399,15 +409,3 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 	return color{ (uint8_t)(fmin(255,r * 255)), (uint8_t)(fmin(255,g * 255)), (uint8_t)(fmin(255,b * 255)), (uint8_t)(a * 255) };
 }
-
-
-template CPURayCastingVolumeVisualizer<uint8_t>;
-template CPURayCastingVolumeVisualizer<uint16_t>;
-template CPURayCastingVolumeVisualizer<uint32_t>;
-template CPURayCastingVolumeVisualizer<uint64_t>;
-template CPURayCastingVolumeVisualizer<float>;
-template CPURayCastingVolumeVisualizer<double>;
-template CPURayCastingVolumeVisualizer<int8_t>;
-template CPURayCastingVolumeVisualizer<int16_t>;
-template CPURayCastingVolumeVisualizer<int32_t>;
-template CPURayCastingVolumeVisualizer<int64_t>;

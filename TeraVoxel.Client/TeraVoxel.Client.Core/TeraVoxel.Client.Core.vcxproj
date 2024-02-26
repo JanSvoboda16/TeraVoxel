@@ -155,6 +155,7 @@
     <ClInclude Include="ProjectManager.h" />
     <ClInclude Include="ServerException.h" />
     <ClInclude Include="SettingsContext.h" />
+    <ClInclude Include="TemplatedFunctionCaller.h" />
     <ClInclude Include="TypeToString.h" />
     <ClInclude Include="WindowNotification.h" />
   </ItemGroup>

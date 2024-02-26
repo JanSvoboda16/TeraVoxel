@@ -25,7 +25,7 @@ class ProjectInfo
 		int sizeZ = 0;
 		std::string dataType;
 		int segmentSize = 0;
-		float voxelDimensions[3];
+		float voxelDimensions[3] = { 0, 0, 0 };
 		int dataSizeX= 0, dataSizeY = 0 , dataSizeZ = 0;
 		bool isLittleEndian = false;
 		bool zTransformed = false;

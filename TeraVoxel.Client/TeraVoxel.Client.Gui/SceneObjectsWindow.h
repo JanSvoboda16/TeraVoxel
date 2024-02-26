@@ -3,7 +3,6 @@
 class SceneObjectsWindow
 {
 public:
-
 	SceneObjectsWindow(const std::shared_ptr<VolumeViewContext>& volumeViewContext): _volumeViewContext(volumeViewContext)
 	{
 		_volumeViewContext->sceneEditable.Register([this]() { this->UpdateScene(); });

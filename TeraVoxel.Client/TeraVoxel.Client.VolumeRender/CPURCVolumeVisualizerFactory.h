@@ -2,8 +2,7 @@
 #include "IVolumeVisualizerFactory.h"
 #include "CPURayCastingVolumeVisualizer.h"
 
-template <typename T>
-class CPURCVolumeVisualizerFactory : public IVolumeVisualizerFactory<T>
+class CPURCVolumeVisualizerFactory : public IVolumeVisualizerFactory
 {
 public:
 	CPURCVolumeVisualizerFactory(std::shared_ptr<CPURCVolumeVisualizerSettings> settings)
@@ -11,9 +10,9 @@ public:
 		_settings = settings;
 	}
 
-	std::unique_ptr<VolumeVisualizerBase<T>> Create(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode) override
+	std::unique_ptr<VolumeVisualizerBase> Create(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode) override
 	{
-		return std::make_unique<CPURayCastingVolumeVisualizer<T>>(camera, projectInfo, volumeLoaderFactory, _settings, meshNode);
+		return std::make_unique<CPURayCastingVolumeVisualizer>(camera, volumeLoaderFactory, _settings, meshNode);
 	}
 
 private:

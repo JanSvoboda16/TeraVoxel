@@ -1,12 +1,16 @@
 #pragma once
 #include <memory>
-#include "VolumeLoaderBase.h"
+#include "VolumeLoaderGenericBase.h"
 
-template <typename T>
 class VolumeLoaderFactory
 {
 public:
 	virtual ~VolumeLoaderFactory() {}
-	virtual std::unique_ptr<VolumeLoaderBase<T>> Create(const ProjectInfo& projectInfo, int threadCount) const = 0;
+	virtual std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount) = 0;
+	ProjectInfo GetProjectInfo() { return _projectInfo; }
+	VolumeLoaderFactory(const ProjectInfo& projectInfo) : _projectInfo(projectInfo) { }
+
+protected:
+	ProjectInfo _projectInfo;
 };
 

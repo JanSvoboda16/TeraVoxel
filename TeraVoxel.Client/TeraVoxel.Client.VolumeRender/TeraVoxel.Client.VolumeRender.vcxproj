@@ -153,13 +153,12 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CPUMeshVisualizer.h" />
+    <ClInclude Include="CPURayCastingVolumeObjectMemoryBase.h" />
     <ClInclude Include="EigenBenchmark.h" />
     <ClInclude Include="EmptyVolumeVisualizer.h" />
     <ClInclude Include="EmptyVolumeVisualizerFactory.h" />
-    <ClInclude Include="EmptyVolumeVisualizerSetter.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizer.h" />
     <ClInclude Include="CPURCVolumeVisualizerFactory.h" />
-    <ClInclude Include="CPURCVolumeVisualizerSetter.h" />
     <ClInclude Include="CPURCVolumeVisualizerSettings.h" />
     <ClInclude Include="FramebufferLayer.h" />
     <ClInclude Include="framework.h" />
@@ -179,13 +178,13 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="VolumeLoaderBase.h" />
     <ClInclude Include="VolumeLoaderFactory.h" />
+    <ClInclude Include="VolumeLoaderGenericBase.h" />
     <ClInclude Include="VolumeSegment.h" />
     <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
     <ClInclude Include="VolumeScene.h" />
     <ClInclude Include="NetMemoryVolumeSceneFactory.h" />
     <ClInclude Include="VolumeVisualizerBase.h" />
     <ClInclude Include="IVolumeVisualizerFactory.h" />
-    <ClInclude Include="VolumeVisualizerSetter.h" />
     <ClInclude Include="VolumeVisualizerSettingsBase.h" />
   </ItemGroup>
   <ItemGroup>

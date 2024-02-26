@@ -59,7 +59,7 @@ private:
 		_zCenterDelta = 0;
 
 	clock_t _fps_start = 0;
-	int _framesCount;
+	int _framesCount = 0;
 	float _fps = 0;
 };
 
