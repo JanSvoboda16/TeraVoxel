@@ -25,6 +25,17 @@ struct ComparePriority
 template <typename T>
 class VolumeLoaderBase : public VolumeLoaderGenericBase
 {
+
+public:
+	VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount);
+	virtual ~VolumeLoaderBase();
+	void AddToStack(VolumeSegment<T>* segment);
+	void Preload(int downscale, int threadCount);
+	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
+
+	void BindOnSegmentLoaded(std::function<void(void)> function) { _onSegmentLoaded = function; }
+	ProjectInfo GetProjectInfo() { return _projectInfo; }
+
 protected:
 	std::list<VolumeSegment<T>*> _segmentsToLoad;
 	std::queue<std::unique_ptr<VolumeSegment<T>>> _loadedSegments;
@@ -43,14 +54,5 @@ protected:
 
 	void LoadingTask();
 
-public:
-	VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount);
-	virtual ~VolumeLoaderBase();
-	void AddToStack(VolumeSegment<T>* segment);
-	void Preload(int downscale, int threadCount);
-	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
-
-	void BindOnSegmentLoaded(std::function<void(void)> function) { _onSegmentLoaded = function; }
-	ProjectInfo GetProjectInfo() { return _projectInfo; }
 };
 
