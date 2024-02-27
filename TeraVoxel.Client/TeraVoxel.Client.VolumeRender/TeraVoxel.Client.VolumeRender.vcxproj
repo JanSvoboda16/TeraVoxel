@@ -164,15 +164,19 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="IVolumeScene.h" />
     <ClInclude Include="ColorMappingTable.h" />
+    <ClInclude Include="MarchingCubesSurfaceExtractor.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshGenerator.h" />
     <ClInclude Include="MeshNode.h" />
+    <ClInclude Include="MeshObjExporter.h" />
     <ClInclude Include="MeshTreeExplorer.h" />
     <ClInclude Include="MultiLayeredFramebuffer.h" />
     <ClInclude Include="NetVolumeLoader.h" />
     <ClInclude Include="NetVolumeLoaderFactory.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h" />
+    <ClInclude Include="SeedVolumeSelector.h" />
     <ClInclude Include="Serialization.h" />
+    <ClInclude Include="SurfaceExtractorBase.h" />
     <ClInclude Include="TrackableCamera.h" />
     <ClInclude Include="Transformations.h" />
     <ClInclude Include="pch.h" />
@@ -183,6 +187,7 @@
     <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
     <ClInclude Include="VolumeScene.h" />
     <ClInclude Include="NetMemoryVolumeSceneFactory.h" />
+    <ClInclude Include="VolumeSelectorBase.h" />
     <ClInclude Include="VolumeVisualizerBase.h" />
     <ClInclude Include="IVolumeVisualizerFactory.h" />
     <ClInclude Include="VolumeVisualizerSettingsBase.h" />
@@ -192,9 +197,11 @@
     <ClCompile Include="CPUMeshVisualizer.cpp" />
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp" />
     <ClCompile Include="FramebufferLayer.cpp" />
+    <ClCompile Include="MarchingCubesSurfaceExtractor.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshGenerator.cpp" />
     <ClCompile Include="MeshNode.cpp" />
+    <ClCompile Include="MeshObjExporter.cpp" />
     <ClCompile Include="MeshTreeExplorer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp" />
     <ClCompile Include="pch.cpp">
@@ -203,10 +210,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SeedVolumeSelector.cpp" />
+    <ClCompile Include="SurfaceExtractorBase.cpp" />
     <ClCompile Include="Transformations.cpp" />
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp" />
     <ClCompile Include="VolumeLoaderBase.cpp" />
     <ClCompile Include="VolumeScene.cpp" />
+    <ClCompile Include="VolumeSelectorBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TeraVoxel.Client.Core\TeraVoxel.Client.Core.vcxproj">

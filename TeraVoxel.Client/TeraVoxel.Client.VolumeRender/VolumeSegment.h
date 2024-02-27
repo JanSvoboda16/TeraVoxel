@@ -7,9 +7,8 @@
 #include<shared_mutex>
 
 template <typename T>
-class VolumeSegment
+struct VolumeSegment
 {
-public:
 	std::atomic<float> priority = 0;
 	std::atomic<int> unusedCount = 0;				// How many times was not used (continuously)
 	std::atomic<bool> used = false;					// Was used in actual frame
@@ -20,11 +19,11 @@ public:
 	short x, y, z;	//READONLY						// Indexes of this segment
 	short requiredDownscale = 0;				// Downscale that is requiews for actual view
 	
-	T* data = nullptr;								// DATA
+	T* data;								// DATA
 
-	VolumeSegment(short x, short y, short z) 
+	VolumeSegment(short x, short y, short z, T* data = nullptr) :
+		x(x), y(y), z(z), data(data)
 	{
-		this->x = x; this->y = y; this->z = z;
 	}
 
 	~VolumeSegment() 

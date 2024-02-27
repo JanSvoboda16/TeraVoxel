@@ -23,7 +23,7 @@ private:
 inline CPURayCastingVolumeVisualizerBase::CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera,  const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode)
 	: VolumeVisualizerBase(camera, volumeLoaderFactory, meshNode)
 { 
-	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetProjectInfo().dataType.c_str(), camera, volumeLoaderFactory)
+	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetProjectInfo().dataType.c_str(), camera, volumeLoaderFactory);
 }
 
 template <typename T>

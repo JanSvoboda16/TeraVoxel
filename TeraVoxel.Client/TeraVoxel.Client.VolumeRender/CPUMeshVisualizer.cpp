@@ -207,8 +207,7 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const 
 	}
 	
 	for (auto& mesh: node->meshes)
-	{
-		
+	{		
 		for (size_t j = 0; j < mesh.GetTriangleCount(); j++)
 		{
 			auto triangle = mesh.GetTriangle(j);
@@ -225,31 +224,29 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const 
 			
 			for (auto& triangle: NfFpClippedTriangles)
 			{
+				
+				for (uint8_t i = 0; i < 3; i++)
+				{
+					Vertex& vertex = triangle[i];
+					Vector4f projectedPosition = projection * vertex.position.homogeneous();
+					projectedPosition /= projectedPosition[3];
+					vertex.position = projectedPosition.head(3);
+				}
+
+				auto clippedTriangles = SidesClipping(triangle);
+
+				for (auto& triangleCl : clippedTriangles)
 				{
 					for (uint8_t i = 0; i < 3; i++)
 					{
-						Vertex& vertex = triangle[i];
-						Vector4f projectedPosition = projection * vertex.position.homogeneous();
-						projectedPosition /= projectedPosition[3];
+						Vertex& vertex = triangleCl[i];
+						Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
 						vertex.position = projectedPosition.head(3);
 					}
 
-					auto clippedTriangles = SidesClipping(triangle);
-
-					for (auto& triangleCl : clippedTriangles)
-					{
-						for (uint8_t i = 0; i < 3; i++)
-						{
-							Vertex& vertex = triangleCl[i];
-							Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
-							vertex.position = projectedPosition.head(3);
-						}
-
-						RasterizeTriangle(triangleCl, mesh.OutliningEnabled());
-					}
-				}
-			}
-			
+					RasterizeTriangle(triangleCl, mesh.OutliningEnabled());
+				}				
+			}			
 		}
 	}
 

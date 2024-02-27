@@ -32,6 +32,7 @@ public:
 	void AddToStack(VolumeSegment<T>* segment);
 	void Preload(int downscale, int threadCount);
 	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
+	std::unique_ptr<VolumeSegment<T>> LoadSync(int x, int y, int z, int downscale);
 
 	void BindOnSegmentLoaded(std::function<void(void)> function) { _onSegmentLoaded = function; }
 	ProjectInfo GetProjectInfo() { return _projectInfo; }
@@ -50,7 +51,7 @@ protected:
 
 	void PreloadTask(short threadIndex, short threadCount, int downscale);
 	uint64_t GetBlockRequiredMemory(int downscale);
-	virtual T* LoadSegment(int x, int y, int z, int downscale) = 0;
+	virtual T* LoadSegmentData(int x, int y, int z, int downscale) = 0;
 
 	void LoadingTask();
 

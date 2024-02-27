@@ -13,7 +13,7 @@ NetVolumeLoader<T>::~NetVolumeLoader()
 }
 
 template <typename T>
-T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
+T* NetVolumeLoader<T>::LoadSegmentData(int x, int y, int z, int downscale)
 {
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
