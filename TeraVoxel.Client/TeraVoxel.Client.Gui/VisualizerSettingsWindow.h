@@ -13,7 +13,7 @@
 #include "CPURayCastingView.h"
 
  // Used for changing and controlling visualizers
-class VisualizerSettingsWindow : IView
+class VisualizerSettingsWindow : public IView
 {
 public:
 	VisualizerSettingsWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) : _volumeViewContext(volumeViewContext)

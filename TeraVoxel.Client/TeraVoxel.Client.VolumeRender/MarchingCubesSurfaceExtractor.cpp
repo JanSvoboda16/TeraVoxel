@@ -1,6 +1,20 @@
 #include "MarchingCubesSurfaceExtractor.h"
 #include "Transformations.h"
 
+
+__forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo)
+{
+	bool* data = binMap->data;
+	if (x >= 0 && x < projectInfo.dataSizeX && y >= 0 && y < projectInfo.dataSizeY && z >= 0 && z < projectInfo.dataSizeZ)
+	{
+		return data[x + y * projectInfo.dataSizeX + z * projectInfo.dataSizeX * projectInfo.dataSizeY];
+	}
+	else
+	{
+		return false;
+	}
+}
+
 std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, const ProjectInfo& projectInfo)
 {
 	Mesh mesh;
@@ -10,21 +24,21 @@ std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const st
 	bool* data = binMap->data;
 	char colorer = 0;
 	
-	for (size_t z = 0; z < projectInfo.dataSizeZ-1; z++)
+	for (int z = -1; z < projectInfo.dataSizeZ; z++)
 	{
-		for (size_t y = 0; y < projectInfo.dataSizeY - 1; y++)
+		for (int y = -1; y < projectInfo.dataSizeY; y++)
 		{
-			for (size_t x = 0; x < projectInfo.dataSizeX - 1; x++)
+			for (int x = -1; x < projectInfo.dataSizeX; x++)
 			{
-				int v000 = data[x + y * projectInfo.dataSizeX + z * projectInfo.dataSizeX * projectInfo.dataSizeY];
-				int v001 = data[x+1 + y * projectInfo.dataSizeX + z * projectInfo.dataSizeX * projectInfo.dataSizeY];
-				int v010 = data[x + (y+1) * projectInfo.dataSizeX + z * projectInfo.dataSizeX * projectInfo.dataSizeY];
-				int v011 = data[x+1 + (y+1) * projectInfo.dataSizeX + z * projectInfo.dataSizeX * projectInfo.dataSizeY];
+				int v000 = GetValue(binMap, x, y, z, projectInfo);
+				int v001 = GetValue(binMap, x + 1, y, z, projectInfo);
+				int v010 = GetValue(binMap, x, y + 1, z, projectInfo);
+				int v011 = GetValue(binMap, x + 1, y + 1, z, projectInfo);
 
-				int v100 = data[x + y * projectInfo.dataSizeX + (z+1) * projectInfo.dataSizeX * projectInfo.dataSizeY];
-				int v101 = data[x+1 + y * projectInfo.dataSizeX + (z+1) * projectInfo.dataSizeX * projectInfo.dataSizeY];
-				int v110 = data[x + (y+1) * projectInfo.dataSizeX + (z+1) * projectInfo.dataSizeX * projectInfo.dataSizeY];
-				int v111 = data[x+1 + (y+1) * projectInfo.dataSizeX + (z+1) * projectInfo.dataSizeX * projectInfo.dataSizeY];
+				int v100 = GetValue(binMap, x, y, z + 1, projectInfo);
+				int v101 = GetValue(binMap, x + 1, y, z + 1, projectInfo);
+				int v110 = GetValue(binMap, x, y + 1, z + 1, projectInfo);
+				int v111 = GetValue(binMap, x + 1, y + 1, z + 1, projectInfo);
 
 				int index = v000 | (v001 << 1) | (v010 << 2) | (v011 << 3) | (v100 << 4) | (v101 << 5) | (v110 << 6) | (v111 << 7);
 

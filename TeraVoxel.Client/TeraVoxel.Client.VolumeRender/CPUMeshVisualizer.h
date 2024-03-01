@@ -2,9 +2,11 @@
 #include "MultiLayeredFramebuffer.h"
 #include "MeshNode.h"
 #include "Camera.h"
+#include <map>
 
 using Eigen::Vector2d;
 using Eigen::Vector3d;
+using Eigen::Vector4i;
 
 class CPUMeshVisualizer
 {
@@ -27,6 +29,7 @@ private:
 	std::shared_ptr<MultiLayeredFramebuffer> _framebuffer;
 	std::shared_ptr<MeshNode> _rootObject;
 	std::shared_ptr<Camera> _camera;
+	std::vector<Vector4i> _threadBoundaries;
 	bool ComputeViewFrustumIntersecion(const Vector3f& A, const Vector3f& B, uint8_t plane, int16_t distance, Vector3f& outIntersection);
 	std::vector<std::array<Vertex, 3>> NpFpClipping(const std::array<Vertex, 3>& triangle);
 	std::vector<std::array<Vertex, 3>> SidesClipping(const std::array<Vertex, 3>& triangle);
@@ -37,6 +40,7 @@ private:
 	float InterpolateValue(const float A, const float B, float alpha, float beta);
 	void RasterizeLine(const Vertex& A, const Vertex& B);
 	void RasterizeTriangle(std::array<Vertex, 3>& triangle, bool outlining);
+	bool RegisterPosition(int threadIndex, const Vector2i& a, const Vector2i& b);
 	
 };
 

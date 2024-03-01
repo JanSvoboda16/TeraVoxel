@@ -3,6 +3,7 @@
 #include <vector>
 #include "FramebufferLayer.h"
 #include <algorithm>
+#include <mutex>
 
 
 class MultiLayeredFramebuffer
@@ -10,6 +11,9 @@ class MultiLayeredFramebuffer
 	std::vector<FramebufferLayer> _alphaLayers;
 	FramebufferLayer _mainLayer;
 	uint16_t _width, _height, _tileSize = 16, _usedAlphaLayers = 0;
+	std::mutex alphaLayersMutex;
+
+	std::shared_ptr<std::atomic_bool[]> _spinlocks;
 
 public:
 	MultiLayeredFramebuffer(uint16_t width, uint16_t height);
@@ -26,6 +30,7 @@ public:
 
 	/// <summary>
 	/// Sets a value to the internal buffers.
+	/// Allows parallel writing if writing to different coordinates.
 	/// </summary>
 	/// <param name="x"></param>
 	/// <param name="y"></param>
@@ -38,6 +43,7 @@ public:
 	
 	/// <summary>
 	/// Sets a value to the internal buffers.
+	/// Allows parallel writing if writing to different coordinates.
 	/// </summary>
 	/// <param name="x"></param>
 	/// <param name="y"></param>
@@ -61,10 +67,19 @@ public:
 inline MultiLayeredFramebuffer::MultiLayeredFramebuffer(uint16_t width, uint16_t height) :
 	_width(width), _height(height), _alphaLayers(), _mainLayer(width, height)
 {
+	_alphaLayers.reserve(128);
+	_spinlocks = std::shared_ptr<std::atomic_bool[]>(new std::atomic_bool[width * height]);
+	
+	for (size_t i = 0; i < width*height; i++)
+	{
+		_spinlocks[i] = false;
+	}
 }
 
 __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, float depth)
 {
+	while (_spinlocks[x + y * _width].exchange(true, std::memory_order_acquire));
+
 	if (a >= 253)
 	{
 		_mainLayer.SetValue(x,y,r,g,b,a,depth);
@@ -74,16 +89,24 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 		// Behind not transparent fragment
 		if (_mainLayer.GetValue(x, y).depth < depth)
 		{
+			_spinlocks[x + y * _width].store(false, std::memory_order_release);
 			return;
 		}
 
 		int layerIndex = 0;
 		while (true)
 		{
-			//float enabledDepthError = (2 / ((depth + 1.f))*10) * 0.001;
+			if (layerIndex == 128)
+			{
+				return;
+			}
+
 			if (layerIndex + 1 > _alphaLayers.size())
 			{
-				_alphaLayers.push_back(FramebufferLayer(_width, _height));
+				alphaLayersMutex.lock();
+					if (layerIndex + 1 > _alphaLayers.size()) _alphaLayers.push_back(FramebufferLayer(_width, _height));
+				alphaLayersMutex.unlock();
+
 				_alphaLayers[layerIndex].SetValue(x, y, r, g, depth*b, a, depth);
 				break;
 			}
@@ -103,11 +126,14 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 				}
 			}			
 		}
+
 		if (layerIndex + 1 > _usedAlphaLayers)
 		{
 			_usedAlphaLayers = layerIndex + 1;
 		}
 	}
+
+	_spinlocks[x + y * _width].store(false, std::memory_order_release);
 }
 
 __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, const Fragment& fragment)
@@ -138,7 +164,6 @@ __forceinline void SortFragments(std::vector<Fragment>& fragments)
 __forceinline std::vector<Fragment> MultiLayeredFramebuffer::GetFragmentsOrdered(uint16_t x, uint16_t y)
 {
 	// pokud alfavrstev je 0, tak vrat hodnotu, jinak nacti vsechny hodnoty a serad je
-
 	std::vector<Fragment> fragments;
 	if (_alphaLayers.size() == 0)
 	{
@@ -168,7 +193,6 @@ __forceinline std::vector<Fragment> MultiLayeredFramebuffer::GetFragmentsOrdered
 		SortFragments(fragments);
 	}	
 	
-	
 	return fragments;
 }
 
@@ -183,6 +207,13 @@ inline void MultiLayeredFramebuffer::Resize(uint16_t width, uint16_t height)
 
 	_width = width;
 	_height = height;
+	_spinlocks = std::shared_ptr<std::atomic_bool[]>(new std::atomic_bool[width * height]);
+
+	for (size_t i = 0; i < width * height; i++)
+	{
+		_spinlocks[i] = false;
+	}
+
 	Clear();
 }
 

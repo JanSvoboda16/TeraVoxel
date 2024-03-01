@@ -1,4 +1,6 @@
 #include "CPUMeshVisualizer.h"
+#include <future>
+#include "../TeraVoxel.Client.Core/SettingsContext.h"
 
 __forceinline bool CPUMeshVisualizer::ComputeViewFrustumIntersecion(const Vector3f& A, const Vector3f& B, uint8_t plane, int16_t distance, Vector3f& outIntersection)
 {
@@ -192,63 +194,108 @@ __forceinline std::vector<std::array<Vertex, 3>> CPUMeshVisualizer::SidesClippin
 	return outTriangles;
 }
 
+
 void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const Matrix4f &baseTransform)
 {
-	Matrix4f transform = baseTransform * node->transformation;
-	Matrix4f projection = _camera->GetProjectionMatrix();
-	Matrix4f transformWithCameraPosition = _camera->GetPositionMatrix() * transform;
-	Matrix4f viewportTransformation = _camera->GetViewPortTransformationMatrix();
-	std::vector<std::array<Vertex, 3>> clippedTriangles;
-	std::vector<std::array<Vertex, 3>> NfFpClippedTriangles;
-
 	if (node == nullptr)
 	{
 		return;
 	}
-	
-	for (auto& mesh: node->meshes)
-	{		
-		for (size_t j = 0; j < mesh.GetTriangleCount(); j++)
-		{
-			auto triangle = mesh.GetTriangle(j);
 
-			for (uint8_t i = 0; i < 3; i++)
+	Matrix4f transform = baseTransform * node->transformation;
+	Matrix4f projection = _camera->GetProjectionMatrix();
+	Matrix4f transformWithCameraPosition = _camera->GetPositionMatrix() * transform;
+	Matrix4f viewportTransformation = _camera->GetViewPortTransformationMatrix();
+
+
+	std::atomic<int> meshCounter = 0;
+	std::atomic<int> triangleCounter = 0;
+	std::mutex meshMutex;
+
+	std::vector<std::future<void>> tasks;
+	for (size_t threadIndex = 0; threadIndex < SettingsContext::GetInstance().renderingThreadCount; threadIndex++)
+	{
+		tasks.push_back(std::async(std::launch::async,
+			[&meshMutex, &meshCounter, &triangleCounter, &node, &transformWithCameraPosition, this, projection, viewportTransformation]()
 			{
-				Vertex& vertex = triangle[i];
-				Vector4f projectedPosition = transformWithCameraPosition * vertex.position.homogeneous();
-				vertex.position = projectedPosition.head(3);
-			}
-			
-			auto NfFpClippedTriangles = NpFpClipping(triangle);
+				std::vector<std::array<Vertex, 3>> clippedTriangles;
+				std::vector<std::array<Vertex, 3>> NfFpClippedTriangles;
 
-			
-			for (auto& triangle: NfFpClippedTriangles)
-			{
-				
-				for (uint8_t i = 0; i < 3; i++)
+				while (true)
 				{
-					Vertex& vertex = triangle[i];
-					Vector4f projectedPosition = projection * vertex.position.homogeneous();
-					projectedPosition /= projectedPosition[3];
-					vertex.position = projectedPosition.head(3);
-				}
+					int meshIndex = 0;
+					int triangleIndex = 0;
 
-				auto clippedTriangles = SidesClipping(triangle);
+					meshMutex.lock();
 
-				for (auto& triangleCl : clippedTriangles)
-				{
+						if (meshCounter >= node->meshes.size())
+						{
+							meshMutex.unlock();
+							return;
+						}
+
+						// cycle is important for skipping all empty meshes
+						while (triangleCounter >= node->meshes[meshCounter].GetTriangleCount())
+						{
+							meshCounter++;
+							triangleCounter = 0;
+
+							if (meshCounter >= node->meshes.size())
+							{
+								meshMutex.unlock();
+								return;
+							}
+						}						
+
+						meshIndex = meshCounter;
+						triangleIndex = triangleCounter++;
+
+					meshMutex.unlock();
+
+					Mesh &mesh = node->meshes[meshIndex];
+					auto triangleCount = mesh.GetTriangleCount();
+
+					auto triangle = mesh.GetTriangle(triangleIndex);
+
 					for (uint8_t i = 0; i < 3; i++)
 					{
-						Vertex& vertex = triangleCl[i];
-						Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
+						Vertex& vertex = triangle[i];
+						Vector4f projectedPosition = transformWithCameraPosition * vertex.position.homogeneous();
 						vertex.position = projectedPosition.head(3);
 					}
 
-					RasterizeTriangle(triangleCl, mesh.OutliningEnabled());
-				}				
-			}			
-		}
+					auto NfFpClippedTriangles = NpFpClipping(triangle);
+
+					for (auto& triangle : NfFpClippedTriangles)
+					{
+
+						for (uint8_t i = 0; i < 3; i++)
+						{
+							Vertex& vertex = triangle[i];
+							Vector4f projectedPosition = projection * vertex.position.homogeneous();
+							projectedPosition /= projectedPosition[3];
+							vertex.position = projectedPosition.head(3);
+						}
+
+						auto clippedTriangles = SidesClipping(triangle);
+
+						for (auto& triangleCl : clippedTriangles)
+						{
+							for (uint8_t i = 0; i < 3; i++)
+							{
+								Vertex& vertex = triangleCl[i];
+								Vector4f projectedPosition = viewportTransformation * vertex.position.homogeneous();
+								vertex.position = projectedPosition.head(3);
+							}
+
+							RasterizeTriangle(triangleCl, mesh.OutliningEnabled());
+						}
+					}					
+				}
+			}
+		));
 	}
+	
 
 	for (auto& subnode: node->subNodes)
 	{

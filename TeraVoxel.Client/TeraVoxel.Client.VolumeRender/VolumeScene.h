@@ -30,6 +30,7 @@ public:
 	std::shared_ptr<unsigned char[]> GetFrame();
 	std::shared_ptr<Camera> GetCamera();
 	std::shared_ptr<MeshNode> GetMeshNode();
+	std::shared_ptr<VolumeLoaderFactory> GetVolumeLoaderFactory();
 	bool FrameReady();
 	bool RenderingInProgress();
 	void ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory> visualizerFac);

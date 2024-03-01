@@ -10,13 +10,9 @@ class CPURayCastingVolumeVisualizer : public CPURayCastingVolumeVisualizerBase
 {
 public:
 	CPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings>& settings, const std::shared_ptr<MeshNode>& meshNode) : 
-		CPURayCastingVolumeVisualizerBase(camera, volumeLoaderFactory, meshNode), _meshVisualizer(meshNode, camera), _selector(volumeLoaderFactory)
+		CPURayCastingVolumeVisualizerBase(camera, volumeLoaderFactory, meshNode), _meshVisualizer(meshNode, camera)
 	{
 		_settings = settings;
-		_selector.Select(Vector3i(66*2, 70*2, 74*2), 500, 5000,5000);
-
-		MarchingCubesSurfaceExtractor extractor;
-		meshNode->subNodes.push_back(extractor.ExtractSurface(_selector.GetMask(), volumeLoaderFactory->GetProjectInfo()));
 	}
 
 	bool DataChanged() override;
@@ -39,6 +35,4 @@ private:
 	CPURCVolumeVisualizerSettings _settingsCopy;
 	CPUMeshVisualizer _meshVisualizer;
 	std::shared_ptr<MultiLayeredFramebuffer> _meshFramebuffer;
-
-	SeedVolumeSelector _selector;
 };

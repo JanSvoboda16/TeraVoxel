@@ -101,6 +101,11 @@ std::shared_ptr<MeshNode> VolumeScene::GetMeshNode()
 	return _meshNode;
 }
 
+std::shared_ptr<VolumeLoaderFactory> VolumeScene::GetVolumeLoaderFactory()
+{
+	return _volumeLoaderFactory;
+}
+
 bool VolumeScene::FrameReady()
 {
 	return _frameReady.load(std::memory_order::acquire);

@@ -5,7 +5,7 @@
 
 using Eigen::Vector3i;
 
-void SeedVolumeSelector::Select(const Vector3i &seed, float lowerBound, float upperBound, float maxDifference, bool erase)
+void SeedVolumeSelector::Select(const Vector3f &seed, float lowerBound, float upperBound, float maxDifference, bool erase)
 {
 	CALL_TEMPLATED_FUNCTION(SelectTemplated, this->_volumeLoader->GetProjectInfo().dataType.c_str(), seed, lowerBound, upperBound, maxDifference, erase);
 }
@@ -17,10 +17,12 @@ std::vector<Vector3i> directions = {
 };
 
 template <typename T>
-void SeedVolumeSelector::SelectTemplated(const Vector3i &seed, float lowerBound, float upperBound, float maxDifference, bool erase)
+void SeedVolumeSelector::SelectTemplated(const Vector3f seedf, float lowerBound, float upperBound, float maxDifference, bool erase)
 {
 	std::map<int, std::shared_ptr<VolumeSegment<T>>> cache;
 	std::queue<Vector3i> queue;
+
+	Vector3i seed = (seedf.array() / Vector3f(_projectInfo.voxelDimensions).array()).cast<int>();
 
 	T value = 0;
 	T nextValue = 0;
@@ -73,7 +75,7 @@ __forceinline bool SeedVolumeSelector::GetData(const Vector3i &position, T &valu
 
 		int key = blockIdX + blockIdY * _projectInfo.segmentSize + blockIdZ * _projectInfo.segmentSize * _projectInfo.segmentSize;
 		
-		if (cache.contains(key)) //TODO
+		if (cache.contains(key))// TODO
 		{
 			auto block = cache[key];
 			value = block->data[Serialization::GetZCurveIndex(x, y, z)];

@@ -48,7 +48,7 @@ void VisualizerSettingsWindow::Update()
 
 	const char* visualizerNames[] = { "None", "CPU Ray casting", "Your visualizer" };
 
-	if (ImGui::Combo("combo", &_selectedVisualizerId, visualizerNames, IM_ARRAYSIZE(visualizerNames)))
+	if (ImGui::Combo("Visualizer:", &_selectedVisualizerId, visualizerNames, IM_ARRAYSIZE(visualizerNames)))
 	{
 		SetVisualizer(_selectedVisualizerId);
 		ChangeView(_selectedVisualizerId);

@@ -26,4 +26,5 @@ void FramebufferLayer::Resize(int width, int height)
 	}
 	_width = width;
 	_height = height;
+	Clear();
 }

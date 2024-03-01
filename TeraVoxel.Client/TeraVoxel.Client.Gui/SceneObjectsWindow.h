@@ -1,6 +1,8 @@
 #pragma once
 #include "VolumeViewContext.h"
-class SceneObjectsWindow
+#include "IView.h"
+
+class SceneObjectsWindow : public IView
 {
 public:
 	SceneObjectsWindow(const std::shared_ptr<VolumeViewContext>& volumeViewContext): _volumeViewContext(volumeViewContext)
@@ -10,7 +12,7 @@ public:
 	}
 
 	void UpdateScene();
-	void Update();
+	void Update() override;
 
 private:
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;

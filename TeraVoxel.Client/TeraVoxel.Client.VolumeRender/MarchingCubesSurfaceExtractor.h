@@ -2,13 +2,14 @@
 #include "SurfaceExtractorBase.h"
 
 
-class MarchingCubesSurfaceExtractor : SurfaceExtractorBase
+class MarchingCubesSurfaceExtractor : public SurfaceExtractorBase
 {
-public:
+public:	
 	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, const ProjectInfo& projectInfo) override;
 	
 private:
 	Vertex IndexToVertex(int index, const Vector4b& color, const Vector3f &position);
+	bool GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo);
 };
 
 const std::vector<std::vector<int>> TriangleTable = {
