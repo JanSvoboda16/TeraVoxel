@@ -20,7 +20,9 @@ private:
 	std::shared_ptr<ISelectionView> _selectorView;
 	std::shared_ptr<SurfaceExtractorBase> _extractor;
 	std::shared_ptr<MeshNode> _surface;
-	int _selectedSelectorId = 0;
+
+	std::string _exportFilePath = "untitlet.stl";
+	int _selectedSelectorId = 0;;
 	int _selectedExtractorId = 0;
 	bool _sceneUpdateNeeded = false;
 };

@@ -4,6 +4,7 @@
 #include "SeedSelectionView.h"
 #include "../TeraVoxel.Client.VolumeRender/MarchingCubesSurfaceExtractor.h"
 #include "../TeraVoxel.Client.VolumeRender/MeshTreeExplorer.h"
+#include "../TeraVoxel.Client.VolumeRender/StlExporter.h"
 
 SurfaceExtractionView::SurfaceExtractionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext) : _volumeViewContext(volumeViewContext)
 {
@@ -62,7 +63,7 @@ void SurfaceExtractionView::Update()
 
 	if (_volumeViewContext->scene != nullptr)
 	{
-		if (ImGui::Combo("Selector:", &_selectedSelectorId, selectors, IM_ARRAYSIZE(selectors)))
+		if (ImGui::Combo("Selector", &_selectedSelectorId, selectors, IM_ARRAYSIZE(selectors)))
 		{
 			ChangeSelector();
 		}
@@ -74,7 +75,7 @@ void SurfaceExtractionView::Update()
 
 		const char* extractors[] = { "Marching Cubes" };
 
-		if (ImGui::Combo("Extractor:", &_selectedExtractorId, extractors, IM_ARRAYSIZE(extractors)))
+		if (ImGui::Combo("Extractor", &_selectedExtractorId, extractors, IM_ARRAYSIZE(extractors)))
 		{
 			ChangeExtractor();
 		}
@@ -86,6 +87,13 @@ void SurfaceExtractionView::Update()
 			_sceneUpdateNeeded = true;
 		}
 		
+		ImGui::InputText("Export path", &_exportFilePath);
+		if (ImGui::Button("Export"))
+		{
+			StlExporter exporter;
+			exporter.Export(_surface, _exportFilePath);
+		}
+
 		if (ImGui::Button("Reset"))
 		{
 			_surface = nullptr;

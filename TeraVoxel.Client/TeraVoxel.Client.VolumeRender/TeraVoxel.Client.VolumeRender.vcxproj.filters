@@ -155,7 +155,12 @@
     <ClInclude Include="MarchingCubesSurfaceExtractor.h">
       <Filter>Tools\SurfaceExtractor</Filter>
     </ClInclude>
-    <ClInclude Include="MeshObjExporter.h" />
+    <ClInclude Include="StlExporter.h">
+      <Filter>Mesh\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="IMeshExporter.h">
+      <Filter>Mesh\Data</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
@@ -210,6 +215,8 @@
     <ClCompile Include="MarchingCubesSurfaceExtractor.cpp">
       <Filter>Tools\SurfaceExtractor</Filter>
     </ClCompile>
-    <ClCompile Include="MeshObjExporter.cpp" />
+    <ClCompile Include="StlExporter.cpp">
+      <Filter>Mesh\Data</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

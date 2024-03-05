@@ -166,9 +166,9 @@
     <ClInclude Include="ColorMappingTable.h" />
     <ClInclude Include="MarchingCubesSurfaceExtractor.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="IMeshExporter.h" />
     <ClInclude Include="MeshGenerator.h" />
     <ClInclude Include="MeshNode.h" />
-    <ClInclude Include="MeshObjExporter.h" />
     <ClInclude Include="MeshTreeExplorer.h" />
     <ClInclude Include="MultiLayeredFramebuffer.h" />
     <ClInclude Include="NetVolumeLoader.h" />
@@ -176,6 +176,7 @@
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h" />
     <ClInclude Include="SeedVolumeSelector.h" />
     <ClInclude Include="Serialization.h" />
+    <ClInclude Include="StlExporter.h" />
     <ClInclude Include="SurfaceExtractorBase.h" />
     <ClInclude Include="TrackableCamera.h" />
     <ClInclude Include="Transformations.h" />
@@ -201,7 +202,6 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MeshGenerator.cpp" />
     <ClCompile Include="MeshNode.cpp" />
-    <ClCompile Include="MeshObjExporter.cpp" />
     <ClCompile Include="MeshTreeExplorer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp" />
     <ClCompile Include="pch.cpp">
@@ -211,6 +211,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SeedVolumeSelector.cpp" />
+    <ClCompile Include="StlExporter.cpp" />
     <ClCompile Include="SurfaceExtractorBase.cpp" />
     <ClCompile Include="Transformations.cpp" />
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp" />

@@ -32,17 +32,19 @@ std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const st
 			{
 				int v000 = GetValue(binMap, x, y, z, projectInfo);
 				int v001 = GetValue(binMap, x + 1, y, z, projectInfo);
-				int v010 = GetValue(binMap, x, y + 1, z, projectInfo);
-				int v011 = GetValue(binMap, x + 1, y + 1, z, projectInfo);
+				int v010 = GetValue(binMap, x + 1, y + 1, z, projectInfo);
+				int v011 = GetValue(binMap, x , y + 1, z, projectInfo);
 
 				int v100 = GetValue(binMap, x, y, z + 1, projectInfo);
 				int v101 = GetValue(binMap, x + 1, y, z + 1, projectInfo);
-				int v110 = GetValue(binMap, x, y + 1, z + 1, projectInfo);
-				int v111 = GetValue(binMap, x + 1, y + 1, z + 1, projectInfo);
+				int v110 = GetValue(binMap, x +1 , y + 1, z + 1, projectInfo);
+				int v111 = GetValue(binMap, x, y + 1, z + 1, projectInfo);
 
 				int index = v000 | (v001 << 1) | (v010 << 2) | (v011 << 3) | (v100 << 4) | (v101 << 5) | (v110 << 6) | (v111 << 7);
 
 				std::vector<int> triangleVertIndexes = TriangleTable[index];
+
+				uint8_t light = 125 + ((0b00000001 & index) + ((0b00001000 & index) >> 3) + ((0b00010000 & index)>>4) + ((0b10000000 & index)>>7)) * 31;
 				
 				Vector3f position(x,y,z);
 				for (size_t i = 0; i < triangleVertIndexes.size() / 3; i++)

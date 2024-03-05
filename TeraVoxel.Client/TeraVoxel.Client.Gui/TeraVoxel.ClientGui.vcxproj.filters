@@ -92,14 +92,14 @@
     <ClInclude Include="ToolWindow.h">
       <Filter>Areas\Tools</Filter>
     </ClInclude>
-    <ClInclude Include="SurfaceExtractionView.h">
-      <Filter>Areas\Tools\SurfaceExtraction</Filter>
-    </ClInclude>
     <ClInclude Include="ISelectionView.h">
       <Filter>Areas\Tools\SurfaceExtraction</Filter>
     </ClInclude>
     <ClInclude Include="SeedSelectionView.h">
       <Filter>Areas\Tools\SurfaceExtraction\SeedSelection</Filter>
+    </ClInclude>
+    <ClInclude Include="SurfaceExtractionView.h">
+      <Filter>Areas\Tools\SurfaceExtraction</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
