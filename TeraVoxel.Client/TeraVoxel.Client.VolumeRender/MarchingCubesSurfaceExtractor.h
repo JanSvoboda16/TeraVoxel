@@ -12,6 +12,7 @@ private:
 	bool GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo);
 };
 
+// table from: https://github.com/Freedom-Coding/Marching-cubes/blob/main/MarchingTable.cs
 const std::vector<std::vector<int>> TriangleTable = {
 	{},
 	{0, 8, 3},

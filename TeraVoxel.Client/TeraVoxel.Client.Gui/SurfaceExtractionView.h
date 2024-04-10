@@ -21,7 +21,7 @@ private:
 	std::shared_ptr<SurfaceExtractorBase> _extractor;
 	std::shared_ptr<MeshNode> _surface;
 
-	std::string _exportFilePath = "untitlet.stl";
+	std::string _exportFilePath = "untitled.stl";
 	int _selectedSelectorId = 0;;
 	int _selectedExtractorId = 0;
 	bool _sceneUpdateNeeded = false;

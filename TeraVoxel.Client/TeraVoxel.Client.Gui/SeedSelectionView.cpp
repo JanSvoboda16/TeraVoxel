@@ -110,5 +110,7 @@ void SeedSelectionView::UpdateMeshes()
 
 		_volumeViewContext->sceneUpdated.Notify();
 		rootMesh->subNodes.push_back(mesh);
+
+		_meshUpdateNeeded = false;
 	}	
 }

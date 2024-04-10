@@ -47,7 +47,6 @@ void SurfaceExtractionView::EditMeshes()
 
 			_volumeViewContext->sceneUpdated.Notify();
 
-
 			_sceneUpdateNeeded = false;
 		}
 	}
