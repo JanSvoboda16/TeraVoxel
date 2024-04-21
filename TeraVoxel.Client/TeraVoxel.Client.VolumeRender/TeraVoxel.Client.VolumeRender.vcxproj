@@ -181,7 +181,9 @@
     <ClInclude Include="TrackableCamera.h" />
     <ClInclude Include="Transformations.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="VolumeCacheGenericBase.h" />
     <ClInclude Include="VolumeLoaderBase.h" />
+    <ClInclude Include="VolumeCache.h" />
     <ClInclude Include="VolumeLoaderFactory.h" />
     <ClInclude Include="VolumeLoaderGenericBase.h" />
     <ClInclude Include="VolumeSegment.h" />

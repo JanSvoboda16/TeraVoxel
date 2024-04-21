@@ -6,7 +6,7 @@
 class SeedSelectionView : public ISelectionView
 {
 public:
-	SeedSelectionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext);
+	SeedSelectionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext, const std::shared_ptr<VolumeCacheGenericBase>& cache);
 	~SeedSelectionView();
 	std::shared_ptr<VolumeSegment<bool>> GetSelection() override;
 

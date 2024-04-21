@@ -4,7 +4,6 @@
 #include "../TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 
 
-
 class NetVolumeLoaderFactory : public VolumeLoaderFactory
 {
 public:

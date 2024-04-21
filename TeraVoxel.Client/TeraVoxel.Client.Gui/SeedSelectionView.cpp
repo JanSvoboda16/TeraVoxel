@@ -3,9 +3,10 @@
 #include "imgui_stdlib.h"
 #include "../TeraVoxel.Client.VolumeRender/MeshTreeExplorer.h"
 #include "../TeraVoxel.Client.VolumeRender/MeshGenerator.h"
+#include "../TeraVoxel.Client.VolumeRender/VolumeCache.h"
 
-SeedSelectionView::SeedSelectionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext) :
-	ISelectionView(std::make_shared<SeedVolumeSelector>(volumeViewContext->scene->GetVolumeLoaderFactory())),
+SeedSelectionView::SeedSelectionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext, const std::shared_ptr<VolumeCacheGenericBase> &cache) :
+	ISelectionView(std::make_shared<SeedVolumeSelector>(cache)),
 	_volumeViewContext(volumeViewContext)
 {
 	_volumeViewContext->sceneEditable.Register(this, "Repaint", [this]() { UpdateMeshes(); });

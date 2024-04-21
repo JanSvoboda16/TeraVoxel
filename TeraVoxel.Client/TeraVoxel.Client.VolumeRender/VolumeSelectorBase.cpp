@@ -1,10 +1,9 @@
 #include "VolumeSelectorBase.h"
 
-VolumeSelectorBase::VolumeSelectorBase(const std::shared_ptr<VolumeLoaderFactory> &volumeLoaderFactory) 
+VolumeSelectorBase::VolumeSelectorBase(const std::shared_ptr<VolumeCacheGenericBase>& volumeCache) :
+	_volumeCache(volumeCache),
+	_projectInfo(volumeCache->GetProjectInfo())
 {
-	_volumeLoader = volumeLoaderFactory->Create(16);
-
-	_projectInfo = _volumeLoader->GetProjectInfo();
 	auto countOfItems = _projectInfo.dataSizeX * _projectInfo.dataSizeY * _projectInfo.dataSizeZ;
 	_mask = std::make_shared<VolumeSegment<bool>>(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ, new bool[countOfItems]);
 

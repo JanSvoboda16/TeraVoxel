@@ -20,10 +20,14 @@ private:
 	std::shared_ptr<ISelectionView> _selectorView;
 	std::shared_ptr<SurfaceExtractorBase> _extractor;
 	std::shared_ptr<MeshNode> _surface;
+	std::shared_ptr<VolumeCacheGenericBase> _cache;
 
 	std::string _exportFilePath = "untitled.stl";
 	int _selectedSelectorId = 0;;
 	int _selectedExtractorId = 0;
 	bool _sceneUpdateNeeded = false;
+
+	bool _interpolate = false;
+	Vector2f _interpolationBoundaries;
 };
 

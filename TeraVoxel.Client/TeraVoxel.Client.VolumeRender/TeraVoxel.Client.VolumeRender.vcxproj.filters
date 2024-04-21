@@ -161,6 +161,12 @@
     <ClInclude Include="IMeshExporter.h">
       <Filter>Mesh\Data</Filter>
     </ClInclude>
+    <ClInclude Include="VolumeCache.h">
+      <Filter>Volume\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeCacheGenericBase.h">
+      <Filter>Volume\Data</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">

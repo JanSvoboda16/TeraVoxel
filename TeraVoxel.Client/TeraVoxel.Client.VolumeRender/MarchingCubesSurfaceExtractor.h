@@ -1,15 +1,24 @@
 #pragma once
 #include "SurfaceExtractorBase.h"
-
+#include "VolumeCache.h"
 
 class MarchingCubesSurfaceExtractor : public SurfaceExtractorBase
 {
 public:	
-	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, const ProjectInfo& projectInfo) override;
+	MarchingCubesSurfaceExtractor(const std::shared_ptr<VolumeCacheGenericBase> &volumeCache) : _volumeCache(volumeCache), _projectInfo(volumeCache->GetProjectInfo()){ }
+	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, const ProjectInfo& projectInfo, bool interpolate, const Eigen::Vector2f &interpolationBoundary) override;
 	
 private:
-	Vertex IndexToVertex(int index, const Vector4b& color, const Vector3f &position);
+	Vertex IndexToVertex(int index, const Vector4b& color, const Vector3f &position, bool interpolate, const Eigen::Vector2f& interpolationBoundary);
 	bool GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo);
+
+	template <typename T>
+	Vector3f InterpolateVectorTemplated(Vector3f vector, Vector3f position, const Eigen::Vector2f& interpolationBoundary);
+	template <typename T>
+	Vertex IndexToVertexTemplated(int index, const Vector4b& color, const Vector3f& position, bool interpolate, const Eigen::Vector2f& interpolationBoundary);
+
+	std::shared_ptr<VolumeCacheGenericBase> _volumeCache;
+	ProjectInfo _projectInfo;
 };
 
 // table from: https://github.com/Freedom-Coding/Marching-cubes/blob/main/MarchingTable.cs

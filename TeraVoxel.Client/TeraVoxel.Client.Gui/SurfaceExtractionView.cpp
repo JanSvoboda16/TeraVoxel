@@ -10,6 +10,7 @@ SurfaceExtractionView::SurfaceExtractionView(const std::shared_ptr<VolumeViewCon
 {
 	if (_volumeViewContext->scene != nullptr)
 	{
+		_cache = VolumeCacheFactory::VolumeCacheCreate(_volumeViewContext->scene->GetVolumeLoaderFactory());
 		ChangeSelector();
 		ChangeExtractor();
 	}
@@ -18,6 +19,7 @@ SurfaceExtractionView::SurfaceExtractionView(const std::shared_ptr<VolumeViewCon
 	{
 		if (_volumeViewContext->scene != nullptr)
 		{
+			_cache = VolumeCacheFactory::VolumeCacheCreate(_volumeViewContext->scene->GetVolumeLoaderFactory());
 			ChangeSelector();
 			ChangeExtractor();
 		}
@@ -79,11 +81,17 @@ void SurfaceExtractionView::Update()
 			ChangeExtractor();
 		}
 
+		ImGui::Checkbox("Interpolate", &_interpolate);
+		
+		if(_interpolate)
+			ImGui::InputFloat2("Interpolation boundaries", _interpolationBoundaries.data());
+
 		if (ImGui::Button("Extract"))
 		{
-			_surface = _extractor->ExtractSurface(_selectorView->GetSelection(), _volumeViewContext->scene->GetProjectInfo());
+			_surface = _extractor->ExtractSurface(_selectorView->GetSelection(), _volumeViewContext->scene->GetProjectInfo(), _interpolate, _interpolationBoundaries);
 			_surface->name = "Surface";
 			_sceneUpdateNeeded = true;
+			_cache->Flush();
 		}
 		
 		ImGui::InputText("Export path", &_exportFilePath);
@@ -106,7 +114,7 @@ void SurfaceExtractionView::ChangeSelector()
 	switch (_selectedSelectorId)
 	{
 	case 0:
-		_selectorView = std::make_shared<SeedSelectionView>(_volumeViewContext); break;
+		_selectorView = std::make_shared<SeedSelectionView>(_volumeViewContext, _cache); break;
 	default:
 		break;
 	}
@@ -117,7 +125,7 @@ void SurfaceExtractionView::ChangeExtractor()
 	switch (_selectedExtractorId)
 	{
 	case 0:
-		_extractor = std::make_shared<MarchingCubesSurfaceExtractor>(); break;
+		_extractor = std::make_shared<MarchingCubesSurfaceExtractor>(_cache); break;
 	default:
 		break;
 	}
