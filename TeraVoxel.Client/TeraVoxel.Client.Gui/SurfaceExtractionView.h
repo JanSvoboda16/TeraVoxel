@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #pragma once
 #include <memory>
 #include "ISelectionView.h"
@@ -28,6 +33,6 @@ private:
 	bool _sceneUpdateNeeded = false;
 
 	bool _interpolate = false;
-	Vector2f _interpolationBoundaries;
+	Vector2f _interpolationBoundaries = Vector2f(0,0);
 };
 

@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #include "SurfaceExtractionView.h"
 #include "imgui.h"
 #include "imgui_stdlib.h"
@@ -71,7 +76,9 @@ void SurfaceExtractionView::Update()
 
 		if (_selectorView != nullptr)
 		{
+			ImGui::Indent();
 			_selectorView->Update();
+			ImGui::Unindent();
 		}
 
 		const char* extractors[] = { "Marching Cubes" };
@@ -81,6 +88,7 @@ void SurfaceExtractionView::Update()
 			ChangeExtractor();
 		}
 
+		ImGui::Indent();
 		ImGui::Checkbox("Interpolate", &_interpolate);
 		
 		if(_interpolate)
@@ -106,6 +114,7 @@ void SurfaceExtractionView::Update()
 			_surface = nullptr;
 			_sceneUpdateNeeded = true;
 		}
+		ImGui::Unindent();
 	}	
 }
 

@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #include "SeedVolumeSelector.h"
 #include "../TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 #include "Serialization.h"

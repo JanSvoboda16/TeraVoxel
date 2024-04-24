@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #include "ToolWindow.h"
 #include "imgui.h"
 #include "imgui_stdlib.h"
@@ -9,7 +14,7 @@ void ToolWindow::Update()
 
 	const char* tools[] = { "None", "Surface Extraction"};	
 
-	if (ImGui::Combo("Tool:", &_selectedToolId, tools, IM_ARRAYSIZE(tools)))
+	if (ImGui::Combo("Tool", &_selectedToolId, tools, IM_ARRAYSIZE(tools)))
 	{
 		ChangeView();
 	}

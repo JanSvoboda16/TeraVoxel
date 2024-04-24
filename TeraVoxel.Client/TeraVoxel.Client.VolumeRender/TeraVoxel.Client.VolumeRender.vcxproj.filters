@@ -215,9 +215,6 @@
     <ClCompile Include="SeedVolumeSelector.cpp">
       <Filter>Tools\VolumeSelector</Filter>
     </ClCompile>
-    <ClCompile Include="SurfaceExtractorBase.cpp">
-      <Filter>Tools\SurfaceExtractor</Filter>
-    </ClCompile>
     <ClCompile Include="MarchingCubesSurfaceExtractor.cpp">
       <Filter>Tools\SurfaceExtractor</Filter>
     </ClCompile>

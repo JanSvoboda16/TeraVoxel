@@ -214,7 +214,6 @@
     </ClCompile>
     <ClCompile Include="SeedVolumeSelector.cpp" />
     <ClCompile Include="StlExporter.cpp" />
-    <ClCompile Include="SurfaceExtractorBase.cpp" />
     <ClCompile Include="Transformations.cpp" />
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp" />
     <ClCompile Include="VolumeLoaderBase.cpp" />

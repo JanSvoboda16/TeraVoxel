@@ -1,6 +1,10 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #include "MarchingCubesSurfaceExtractor.h"
 #include "Transformations.h"
-
 
 __forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo)
 {
@@ -51,16 +55,31 @@ std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const st
 				{
 					for (size_t j = 0; j < 3; j++)
 					{
-						mesh.Data().push_back(IndexToVertex(triangleVertIndexes[i * 3 + j], Vector4b(125 + index/2, 125 + index / 2, 125 + index / 2, 255), position, interpolate, interpolationBoundary));
+						mesh.Data().push_back(IndexToVertex(triangleVertIndexes[i * 3 + j], Vector4b(255, 255, 255, 255), position, interpolate, interpolationBoundary));
 					}
 				}
 			}
 		}
 	}
 
+	for (size_t i = 0; i < mesh.GetTriangleCount(); i++)
+	{
+		auto triangle = mesh.GetTriangle(i);
+		Vector3f norm = (triangle[0].position - triangle[1].position).cross(triangle[0].position - triangle[2].position);
+		float intensity = fabs((Vector3f(1, 0, 0).dot(norm.normalized())));
+		auto colour = Vector4b(intensity * 128 + 125, intensity * 128 + 125, intensity * 128 + 125, 255);
+		triangle[0].colour = colour;
+		triangle[1].colour = colour;
+		triangle[2].colour = colour;
+
+		mesh.SetTriangle(i, triangle);
+	}
+
 	auto node = std::make_shared<MeshNode>();
 	node->transformation = Transformations::GetShrinkMatrix(projectInfo.voxelDimensions[0], projectInfo.voxelDimensions[1], projectInfo.voxelDimensions[2]);
-	node->meshes.push_back(mesh);
+	node->meshes.push_back(std::move(mesh));
+
+	
 	return node;
 }
 
@@ -82,15 +101,18 @@ Vector3f MarchingCubesSurfaceExtractor::InterpolateVectorTemplated(Vector3f vect
 	auto cache = std::dynamic_pointer_cast<VolumeCache<T>>(_volumeCache);
 	Vector3f point1, point2;
 
-	if (vector.x() == 0.5) {
+	if (vector.x() == 0.5) 
+	{
 		point1 = position + Vector3f(0, vector.y(), vector.z());
 		point2 = point1 + Vector3f(1, 0, 0);
 	}
-	else if (vector.y() == 0.5) {
+	else if (vector.y() == 0.5) 
+	{
 		point1 = position + Vector3f(vector.x(), 0, vector.z());
 		point2 = point1 + Vector3f(0, 1, 0);
 	}
-	else {
+	else 
+	{
 		point1 = position + Vector3f(vector.x(), vector.y(), 0);
 		point2 = point1 + Vector3f(0, 0, 1);
 	}
@@ -130,13 +152,16 @@ Vector3f MarchingCubesSurfaceExtractor::InterpolateVectorTemplated(Vector3f vect
 			}
 		}
 
-		if (vector.x() == 0.5) {
+		if (vector.x() == 0.5) 
+		{
 			vector.x() = distance;
 		}
-		else if (vector.y() == 0.5) {
+		else if (vector.y() == 0.5) 
+		{
 			vector.y() = distance;
 		}
-		else {
+		else 
+		{
 			vector.z() = distance;
 		}
 	}

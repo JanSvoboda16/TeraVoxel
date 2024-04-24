@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #pragma once
 #include <memory>
 #include <map>
@@ -31,17 +36,26 @@ public:
 
 		int key = blockIdX + blockIdY * _projectInfo.segmentSize + blockIdZ * _projectInfo.segmentSize * _projectInfo.segmentSize;
 
-		if (_cache.contains(key))
+		std::shared_ptr<VolumeSegment<T>> block = nullptr;
+		if (_lastSegmentId == key) 
 		{
-			auto block = _cache[key];
-			value = block->data[Serialization::GetZCurveIndex(xb, yb, zb)];
+			block = _lastSegment;
+		}
+		else if (_cache.contains(key))
+		{
+			block = _cache[key];
+			_lastSegment = block;			
+			_lastSegmentId = key;
 		}
 		else
 		{
-			auto block = std::shared_ptr<VolumeSegment<T>>(_volumeLoader->LoadSync(blockIdX, blockIdY, blockIdZ, 0));
+			block = std::shared_ptr<VolumeSegment<T>>(_volumeLoader->LoadSync(blockIdX, blockIdY, blockIdZ, 0));
 			_cache.emplace(key, block);
-			value = block->data[Serialization::GetZCurveIndex(xb, yb, zb)];
+			_lastSegment = block;
+			_lastSegmentId = key;
 		}	
+
+		value = block->data[Serialization::GetZCurveIndex(xb, yb, zb)];
 
 		return value;
 	}	
@@ -56,6 +70,10 @@ public:
 private:
 	std::shared_ptr<VolumeLoaderBase<T>> _volumeLoader;
 	std::map<int, std::shared_ptr<VolumeSegment<T>>> _cache;
+
+	int _lastSegmentId = -1;
+	std::shared_ptr<VolumeSegment<T>> _lastSegment = nullptr;
+
 };
 
 

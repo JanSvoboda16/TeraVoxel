@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #include "VolumeSelectorBase.h"
 
 VolumeSelectorBase::VolumeSelectorBase(const std::shared_ptr<VolumeCacheGenericBase>& volumeCache) :
