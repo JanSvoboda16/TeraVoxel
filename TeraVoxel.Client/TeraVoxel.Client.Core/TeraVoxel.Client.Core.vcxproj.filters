@@ -26,6 +26,7 @@
     <ClInclude Include="MemoryContext.h">
       <Filter>Settings</Filter>
     </ClInclude>
+    <ClInclude Include="TemplatedFunctionCaller.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />

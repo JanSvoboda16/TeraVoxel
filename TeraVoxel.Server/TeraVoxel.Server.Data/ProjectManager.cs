@@ -137,6 +137,8 @@ namespace TeraVoxel.Server.Data
                     SegmentSize = _options.SegmentSize,
                     Name = projectName,
                     IsLittleEndian = BitConverter.IsLittleEndian,
+                    ZTransformed = _options.ZTransformation,
+                    Compressed = _options.CompressionLevel != CompressionLevel.NoCompression,
                     State = ProjectState.ProjectConverted
                 };
 

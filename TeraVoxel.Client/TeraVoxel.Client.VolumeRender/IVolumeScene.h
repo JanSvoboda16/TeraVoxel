@@ -10,6 +10,7 @@
 #include <future>
 #include <memory>
 #include "ColorMappingTable.h"
+#include "MeshNode.h"
 
 class IVolumeScene
 {
@@ -28,8 +29,17 @@ public:
 	/// </summary>
 	/// <returns>Pointer to the framebuffer</returns>
 	virtual std::shared_ptr<unsigned char[]> GetFrame() = 0;
-		
+	
+	/// <summary>
+	/// Gets frame width
+	/// </summary>
+	/// <returns></returns>
 	virtual int GetFrameWidth() = 0;
+
+	/// <summary>
+	/// Gets frame height
+	/// </summary>
+	/// <returns></returns>
 	virtual int GetFrameHeight() = 0;
 
 	/// <summary>
@@ -39,21 +49,39 @@ public:
 	virtual bool DataChanged() = 0;
 
 	/// <summary>
-	/// Get name of the data type used in scene template
+	/// Gets name of the data type used in scene template
 	/// </summary>
 	/// <returns>Name of the data type</returns>
-	virtual const char* GetDataTypeName() = 0;
+	virtual std::string GetDataTypeName() = 0;
+
+	/// <summary>
+	/// Gets pointer to the internal camera
+	/// </summary>
+	/// <returns></returns>
 	virtual shared_ptr<Camera> GetCamera() = 0;
+
+	/// <summary>
+	/// Gets pointer to the root of all displayed meshes.
+	/// </summary>
+	/// <returns></returns>
+	virtual std::shared_ptr<MeshNode> GetMeshNode() = 0;
 
 	/// <summary>
 	/// Infors if rendering successfully ended
 	/// </summary>
 	/// <returns>True if frame is ready</returns>
 	virtual bool FrameReady() = 0;
+
 	/// <summary>
 	/// Informs if rendering is in progress
 	/// </summary>
 	/// <returns>True if rendering is in progress</returns>
 	virtual bool RenderingInProgress() = 0;	
+
+	/// <summary>
+	/// Gets project info
+	/// </summary>
+	/// <returns></returns>
+	virtual ProjectInfo GetProjectInfo() = 0;
 };
 

@@ -134,7 +134,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <Optimization>Full</Optimization>
     </ClCompile>
     <Link>
@@ -155,6 +155,7 @@
     <ClInclude Include="ProjectManager.h" />
     <ClInclude Include="ServerException.h" />
     <ClInclude Include="SettingsContext.h" />
+    <ClInclude Include="TemplatedFunctionCaller.h" />
     <ClInclude Include="TypeToString.h" />
     <ClInclude Include="WindowNotification.h" />
   </ItemGroup>

@@ -1,4 +1,8 @@
 #include "CPURayCastingView.h"
+#include "imgui_stdlib.h"
+#include <iostream>
+#include <filesystem>
+#include <fstream>
 
 void CPURayCastingView::SaveToFile(std::string fileName)
 {

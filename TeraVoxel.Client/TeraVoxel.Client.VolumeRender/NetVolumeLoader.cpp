@@ -13,7 +13,7 @@ NetVolumeLoader<T>::~NetVolumeLoader()
 }
 
 template <typename T>
-T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
+T* NetVolumeLoader<T>::LoadSegmentData(int x, int y, int z, int downscale)
 {
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
@@ -24,13 +24,12 @@ T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 	// Segment loading from the server
 	try
 	{
-		byteData = _projectManager.GetSegment(this->_projectInfo.name, x, y, z, downscale, segmentSize * sizeof(T));
+		byteData = _projectManager.GetSegment(this->_projectInfo.name, x, y, z, downscale, segmentSize * sizeof(T), this->_projectInfo.compressed);
 	}
 	catch (const std::exception& ex)
 	{
 		throw ex;
 	}
-
 
 	T* data = new T[segmentSize];
 
@@ -44,30 +43,62 @@ T* NetVolumeLoader<T>::LoadSegment(int x, int y, int z, int downscale)
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Reserialization:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
 	// Reserialization
-	for (int i = 0; i < segmentSize; i++)
-	{
-		uint_fast16_t zpos = i / (downscaledSegmentSize * downscaledSegmentSize);
-		uint_fast32_t mod = i % (downscaledSegmentSize * downscaledSegmentSize);
-		uint_fast16_t ypos = mod / downscaledSegmentSize;
-		uint_fast16_t xpos = mod % downscaledSegmentSize;
-
-		auto index = Serialization::GetZCurveIndex(xpos, ypos, zpos);
-		data[index] = 0;
-
-		unsigned char* value = reinterpret_cast<unsigned char*>(&data[index]);
-
-		for (int j = 0; j < sizeof(T); j++)
+	if (this->_projectInfo.zTransformed)
+	{		
+		if (sameEndianites)
 		{
-			if (sameEndianites)
+			for (int i = 0; i < segmentSize; i++)
 			{
-				value[j] = (unsigned char)byteData[i * sizeof(T) + j];
+				unsigned char* value = reinterpret_cast<unsigned char*>(&data[i]);
+				for (int j = 0; j < sizeof(T); j++)
+				{
+					value[j] = (unsigned char)byteData[i * sizeof(T) + j];
+				}
 			}
-			else
+		}
+		else
+		{
+			for (int i = 0; i < segmentSize; i++)
 			{
-				value[sizeof(T) - j - 1] = (unsigned char)byteData[i * sizeof(T) + j];
+				unsigned char* value = reinterpret_cast<unsigned char*>(&data[i]);
+				for (int j = 0; j < sizeof(T); j++)
+				{
+					value[sizeof(T) - j - 1] = (unsigned char)byteData[i * sizeof(T) + j];
+				}
 			}
 		}
 	}
+	else
+	{
+		for (int i = 0; i < segmentSize; i++)
+		{
+			uint_fast16_t zpos = i / (downscaledSegmentSize * downscaledSegmentSize);
+			uint_fast32_t mod = i % (downscaledSegmentSize * downscaledSegmentSize);
+			uint_fast16_t ypos = mod / downscaledSegmentSize;
+			uint_fast16_t xpos = mod % downscaledSegmentSize;
+
+			auto index = Serialization::GetZCurveIndex(xpos, ypos, zpos);
+			data[index] = 0;
+
+			unsigned char* value = reinterpret_cast<unsigned char*>(&data[index]);
+
+			if (sameEndianites)
+			{
+				for (int j = 0; j < sizeof(T); j++)
+				{
+					value[j] = (unsigned char)byteData[i * sizeof(T) + j];
+				}
+			}
+			else
+			{
+				for (int j = 0; j < sizeof(T); j++)
+				{
+					value[sizeof(T) - j - 1] = (unsigned char)byteData[i * sizeof(T) + j];
+				}
+			}			
+		}
+	}
+	
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Reserialization:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));

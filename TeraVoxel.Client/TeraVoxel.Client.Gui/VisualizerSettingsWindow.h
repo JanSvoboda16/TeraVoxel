@@ -11,12 +11,9 @@
 #include <fstream>
 #include "../TeraVoxel.Client.Core/nlohman/json.hpp"
 #include "CPURayCastingView.h"
-#include "../TeraVoxel.Client.VolumeRender/VolumeVisualizerSetter.h"
-#include "../TeraVoxel.Client.VolumeRender/CPURCVolumeVisualizerSetter.h"
-#include "../TeraVoxel.Client.VolumeRender/EmptyVolumeVisualizerSetter.h"
 
  // Used for changing and controlling visualizers
-class VisualizerSettingsWindow : IView
+class VisualizerSettingsWindow : public IView
 {
 public:
 	VisualizerSettingsWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) : _volumeViewContext(volumeViewContext)

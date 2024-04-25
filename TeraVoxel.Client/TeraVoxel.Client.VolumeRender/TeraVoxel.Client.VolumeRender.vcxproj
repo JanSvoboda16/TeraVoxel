@@ -133,11 +133,14 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)/eigen-3.4.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Precise</FloatingPointModel>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
+      <AdditionalOptions>/openmp:llvm %(AdditionalOptions)</AdditionalOptions>
+      <EnableParallelCodeGeneration>
+      </EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -149,36 +152,59 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CPUMeshVisualizer.h" />
+    <ClInclude Include="CPURayCastingVolumeObjectMemoryBase.h" />
+    <ClInclude Include="EigenBenchmark.h" />
     <ClInclude Include="EmptyVolumeVisualizer.h" />
     <ClInclude Include="EmptyVolumeVisualizerFactory.h" />
-    <ClInclude Include="EmptyVolumeVisualizerSetter.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizer.h" />
     <ClInclude Include="CPURCVolumeVisualizerFactory.h" />
-    <ClInclude Include="CPURCVolumeVisualizerSetter.h" />
     <ClInclude Include="CPURCVolumeVisualizerSettings.h" />
+    <ClInclude Include="FramebufferLayer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="IVolumeScene.h" />
     <ClInclude Include="ColorMappingTable.h" />
+    <ClInclude Include="MarchingCubesSurfaceExtractor.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="IMeshExporter.h" />
+    <ClInclude Include="MeshGenerator.h" />
+    <ClInclude Include="MeshNode.h" />
+    <ClInclude Include="MeshTreeExplorer.h" />
+    <ClInclude Include="MultiLayeredFramebuffer.h" />
     <ClInclude Include="NetVolumeLoader.h" />
     <ClInclude Include="NetVolumeLoaderFactory.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h" />
+    <ClInclude Include="SeedVolumeSelector.h" />
     <ClInclude Include="Serialization.h" />
+    <ClInclude Include="StlExporter.h" />
+    <ClInclude Include="SurfaceExtractorBase.h" />
+    <ClInclude Include="TrackableCamera.h" />
     <ClInclude Include="Transformations.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="VolumeCacheGenericBase.h" />
     <ClInclude Include="VolumeLoaderBase.h" />
+    <ClInclude Include="VolumeCache.h" />
     <ClInclude Include="VolumeLoaderFactory.h" />
+    <ClInclude Include="VolumeLoaderGenericBase.h" />
     <ClInclude Include="VolumeSegment.h" />
     <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
     <ClInclude Include="VolumeScene.h" />
     <ClInclude Include="NetMemoryVolumeSceneFactory.h" />
+    <ClInclude Include="VolumeSelectorBase.h" />
     <ClInclude Include="VolumeVisualizerBase.h" />
     <ClInclude Include="IVolumeVisualizerFactory.h" />
-    <ClInclude Include="VolumeVisualizerSetter.h" />
     <ClInclude Include="VolumeVisualizerSettingsBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CPUMeshVisualizer.cpp" />
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp" />
+    <ClCompile Include="FramebufferLayer.cpp" />
+    <ClCompile Include="MarchingCubesSurfaceExtractor.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshGenerator.cpp" />
+    <ClCompile Include="MeshNode.cpp" />
+    <ClCompile Include="MeshTreeExplorer.cpp" />
     <ClCompile Include="NetVolumeLoader.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -186,10 +212,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="SeedVolumeSelector.cpp" />
+    <ClCompile Include="StlExporter.cpp" />
     <ClCompile Include="Transformations.cpp" />
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp" />
     <ClCompile Include="VolumeLoaderBase.cpp" />
     <ClCompile Include="VolumeScene.cpp" />
+    <ClCompile Include="VolumeSelectorBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TeraVoxel.Client.Core\TeraVoxel.Client.Core.vcxproj">

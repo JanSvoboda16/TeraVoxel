@@ -34,6 +34,5 @@ public:
 	/// <returns></returns>
 	static Matrix4f GetTranslationMatrix(float x, float y, float z);
 
-
 };
 

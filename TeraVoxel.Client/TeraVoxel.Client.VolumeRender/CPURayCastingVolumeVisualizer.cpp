@@ -1,64 +1,49 @@
 ﻿#include "CPURayCastingVolumeVisualizer.h"
 
-
-template<typename T>
-bool CPURayCastingVolumeVisualizer<T>::DataChanged()
+template <typename T>
+bool CPURayCastingVolumeVisualizer::DataChangedTemplated()
 {
-	return this->_memory.MemoryChanged();
+	return (std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory))->MemoryChanged();
+}
+
+
+bool CPURayCastingVolumeVisualizer::DataChanged()
+{	
+	return CALL_TEMPLATED_FUNCTION(DataChangedTemplated, _volumeLoaderFactory->GetProjectInfo().dataType.c_str());
 }
 
 template<typename T>
-inline void CPURayCastingVolumeVisualizer<T>::DisplayPoint(Vector3f point)
+void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale)
 {
-	Vector4f point4(point[0], point[1], point[2], 1);
-	unsigned char* framebuffer = this->_framebuffer.get();
-	Matrix4f projectionMatrix = this->_camera->GetProjectionMatrix();
-	Vector4f positionOnScreen = projectionMatrix * point4;
-	positionOnScreen = positionOnScreen.array() / positionOnScreen[3];
-	positionOnScreen = this->_camera->GetViewPortTransformationMatrix() * positionOnScreen;
-	auto screenSizes = this->_camera->GetScreenSize();
-	int width = screenSizes[1];
-	int height = screenSizes[0];
-	for (size_t x2 = positionOnScreen[0] - 5; x2 < positionOnScreen[0] + 5; x2++)
-	{
-		for (size_t y2 = positionOnScreen[1] - 5; y2 < positionOnScreen[1] + 5; y2++)
-		{
-			if (x2 > 0 && x2 < width && y2 >0 && y2 < height)
-			{
-				framebuffer[(int)y2 * width * 4 + (int)x2 * 4] = 255;
-				framebuffer[(int)y2 * width * 4 + (int)x2 * 4 + 1] = 255;
-				framebuffer[(int)y2 * width * 4 + (int)x2 * 4 + 2] = 255;
-				framebuffer[(int)y2 * width * 4 + (int)x2 * 4 + 3] = 255;
-			}
-		}
-	}
-}
-
-template<typename T>
-inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale)
-{
-	this->_memory.Prepare();
+	auto memory = std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory);
+	memory->Prepare();
 	_settingsCopy = *_settings;
 	_settingsCopy.mappingTable.RecomputeDeltas();
 	_reneringPosition.store(0, std::memory_order_release);
+
+	Vector2i screenSize = this->_camera->GetScreenSize();
+	this->_camera->ChangeScreenSize(std::ceil(screenSize[0] / (float)downscale), std::ceil(screenSize[1] / (float)downscale));
+	_meshVisualizer.ComputeFrame();
+	_meshFramebuffer = _meshVisualizer.GetFrameBuffer();
 
 	auto renderingThreadCount = SettingsContext::GetInstance().renderingThreadCount.load(std::memory_order::acquire);
 	std::vector<std::future<void>> threads;
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
-		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame, this, renderingThreadCount, i, downscale));
+		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer::ComputePartOfFrame<T>, this, renderingThreadCount, i, screenSize[0], screenSize[1], downscale, memory));
 	}
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
 		threads[i].get();
 	}
+	this->_camera->ChangeScreenSize(screenSize[0], screenSize[1]);
 
 	if (downscale != 1)
 	{
 		unsigned char* framebuffer = this->_framebuffer.get();
 		auto screenSizes = this->_camera->GetScreenSize();
-		int width = screenSizes[1];
-		int height = screenSizes[0];
+		int width = screenSizes[0];
+		int height = screenSizes[1];
 
 		for (int x = 0; x < width; x++)
 		{
@@ -72,17 +57,19 @@ inline void CPURayCastingVolumeVisualizer<T>::ComputeFrameInternal(int downscale
 		}
 	}
 
-	this->_memory.Revalidate();
+	memory->Revalidate();
+}
+
+void CPURayCastingVolumeVisualizer::ComputeFrameInternal(int downscale)
+{
+	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetProjectInfo().dataType.c_str(),downscale);
 }
 
 
 template <typename T>
-void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threadIndex, int downscale)
+void CPURayCastingVolumeVisualizer::ComputePartOfFrame(int threads, int threadIndex, int framebufferWidth, int framebufferHeight, int downscale, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>> &memory)
 {
 	unsigned char* framebuffer = this->_framebuffer.get();
-	auto screenSizes = this->_camera->GetScreenSize();
-	int width = screenSizes[1];
-	int height = screenSizes[0];
 
 	if (downscale == 1)
 	{
@@ -91,11 +78,11 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 			int i = _reneringPosition.fetch_add(1, std::memory_order_acq_rel);// operace provádí load, store naráz, nelze tedy vložit mezi tyto dva příkazy jiný příkaz. 
 			// Compiler tedy zaručí cache coherenci, protože v opačném případě by operace neodpovídaly žádnému existujícímu pořadí. Operace XCHG říká nahraď co za co. Store říká
 			// nahraj sem tohle bez ohledu na to co tam bylo předtím
-			if (i >= width * height)
+			if (i >= framebufferWidth * framebufferHeight)
 			{
 				break;
 			}
-			auto val = ComputeRay(i % width, i / width);
+			auto val = ComputeRay<T>(i % framebufferWidth, i / framebufferWidth, memory);
 			framebuffer[i * 4] = val.r;
 			framebuffer[i * 4 + 1] = val.g;
 			framebuffer[i * 4 + 2] = val.b;
@@ -103,20 +90,19 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 		}
 	}
 	else
-	{
-
+	{		
 		while (true)
 		{
 			int i = _reneringPosition.fetch_add(1, std::memory_order_acq_rel);
-			if (i >= width * height)
+			if (i >= framebufferWidth * framebufferHeight)
 			{
 				break;
 			}
-			int x = i % width;
-			int y = i / width;
-			if (y % 2 == 0 && x % 2 == 0)
+			int x = i % framebufferWidth;
+			int y = i / framebufferWidth;
+			if (y % downscale == 0 && x % downscale == 0)
 			{
-				auto val = ComputeRay(x, y);
+				auto val = ComputeRay<T>(x/downscale, y/downscale, memory);
 
 				framebuffer[i * 4] = val.r;
 				framebuffer[i * 4 + 1] = val.g;
@@ -127,45 +113,103 @@ void CPURayCastingVolumeVisualizer<T>::ComputePartOfFrame(int threads, int threa
 	}
 }
 
+
+__forceinline void CPURayCastingVolumeVisualizer::MixColors(float& r, float& g, float& b, float& a, const float ra, const float ga, const float ba, const float aa)
+{
+	r = r + ra * aa * (1 - a);
+	g = g + ga * aa * (1 - a);
+	b = b + ba * aa * (1 - a);
+	a = a + aa * (1 - a);
+}
+
+
 template <typename T>
-color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
+color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>& memory)
 {
 	ColorMappingTable mappingTable = _settingsCopy.mappingTable;
 	Vector3f stepVector = this->_camera->GetShrankRayDirection(x, y).normalized();
 
-	float stepx = stepVector[0], stepy = stepVector[1], stepz = stepVector[2];
+	auto fragments = _meshFramebuffer->GetFragmentsOrdered(x, y);
+	float nextFragmentPahtLength = FLT_MAX;
+	int fragmentIndex = 0;
+
 	Vector3f start, stop;
 	float stepMultiplyer = 1;
-	float r = 0, g = 0, b = 0, a = 0, rl = 0, gl = 0, bl = 0; // Color
+	float r = 0, g = 0, b = 0, a = 0; // Color
 
 	if (this->ComputeRayIntersection(stepVector, start, stop))
 	{
-		auto alphaCoeficient = this->_camera->GetRealVectorLength(stepVector);
+		auto alphaCoeficient = this->_camera->DeshrinkVector(stepVector).norm();
 
 		Vector3f pathLength = (stop - start).array().abs(); // Lenght of the ray path
 		Vector3f position = start; // Position of the ray casting
 
-		double pathLengthx = pathLength[0], pathLengthy = pathLength[1], pathLengthz = pathLength[2];
-		double startx = start[0], starty = start[1], startz = start[2];
-		double positionx = startx, positiony = starty, positionz = startz;
+		int maxPathLengthIndex = static_cast<int>(std::distance(pathLength.data(), std::max_element(pathLength.data(), pathLength.data() + pathLength.size())));
+		double maxPathLength = pathLength[maxPathLengthIndex];
 
 		int qualityStepCount = 100 - (position - start).norm();
 		bool lighting = _settingsCopy.shading;
-		auto dataSizes = this->_memory.GetDataSizes();
+		auto dataSizes = memory->GetDataSizes();
+
+		Vector3f cameraPos = this->_camera->GetShrankPosition();
+
+		// use fragments that are closer than start of RC
+		for (auto fragment : fragments)
+		{
+			Vector3f fragmentVector = this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragment.depth, x, y));
+			
+			if (fragmentVector.norm() < (cameraPos - start).norm())
+			{
+				MixColors(r, g, b, a, fragment.r / 255.f, fragment.g / 255.f, fragment.b / 255.f, fragment.a / 255.f);
+				
+				fragmentIndex++;
+				
+				if (a > 0.97) { a = 1; break; }
+			}
+			else
+			{
+				break;
+			}
+		}
+
+		// set nextFragmentPathLength to distance between RC position and fragment position
+		if (fragments.size() > fragmentIndex)
+		{
+			Vector3f fragmentVector = this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragments[fragmentIndex].depth, x, y));
+			nextFragmentPahtLength = (fragmentVector + cameraPos - position).norm();
+		}		
+		
 
 		if (lighting)
 		{
-			while ((pathLengthx >= fabs(positionx - startx)) &&
-				(pathLengthy >= fabs(positiony - starty)) &&
-				(pathLengthz >= fabs(positionz - startz)))
+			while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
 			{
-				int x0 = static_cast<int>(positionx);
-				int y0 = static_cast<int>(positiony);
-				int z0 = static_cast<int>(positionz);
+				// Use fragment if RC is on correct position and prepare for next
+				if (nextFragmentPahtLength <= 0)
+				{
+					MixColors(r, g, b, a, fragments[fragmentIndex].r / 255.f, fragments[fragmentIndex].g / 255.f, fragments[fragmentIndex].b / 255.f, fragments[fragmentIndex].a / 255.f);
+
+					fragmentIndex++;
+
+					if (fragments.size() > fragmentIndex)
+					{
+						nextFragmentPahtLength = (this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragments[fragmentIndex].depth, x, y)) + cameraPos - position).norm();
+					}
+					else
+					{
+						nextFragmentPahtLength = FLT_MAX;
+					}
+
+					if (a > 0.97) { a = 1; break; }
+				}
+
+				int x0 = static_cast<int>(position[0]);
+				int y0 = static_cast<int>(position[1]);
+				int z0 = static_cast<int>(position[2]);
 
 				// Hodnoty ve všech osmi nejbližších voxelů
 				int downscale;
-				double f000 = this->_memory.GetValue(x0, y0, z0, downscale);
+				double f000 = memory->GetValue(x0, y0, z0, downscale);
 
 				int gridSize = (1 << downscale);
 				x0 -= x0 % gridSize;
@@ -178,18 +222,18 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 				if (!(x1 >= dataSizes[0] || y1 >= dataSizes[1] || z1 >= dataSizes[2]))
 				{
-					double f100 = this->_memory.GetValue(x1, y0, z0, downscale);
-					double f010 = this->_memory.GetValue(x0, y1, z0, downscale);
-					double f110 = this->_memory.GetValue(x1, y1, z0, downscale);
-					double f001 = this->_memory.GetValue(x0, y0, z1, downscale);
-					double f101 = this->_memory.GetValue(x1, y0, z1, downscale);
-					double f011 = this->_memory.GetValue(x0, y1, z1, downscale);
-					double f111 = this->_memory.GetValue(x1, y1, z1, downscale);
+					double f100 = memory->GetValue(x1, y0, z0, downscale);
+					double f010 = memory->GetValue(x0, y1, z0, downscale);
+					double f110 = memory->GetValue(x1, y1, z0, downscale);
+					double f001 = memory->GetValue(x0, y0, z1, downscale);
+					double f101 = memory->GetValue(x1, y0, z1, downscale);
+					double f011 = memory->GetValue(x0, y1, z1, downscale);
+					double f111 = memory->GetValue(x1, y1, z1, downscale);
 
 					// Váhy pro interpolaci
-					double dx = positionx - x0;
-					double dy = positiony - y0;
-					double dz = positionz - z0;
+					double dx = position[0] - x0;
+					double dy = position[1] - y0;
+					double dz = position[2] - z0;
 					double invGridSizeCube = 1.0 / (gridSize * gridSize * gridSize);
 
 					double gridSizeMinDx = (gridSize - dx);
@@ -241,9 +285,9 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 						gy *= divider;
 						gz *= divider;
 
-						double lightx = 8000 - positionx;
-						double lighty = 0 - positiony;
-						double lightz = 0 - positionz;
+						double lightx = 8000 - position[0];
+						double lighty = 0 - position[1];
+						double lightz = 0 - position[2];
 
 						divider = 1 / sqrtf(powf(lightx, 2) + powf(lighty, 2) + powf(lightz, 2));
 						lightx *= divider;
@@ -257,7 +301,7 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 
 						double ambientInt = _settingsCopy.ampbientIntensity;
 						double difusionInt = fmax(0.0, gx * lightx + gy * lighty + gz * lightz) * _settingsCopy.difustionIntensity;
-						double reflectionInt = powf(fmax(0.0, reflectionx * stepx + reflectiony * stepy + reflectionz * stepz), _settingsCopy.reflectionSharpness) * _settingsCopy.reflectionIntensity;
+						double reflectionInt = powf(fmax(0.0, reflectionx * stepVector[0] + reflectiony * stepVector[1] + reflectionz * stepVector[2]), _settingsCopy.reflectionSharpness) * _settingsCopy.reflectionIntensity;
 
 						double lightInt = (ambientInt + difusionInt);
 
@@ -277,31 +321,40 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 						b = b + (blue * lightInt + reflectionInt) * alpha * (1 - a);
 						a = a + alpha * (1 - a);
 
-						rl = r;
-						gl = g;
-						bl = b;
-
 						if (a > 0.97) { a = 1; break; }
 					}
 				}
 
-				positionx += stepx * stepMultiplyer;
-				positiony += stepy * stepMultiplyer;
-				positionz += stepz * stepMultiplyer;
-
+				position += stepVector * stepMultiplyer;	
+				nextFragmentPahtLength -= stepMultiplyer;
 			}
 		}
 		else
 		{
 			// While the position is inside of the volume
-			while ((pathLengthx >= fabs(positionx - startx)) &&
-				(pathLengthy >= fabs(positiony - starty)) &&
-				(pathLengthz >= fabs(positionz - startz)))
+			while (maxPathLength >= fabs(position[maxPathLengthIndex] - start[maxPathLengthIndex]))
 			{
+				// Use fragment if RC is on correct position and prepare for next
+				if (nextFragmentPahtLength <= 0)
+				{
+					MixColors(r, g, b, a, fragments[fragmentIndex].r / 255.f, fragments[fragmentIndex].g / 255.f, fragments[fragmentIndex].b / 255.f, fragments[fragmentIndex].a / 255.f);
+
+					fragmentIndex++;
+
+					if (fragments.size() > fragmentIndex)
+					{
+						nextFragmentPahtLength = (this->_camera->ShrinkVector(this->_camera->GedDistanceFromProjected(fragments[fragmentIndex].depth, x, y)) + cameraPos - position).norm();
+					}
+					else
+					{
+						nextFragmentPahtLength = FLT_MAX;
+					}
+
+					if (a > 0.97) { a = 1; break; }
+				}
 
 				int downscale;
-				float value = this->_memory.GetValue(positionx, positiony, positionz, downscale);
-
+				float value = memory->GetValue(position[0], position[1], position[2], downscale);
 
 				stepMultiplyer = 1 << downscale; // equals 2^downscale
 
@@ -334,37 +387,25 @@ color CPURayCastingVolumeVisualizer<T>::ComputeRay(int x, int y)
 					float blue = item.DblDivDra() * valminran0 + item.ColorFrom[2];
 					float alpha = item.DalDivDra() * valminran0 + item.ColorFrom[3];
 
-					alpha = 1.0 - pow(1 - alpha, alphaCoeficient * stepMultiplyer);//changes projection: (fabsf(red - rl) + fabsf(green - gl) + fabsf(blue - bl)) * alpha /3;
+					alpha = 1.0 - pow(1 - alpha, alphaCoeficient * stepMultiplyer);
 
-					r = r + red * alpha * (1 - a);
-					g = g + green * alpha * (1 - a);
-					b = b + blue * alpha * (1 - a);
-					a = a + alpha * (1 - a);
-
-					rl = r;
-					gl = g;
-					bl = b;
+					MixColors(r, g, b, a, red, green, blue, alpha);
 
 					if (a > 0.97) { a = 1; break; }
 				}
 
-				positionx += stepx * stepMultiplyer;
-				positiony += stepy * stepMultiplyer;
-				positionz += stepz * stepMultiplyer;
+				position += stepVector * stepMultiplyer;
+				nextFragmentPahtLength -= stepMultiplyer;				
 			}
-		}
+		}		
 	}
+
+	// Use unused fragments
+	for (size_t i = fragmentIndex; i < fragments.size(); i++)
+	{
+		MixColors(r, g, b, a, fragments[i].r / 255.f, fragments[i].g / 255.f, fragments[i].b / 255.f, fragments[i].a / 255.f);
+		if (a > 0.97) { a = 1; break; }
+	}
+
 	return color{ (uint8_t)(fmin(255,r * 255)), (uint8_t)(fmin(255,g * 255)), (uint8_t)(fmin(255,b * 255)), (uint8_t)(a * 255) };
 }
-
-
-template CPURayCastingVolumeVisualizer<uint8_t>;
-template CPURayCastingVolumeVisualizer<uint16_t>;
-template CPURayCastingVolumeVisualizer<uint32_t>;
-template CPURayCastingVolumeVisualizer<uint64_t>;
-template CPURayCastingVolumeVisualizer<float>;
-template CPURayCastingVolumeVisualizer<double>;
-template CPURayCastingVolumeVisualizer<int8_t>;
-template CPURayCastingVolumeVisualizer<int16_t>;
-template CPURayCastingVolumeVisualizer<int32_t>;
-template CPURayCastingVolumeVisualizer<int64_t>;

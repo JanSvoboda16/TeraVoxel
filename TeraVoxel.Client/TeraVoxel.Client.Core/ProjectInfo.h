@@ -25,13 +25,15 @@ class ProjectInfo
 		int sizeZ = 0;
 		std::string dataType;
 		int segmentSize = 0;
-		float voxelDimensions[3];
+		float voxelDimensions[3] = { 0, 0, 0 };
 		int dataSizeX= 0, dataSizeY = 0 , dataSizeZ = 0;
 		bool isLittleEndian = false;
+		bool zTransformed = false;
+		bool compressed = true;
 		ProjectState state;
 
 	public:
-		NLOHMANN_DEFINE_TYPE_INTRUSIVE(ProjectInfo, name, sizeX, sizeY, sizeZ, dataType, segmentSize, voxelDimensions, dataSizeX, dataSizeY, dataSizeZ, state, isLittleEndian)
+		NLOHMANN_DEFINE_TYPE_INTRUSIVE(ProjectInfo, name, sizeX, sizeY, sizeZ, dataType, segmentSize, voxelDimensions, dataSizeX, dataSizeY, dataSizeZ, state, isLittleEndian, zTransformed, compressed)
 
 };
 

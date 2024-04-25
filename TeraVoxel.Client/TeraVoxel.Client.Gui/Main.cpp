@@ -15,6 +15,9 @@
 #include "VisualizerSettingsWindow.h"
 #include "../TeraVoxel.Client.Core/SettingsContext.h"
 #include "SettingsWindow.h"
+#include "../TeraVoxel.Client.VolumeRender/EigenBenchmark.h"
+#include "SceneObjectsWindow.h"
+#include "ToolWindow.h"
 
  // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -30,8 +33,8 @@ void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Main code
-int main(int, char**)
-{
+int main(int, char**){
+
 	Logger::Initialize("log.csv");
 	// Create application window
 	//ImGui_ImplWin32_EnableDpiAwareness();
@@ -86,7 +89,7 @@ int main(int, char**)
 	}
 
 	// Our state
-	// bool show_demo_window = false;
+	//bool show_demo_window = false;
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	auto volumeViewContext = std::make_shared<VolumeViewContext>();
@@ -95,6 +98,8 @@ int main(int, char**)
 	VolumeViewWindow sceneWindow(g_pd3dDevice, volumeViewContext);
 	VisualizerSettingsWindow colorMappingWindow(volumeViewContext);
 	SettingsWindow settingsWindow;
+	SceneObjectsWindow SceneObjectsWindow(volumeViewContext);
+	ToolWindow ToolWindow(volumeViewContext);
 
 	MemoryContext::GetInstance().maxMemory = 6000000000;
 	SettingsContext::GetInstance().loadingThreadCount = 5;
@@ -131,6 +136,8 @@ int main(int, char**)
 		sceneWindow.Update();
 		colorMappingWindow.Update();
 		settingsWindow.Update();
+		SceneObjectsWindow.Update();
+		ToolWindow.Update();
 
 		// Rendering
 		ImGui::Render();

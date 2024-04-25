@@ -17,7 +17,6 @@ TeraVoxel currently supports simple ray-casting visualization with optional shad
 ## Architecture 
 ### Server (ASP .NET Core 7.0)
 ### Client (C++ 20)
-Class diagram is included in here: [ClassDiagram](doc/TeraVoxelClientClassDiagram.html)
 
 ## Minimum Requirements to Run
 ### Client

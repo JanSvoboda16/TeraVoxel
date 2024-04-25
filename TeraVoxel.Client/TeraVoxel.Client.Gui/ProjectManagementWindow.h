@@ -4,24 +4,18 @@
  */
 #pragma once
 #include <string>
-#include "imgui.h"
 #include "time.h"
-#include "imgui_stdlib.h"
-#include "../TeraVoxel.Client.Core/ProjectManager.h"
 #include "VolumeViewContext.h"
-#include "../TeraVoxel.Client.VolumeRender/NetMemoryVolumeSceneFactory.h"
 #include <thread>
 #include <vector>
+#include "IView.h"
+
 #define CONTEXT_REFRESH_RATE 10000
 
-class ProjectManagementWindow
+class ProjectManagementWindow : public IView
 {
 public:
-	ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext)
-	{
-		_volumeViewContext = volumeViewContext;
-		ProjectManager manager(_serverUrl);
-	}
+	ProjectManagementWindow(const std::shared_ptr<VolumeViewContext> &volumeViewContext);
 	void Update();
 
 private:

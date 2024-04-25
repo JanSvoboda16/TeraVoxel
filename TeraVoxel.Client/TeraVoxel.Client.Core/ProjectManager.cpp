@@ -86,7 +86,7 @@ void ProjectManager::ConvertProject(const std::string& projectName)
 	}
 }
 
-std::vector<unsigned char> ProjectManager::GetSegment(const std::string& projectName, int x, int y, int z, int downscale, int bytesToRead)
+std::vector<unsigned char> ProjectManager::GetSegment(const std::string& projectName, int x, int y, int z, int downscale, int bytesToRead, bool compressed)
 {
 	httplib::Client cli = httplib::Client(Url);
 	cli.set_read_timeout(10);
@@ -108,15 +108,22 @@ std::vector<unsigned char> ProjectManager::GetSegment(const std::string& project
 	if (result->body.empty())
 	{
 		throw ServerException("Body is empty");
-	}
+	}	
+	
+	if (compressed)
+	{	// Decompression
+		auto data = std::vector<unsigned char>();
+		data.resize(bytesToRead);		
+		Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:Decompression:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
+		DecompressData((const unsigned char*)(result->body.c_str()), data.data(), result->body.length(), bytesToRead);
+		Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:Decompression:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
-	// Decompression
-	auto data = std::vector<unsigned char>();
-	Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:Decompression:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
-	data.resize(bytesToRead);
-	DecompressData((const unsigned char*)(result->body.c_str()), data.data(), result->body.length(), bytesToRead);
-	Logger::GetInstance()->LogEvent("ProjectManager", "SegmentLoading:Decompression:Ended", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
-	return data;
+		return data;
+	}
+	else
+	{
+		return std::vector<unsigned char>(result->body.begin(), result->body.end());
+	}
 }
 
 void ProjectManager::DecompressData(const unsigned char* abSrc, unsigned char* abDst, int inputLength, int outputLength)

@@ -129,7 +129,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
@@ -152,6 +152,11 @@
     <ClInclude Include="ImGui\imstb_rectpack.h" />
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="ISelectionView.h" />
+    <ClInclude Include="SceneObjectsWindow.h" />
+    <ClInclude Include="SeedSelectionView.h" />
+    <ClInclude Include="SurfaceExtractionView.h" />
+    <ClInclude Include="ToolWindow.h" />
     <ClInclude Include="VisualizerSettingsWindow.h" />
     <ClInclude Include="ProjectManagementWindow.h" />
     <ClInclude Include="SettingsWindow.h" />
@@ -170,6 +175,10 @@
     <ClCompile Include="ImGui\imgui_stdlib.cpp" />
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="SceneObjectsWindow.cpp" />
+    <ClCompile Include="SeedSelectionView.cpp" />
+    <ClCompile Include="SurfaceExtractionView.cpp" />
+    <ClCompile Include="ToolWindow.cpp" />
     <ClCompile Include="VisualizerSettingsWindow.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ProjectManagementWindow.cpp" />

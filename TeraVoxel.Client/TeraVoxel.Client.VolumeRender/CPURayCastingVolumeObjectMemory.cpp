@@ -5,7 +5,6 @@
 #include "CPURayCastingVolumeObjectMemory.h"
 #include "../TeraVoxel.Client.Core/Logger.h"
 
-
 template<typename T>
 CPURayCastingVolumeObjectMemory<T>::~CPURayCastingVolumeObjectMemory()
 {
@@ -19,17 +18,17 @@ CPURayCastingVolumeObjectMemory<T>::~CPURayCastingVolumeObjectMemory()
 }
 
 template <typename T>
-CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory)
+CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory)
 {
-	_projectInfo = projectInfo;
+	_projectInfo = volumeLoaderFactory->GetProjectInfo();
 	_camera = camera;
-	xSegmentCount = projectInfo.sizeX / projectInfo.segmentSize;
-	ySegmentCountCount = projectInfo.sizeY / projectInfo.segmentSize;
-	zSegmentCount = projectInfo.sizeZ / projectInfo.segmentSize;
+	xSegmentCount = _projectInfo.sizeX / _projectInfo.segmentSize;
+	ySegmentCountCount = _projectInfo.sizeY / _projectInfo.segmentSize;
+	zSegmentCount = _projectInfo.sizeZ / _projectInfo.segmentSize;
 	_oneDivSegmentSize = 1.0 / _projectInfo.segmentSize;
 	_segmentSize = _projectInfo.segmentSize;
 	_segmentSizeShifter = (int)(log2(_segmentSize) + 0.5);
-	_volumeLoader = volumeLoaderFactory->Create(projectInfo, SettingsContext::GetInstance().loadingThreadCount);
+	_volumeLoader = std::unique_ptr<VolumeLoaderBase<T>>(dynamic_cast<VolumeLoaderBase<T>*>(volumeLoaderFactory->Create(SettingsContext::GetInstance().loadingThreadCount).release()));
 
 	_segmentCount = (uint64_t)xSegmentCount * (uint64_t)ySegmentCountCount * (uint64_t)zSegmentCount;
 	_volumes.resize(_segmentCount);

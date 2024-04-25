@@ -7,11 +7,10 @@ class EmptyVolumeVisualizerSettings: public VolumeVisualizerSettingsBase
 
 };
 
-template <typename T>
-class EmptyVolumeVisualizer: public VolumeVisualizerBase<T>
+class EmptyVolumeVisualizer: public VolumeVisualizerBase
 {
 public:
-	EmptyVolumeVisualizer(std::shared_ptr<Camera> camera, const ProjectInfo& projectInfo, std::shared_ptr<VolumeLoaderFactory<T>> volumeLoderFactory) : VolumeVisualizerBase<T>(camera,projectInfo, volumeLoderFactory) {}
+	EmptyVolumeVisualizer(std::shared_ptr<Camera> camera, std::shared_ptr<VolumeLoaderFactory> volumeLoderFactory, const std::shared_ptr<MeshNode>& meshNode) : VolumeVisualizerBase(camera, volumeLoderFactory, meshNode) {}
 	void ComputeFrameInternal(int downscale) override {
 		
 		auto sizes = this->_camera->GetScreenSize();

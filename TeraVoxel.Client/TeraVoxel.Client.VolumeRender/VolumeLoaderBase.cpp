@@ -91,7 +91,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 				{
 					try
 					{
-						data = LoadSegment(x, y, z, futureDownscale);
+						data = LoadSegmentData(x, y, z, futureDownscale);
 						break;
 					}
 					catch (const std::exception& ex)
@@ -100,6 +100,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 						{
 							return;
 						}
+						std::this_thread::sleep_for(std::chrono::milliseconds(100));
 					}
 				}
 
@@ -174,6 +175,41 @@ std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& coun
 }
 
 template<typename T>
+std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::LoadSync(int x, int y, int z, int downscale)
+{
+	auto volume = std::make_unique<VolumeSegment<T>>(x, y, z);
+	volume->actualDownscale = downscale;
+	volume->futureDownscale = downscale;
+	volume->requiredDownscale = downscale;
+
+	for (size_t i = 0; i < 100; i++)
+	{
+		try
+		{
+			volume->data = LoadSegmentData(x, y, z, downscale);			
+
+			uint64_t requiredMemory = GetBlockRequiredMemory(downscale);
+			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
+			MemoryContext::GetInstance().usedMemory += requiredMemory;
+			MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
+
+			break;
+		}
+		catch (const std::exception& ex)
+		{
+			if (i == 99)
+			{
+				throw ex;
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+	}
+
+	return volume;
+}
+
+template<typename T>
 void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int downscale)
 {
 	int segmentCount = _segmentCountX * _segmentCountY * _segmentCountZ;
@@ -182,11 +218,6 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		uint64_t requiredMemory = GetBlockRequiredMemory(downscale);
 		MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
 		MemoryContext::GetInstance().usedMemory += requiredMemory;
-		if (MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) > MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire))
-		{
-			MemoryContext::GetInstance().usedMemory -= requiredMemory;
-			//TODO Memory access type -> maybe relaxed?
-		}
 		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
 		auto z = i / (_segmentCountX * _segmentCountY);
@@ -200,7 +231,7 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		{
 			try
 			{
-				volume->data = LoadSegment(x, y, z, downscale);
+				volume->data = LoadSegmentData(x, y, z, downscale);
 				break;
 			}
 			catch (const std::exception& ex)
