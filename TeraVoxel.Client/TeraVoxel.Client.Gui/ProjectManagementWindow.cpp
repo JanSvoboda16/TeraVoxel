@@ -8,7 +8,7 @@
 #include "imgui_stdlib.h"
 #include "../TeraVoxel.Client.Core/ProjectManager.h"
 
-ProjectManagementWindow::ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext)
+ProjectManagementWindow::ProjectManagementWindow(const std::shared_ptr<VolumeViewContext>& volumeViewContext)
 {
 	_volumeViewContext = volumeViewContext;
 	ProjectManager manager(_serverUrl);

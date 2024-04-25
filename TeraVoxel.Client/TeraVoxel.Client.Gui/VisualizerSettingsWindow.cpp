@@ -3,6 +3,8 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #include "VisualizerSettingsWindow.h"
+#include "../TeraVoxel.Client.VolumeRender/EmptyVolumeVisualizerFactory.h"
+#include "../TeraVoxel.Client.VolumeRender/CPURCVolumeVisualizerFactory.h"
 
 void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
 {
@@ -11,10 +13,10 @@ void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
 		switch (visualizerId)
 		{
 		case 0:
-			VolumeVisualizerSetter<EmptyVolumeVisualizerSetter>::Set(_volumeViewContext->scene, std::static_pointer_cast<VolumeVisualizerSettingsBase>(std::make_shared<EmptyVolumeVisualizerSettings>()));
+			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<EmptyVolumeVisualizerFactory>(std::make_shared<EmptyVolumeVisualizerSettings>()));
 			break;
 		case 1:
-			VolumeVisualizerSetter<CPURCVolumeVisualizerSetter>::Set(_volumeViewContext->scene, std::static_pointer_cast<VolumeVisualizerSettingsBase>(_fastRayCastingVisualizerSettings));
+			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<CPURCVolumeVisualizerFactory>(_fastRayCastingVisualizerSettings));
 			break;
 		case 2:
 			// Add your visualizer here
@@ -46,7 +48,7 @@ void VisualizerSettingsWindow::Update()
 
 	const char* visualizerNames[] = { "None", "CPU Ray casting", "Your visualizer" };
 
-	if (ImGui::Combo("combo", &_selectedVisualizerId, visualizerNames, IM_ARRAYSIZE(visualizerNames)))
+	if (ImGui::Combo("Visualizer:", &_selectedVisualizerId, visualizerNames, IM_ARRAYSIZE(visualizerNames)))
 	{
 		SetVisualizer(_selectedVisualizerId);
 		ChangeView(_selectedVisualizerId);

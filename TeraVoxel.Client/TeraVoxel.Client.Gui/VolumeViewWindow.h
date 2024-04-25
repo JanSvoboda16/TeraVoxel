@@ -11,9 +11,10 @@
 #include "../TeraVoxel.Client.VolumeRender/ColorMappingTable.h"
 #include "../TeraVoxel.Client.VolumeRender/NetMemoryVolumeSceneFactory.h"
 #include "../VolumeViewContext.h"
+#include "IView.h"
 #include <future>
 
-class VolumeViewWindow
+class VolumeViewWindow : public IView
 {
 public:
 	VolumeViewWindow(ID3D11Device* g_pd3dDevice, std::shared_ptr<VolumeViewContext> volumeViewContext)
@@ -59,7 +60,7 @@ private:
 		_zCenterDelta = 0;
 
 	clock_t _fps_start = 0;
-	int _framesCount;
+	int _framesCount = 0;
 	float _fps = 0;
 };
 

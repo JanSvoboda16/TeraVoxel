@@ -1,25 +1,39 @@
 #pragma once
 #include "VolumeVisualizerBase.h"
 #include "CPURayCastingVolumeObjectMemory.h"
+#include <any>
+#include "../TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 
-template <typename T>
-class CPURayCastingVolumeVisualizerBase : public VolumeVisualizerBase<T>
+class CPURayCastingVolumeVisualizerBase : public VolumeVisualizerBase
 {
-protected:
-	CPURayCastingVolumeObjectMemory<T> _memory;
 public:
-	CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode);
-	virtual void ComputeFrameInternal(int downscale) override = 0;
+	CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode);
+	//virtual void ComputeFrameInternal(int downscale) override = 0;
 	bool ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop);
+
+protected:
+	std::any _memory;
+
+private:
+	template <typename T>
+	void CreateMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory);
 };
 
-template<typename T>
-inline CPURayCastingVolumeVisualizerBase<T>::CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode)
-	: VolumeVisualizerBase<T>(camera, projectInfo, volumeLoaderFactory, meshNode),
-	_memory(camera, projectInfo, volumeLoaderFactory) { }
+
+inline CPURayCastingVolumeVisualizerBase::CPURayCastingVolumeVisualizerBase(const std::shared_ptr<Camera>& camera,  const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<MeshNode>& meshNode)
+	: VolumeVisualizerBase(camera, volumeLoaderFactory, meshNode)
+{ 
+	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetProjectInfo().dataType.c_str(), camera, volumeLoaderFactory);
+}
 
 template <typename T>
-bool CPURayCastingVolumeVisualizerBase<T>::ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop)
+inline void CPURayCastingVolumeVisualizerBase::CreateMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory)
+{
+	_memory = std::make_shared<CPURayCastingVolumeObjectMemory<T>>(camera, volumeLoaderFactory);
+}
+
+
+inline bool CPURayCastingVolumeVisualizerBase::ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop)
 {
 	// intersections of lines with planes:
 	// 
@@ -41,7 +55,8 @@ bool CPURayCastingVolumeVisualizerBase<T>::ComputeRayIntersection(const Vector3f
 	// k=(y-y1)/a k>=0
 	// py=position + k*direction
 
-	auto dataSizes = _memory.GetDataSizes();
+	auto projectInfo = _volumeLoaderFactory->GetProjectInfo();
+	auto dataSizes = Vector3f(projectInfo.dataSizeX, projectInfo.dataSizeY, projectInfo.dataSizeZ);
 	Vector3f maxIndexes(dataSizes[0] - 1, dataSizes[1] - 1, dataSizes[2] - 1);
 	Vector3f position = this->_camera->GetShrankPosition();
 	Vector3f k = (-position).array() / rayDireciton.array();

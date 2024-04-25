@@ -9,6 +9,7 @@
 #include "../TeraVoxel.Client.Core/ProjectInfo.h"
 #include "../TeraVoxel.Client.Core/SettingsContext.h"
 #include "VolumeLoaderFactory.h"
+#include "VolumeLoaderBase.h"
 #include <mutex>
 #include <future>
 #include <stack>
@@ -23,7 +24,7 @@ class CPURayCastingVolumeObjectMemory
 {
 public:
 	~CPURayCastingVolumeObjectMemory();
-	CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera> &camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory);
+	CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera> &camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory);
 		
 	/// <summary>
 	/// Gets a value at a position in the memory

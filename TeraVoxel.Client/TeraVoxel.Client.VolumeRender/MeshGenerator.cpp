@@ -100,7 +100,7 @@ std::shared_ptr<MeshNode> MeshGenerator::Sphere(float radius, int numSegments, c
 			meshData.push_back({ Vector3f(x3, y3, z3), color3 });
 		}
 	}
-	meshNode->meshes.push_back(sphereMesh);
+	meshNode->meshes.push_back(std::move(sphereMesh));
 
 	return meshNode;
 }
@@ -125,7 +125,7 @@ std::shared_ptr<MeshNode> MeshGenerator::Cube(float width, float height, float d
 	meshDataPart1.push_back({ Vector3f(0,0,1), colorProvider(0,0,1) });
 	meshDataPart1.push_back({ Vector3f(1,0,1), colorProvider(1,0,1) });
 
-	cubeNode->meshes.push_back(part1);
+	cubeNode->meshes.push_back(std::move(part1));
 
 	Mesh part2;
 	part2.SetMode(MeshMode::Strip);
@@ -142,13 +142,12 @@ std::shared_ptr<MeshNode> MeshGenerator::Cube(float width, float height, float d
 	meshDataPart2.push_back({ Vector3f(1,1,0), colorProvider(1,1,0) });
 	meshDataPart2.push_back({ Vector3f(1,1,1), colorProvider(1,1,1) });
 
-	cubeNode->meshes.push_back(part2);
+	cubeNode->meshes.push_back(std::move(part2));
 
 	cubeNode->transformation = Transformations::GetShrinkMatrix(width, height, depth);
 
 	auto meshNode = std::make_shared<MeshNode>();
 	meshNode->subNodes.push_back(cubeNode);
-
 
 	return meshNode;
 }

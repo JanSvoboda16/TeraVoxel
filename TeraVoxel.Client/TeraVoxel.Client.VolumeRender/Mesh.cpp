@@ -18,6 +18,31 @@ std::array<Vertex, 3> Mesh::GetTriangle(uint32_t position)
 	}
 }
 
+void Mesh::SetTriangle(uint32_t position, const std::array<Vertex, 3>& triangle)
+{
+	switch (_mode)
+	{
+	case Strip:
+		_vertices[position] = triangle[0];
+		_vertices[position + 1] = triangle[1];
+		_vertices[position + 2] = triangle[2];
+		return;
+	case Fan:
+		_vertices[position] = triangle[0];
+		_vertices[position + 1] = triangle[1];
+		_vertices[position + 2] = triangle[2];
+		return;
+	case List:
+		position *= 3;
+		_vertices[position] = triangle[0];
+		_vertices[position + 1] = triangle[1];
+		_vertices[position + 2] = triangle[2];
+		return;
+	default:
+		throw std::exception("Unsupported mesh mode");
+	}
+}
+
 uint32_t Mesh::GetTriangleCount()
 {
 	switch (_mode)

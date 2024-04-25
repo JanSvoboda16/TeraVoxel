@@ -8,12 +8,14 @@
 #include "VolumeViewContext.h"
 #include <thread>
 #include <vector>
+#include "IView.h"
+
 #define CONTEXT_REFRESH_RATE 10000
 
-class ProjectManagementWindow
+class ProjectManagementWindow : public IView
 {
 public:
-	ProjectManagementWindow(std::shared_ptr<VolumeViewContext> volumeViewContext);
+	ProjectManagementWindow(const std::shared_ptr<VolumeViewContext> &volumeViewContext);
 	void Update();
 
 private:

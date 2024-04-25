@@ -191,6 +191,8 @@ public:
 	/// <param name="meshNode"></param>
 	void BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>& meshNode);
 
+	Vector3f GetObserverCenter() { return _observerCenter; }
+
 private:
 	float _totalObsXAngle = 0, _totalObsYAngle = 0;			// Observer angles
 	float _totalObsDistance = 0;							// Distance from the center of rotation to the observer camera

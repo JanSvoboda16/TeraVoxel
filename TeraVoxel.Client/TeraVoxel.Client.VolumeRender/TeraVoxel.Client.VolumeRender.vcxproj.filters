@@ -1,89 +1,80 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Data">
-      <UniqueIdentifier>{bc7a9703-c86d-43ca-808b-db496e951a45}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Data\VolumeLoaders">
-      <UniqueIdentifier>{41a3573b-6169-4dd4-b0ba-9bb9a988aa62}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{eb62c946-aa46-4a73-b36b-d8a6a04d6f1c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="VolumeVisualizers">
-      <UniqueIdentifier>{7c114e8b-d10d-452d-81f2-1ed22e51a4af}</UniqueIdentifier>
+    <Filter Include="Volume">
+      <UniqueIdentifier>{3f2c2533-3801-4218-adef-9a098bf4f457}</UniqueIdentifier>
     </Filter>
-    <Filter Include="VolumeVisualizers\Empty">
-      <UniqueIdentifier>{8e674fc3-1b82-4e49-a11c-1db749155c27}</UniqueIdentifier>
+    <Filter Include="Volume\Data">
+      <UniqueIdentifier>{e8a6da4d-8b44-4535-b6cd-3ca4ffcf43a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="VolumeVisualizers\CPURayCasting">
+    <Filter Include="Volume\Data\VolumeLoaders">
+      <UniqueIdentifier>{41a3573b-6169-4dd4-b0ba-9bb9a988aa62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Volume\Visualizers">
+      <UniqueIdentifier>{7b9c5877-2663-4ccf-bf75-a019780bfa05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Volume\Visualizers\CPURayCasting">
       <UniqueIdentifier>{86ee7e22-170b-4da7-9e3a-6be4864726ce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MeshVisualizers">
+    <Filter Include="Volume\Visualizers\Empty">
+      <UniqueIdentifier>{8e674fc3-1b82-4e49-a11c-1db749155c27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{a3dfbc82-4871-4918-872a-b737f43076ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh\Management">
+      <UniqueIdentifier>{bb2b6b67-07d1-4147-8d30-ae31134d2197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh\Visualizers">
       <UniqueIdentifier>{291745ce-d8f5-49d1-bc38-81b64b1553c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Data\DataModels">
-      <UniqueIdentifier>{55f0e871-6a2c-43b6-ba82-9dfd0159f673}</UniqueIdentifier>
+    <Filter Include="Mesh\Data">
+      <UniqueIdentifier>{bc7a9703-c86d-43ca-808b-db496e951a45}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MeshManagement">
-      <UniqueIdentifier>{bb2b6b67-07d1-4147-8d30-ae31134d2197}</UniqueIdentifier>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{538269a6-6752-4351-8b9b-62b12b267399}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\VolumeSelector">
+      <UniqueIdentifier>{03d35ac9-1a18-4ea0-a743-e623401a769f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tools\SurfaceExtractor">
+      <UniqueIdentifier>{7fa1aa30-98bf-421d-a85f-58156057522f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VolumeVisualizerBase.h">
-      <Filter>VolumeVisualizers</Filter>
-    </ClInclude>
-    <ClInclude Include="CPURayCastingVolumeVisualizerBase.h">
-      <Filter>VolumeVisualizers</Filter>
-    </ClInclude>
-    <ClInclude Include="IVolumeVisualizerFactory.h">
-      <Filter>VolumeVisualizers</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeVisualizerSetter.h">
-      <Filter>VolumeVisualizers</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeVisualizerSettingsBase.h">
-      <Filter>VolumeVisualizers</Filter>
-    </ClInclude>
     <ClInclude Include="EmptyVolumeVisualizer.h">
-      <Filter>VolumeVisualizers\Empty</Filter>
+      <Filter>Volume\Visualizers\Empty</Filter>
     </ClInclude>
     <ClInclude Include="EmptyVolumeVisualizerFactory.h">
-      <Filter>VolumeVisualizers\Empty</Filter>
-    </ClInclude>
-    <ClInclude Include="EmptyVolumeVisualizerSetter.h">
-      <Filter>VolumeVisualizers\Empty</Filter>
+      <Filter>Volume\Visualizers\Empty</Filter>
     </ClInclude>
     <ClInclude Include="CPURayCastingVolumeVisualizer.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerFactory.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
-    </ClInclude>
-    <ClInclude Include="CPURCVolumeVisualizerSetter.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="CPURCVolumeVisualizerSettings.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
-    </ClInclude>
-    <ClInclude Include="Serialization.h">
-      <Filter>Data</Filter>
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="NetVolumeLoader.h">
-      <Filter>Data\VolumeLoaders</Filter>
+      <Filter>Volume\Data\VolumeLoaders</Filter>
     </ClInclude>
     <ClInclude Include="NetVolumeLoaderFactory.h">
-      <Filter>Data\VolumeLoaders</Filter>
+      <Filter>Volume\Data\VolumeLoaders</Filter>
     </ClInclude>
     <ClInclude Include="VolumeLoaderBase.h">
-      <Filter>Data\VolumeLoaders</Filter>
+      <Filter>Volume\Data\VolumeLoaders</Filter>
     </ClInclude>
     <ClInclude Include="VolumeLoaderFactory.h">
-      <Filter>Data\VolumeLoaders</Filter>
+      <Filter>Volume\Data\VolumeLoaders</Filter>
     </ClInclude>
     <ClInclude Include="ColorMappingTable.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Core</Filter>
@@ -101,40 +92,85 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="framework.h" />
-    <ClInclude Include="CPURayCastingVolumeObjectMemory.h">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Data\DataModels</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshNode.h">
-      <Filter>Data\DataModels</Filter>
-    </ClInclude>
-    <ClInclude Include="VolumeSegment.h">
-      <Filter>Data\DataModels</Filter>
-    </ClInclude>
     <ClInclude Include="EigenBenchmark.h" />
     <ClInclude Include="CPUMeshVisualizer.h">
-      <Filter>MeshVisualizers</Filter>
+      <Filter>Mesh\Visualizers</Filter>
     </ClInclude>
     <ClInclude Include="FramebufferLayer.h">
-      <Filter>MeshVisualizers</Filter>
+      <Filter>Mesh\Visualizers</Filter>
     </ClInclude>
     <ClInclude Include="MultiLayeredFramebuffer.h">
-      <Filter>MeshVisualizers</Filter>
+      <Filter>Mesh\Visualizers</Filter>
     </ClInclude>
     <ClInclude Include="MeshGenerator.h">
-      <Filter>MeshManagement</Filter>
+      <Filter>Mesh\Management</Filter>
     </ClInclude>
     <ClInclude Include="MeshTreeExplorer.h">
-      <Filter>MeshManagement</Filter>
+      <Filter>Mesh\Management</Filter>
     </ClInclude>
     <ClInclude Include="CPURayCastingVolumeObjectMemory.h" />
     <ClInclude Include="TrackableCamera.h" />
+    <ClInclude Include="VolumeLoaderGenericBase.h">
+      <Filter>Volume\Data\VolumeLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeObjectMemoryBase.h">
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeObjectMemory.h">
+      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeSegment.h">
+      <Filter>Volume\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeVisualizerSettingsBase.h">
+      <Filter>Volume\Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeVisualizerBase.h">
+      <Filter>Volume\Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeVisualizerBase.h">
+      <Filter>Volume\Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="IVolumeVisualizerFactory.h">
+      <Filter>Volume\Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialization.h">
+      <Filter>Volume\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Mesh\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshNode.h">
+      <Filter>Mesh\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeSelectorBase.h">
+      <Filter>Tools\VolumeSelector</Filter>
+    </ClInclude>
+    <ClInclude Include="SeedVolumeSelector.h">
+      <Filter>Tools\VolumeSelector</Filter>
+    </ClInclude>
+    <ClInclude Include="SurfaceExtractorBase.h">
+      <Filter>Tools\SurfaceExtractor</Filter>
+    </ClInclude>
+    <ClInclude Include="MarchingCubesSurfaceExtractor.h">
+      <Filter>Tools\SurfaceExtractor</Filter>
+    </ClInclude>
+    <ClInclude Include="StlExporter.h">
+      <Filter>Mesh\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="IMeshExporter.h">
+      <Filter>Mesh\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeCache.h">
+      <Filter>Volume\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeCacheGenericBase.h">
+      <Filter>Volume\Data</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
-      <Filter>Data\VolumeLoaders</Filter>
+      <Filter>Volume\Data\VolumeLoaders</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Camera.cpp">
@@ -147,32 +183,43 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Data\DataModels</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshNode.cpp">
-      <Filter>Data\DataModels</Filter>
-    </ClCompile>
-    <ClCompile Include="EigenBenchmark.cpp" />
     <ClCompile Include="CPUMeshVisualizer.cpp">
-      <Filter>MeshVisualizers</Filter>
+      <Filter>Mesh\Visualizers</Filter>
     </ClCompile>
     <ClCompile Include="FramebufferLayer.cpp">
-      <Filter>MeshVisualizers</Filter>
+      <Filter>Mesh\Visualizers</Filter>
     </ClCompile>
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp">
-      <Filter>VolumeVisualizers\CPURayCasting</Filter>
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClCompile>
     <ClCompile Include="MeshGenerator.cpp">
-      <Filter>MeshManagement</Filter>
+      <Filter>Mesh\Management</Filter>
     </ClCompile>
     <ClCompile Include="MeshTreeExplorer.cpp">
-      <Filter>MeshManagement</Filter>
+      <Filter>Mesh\Management</Filter>
     </ClCompile>
     <ClCompile Include="NetVolumeLoader.cpp">
-      <Filter>Data\VolumeLoaders</Filter>
+      <Filter>Volume\Data\VolumeLoaders</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshNode.cpp">
+      <Filter>Mesh\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Mesh\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeSelectorBase.cpp">
+      <Filter>Tools\VolumeSelector</Filter>
+    </ClCompile>
+    <ClCompile Include="SeedVolumeSelector.cpp">
+      <Filter>Tools\VolumeSelector</Filter>
+    </ClCompile>
+    <ClCompile Include="MarchingCubesSurfaceExtractor.cpp">
+      <Filter>Tools\SurfaceExtractor</Filter>
+    </ClCompile>
+    <ClCompile Include="StlExporter.cpp">
+      <Filter>Mesh\Data</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

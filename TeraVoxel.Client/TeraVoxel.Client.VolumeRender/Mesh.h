@@ -70,11 +70,20 @@ public:
 	/// <returns></returns>
 	std::array<Vertex, 3> GetTriangle(uint32_t position);
 
+
+	/// <summary>
+	/// Set N-th triangle of the mesh;
+	/// </summary>
+	/// <param name="position"></param>
+	/// <returns></returns>
+	void SetTriangle(uint32_t position, const std::array<Vertex, 3> &triangle);
+
 	/// <summary>
 	/// Returns count of all triangles.
 	/// </summary>
 	/// <returns></returns>
 	uint32_t GetTriangleCount();
+
 private:
 	std::vector<Vertex> _vertices;
 	MeshMode _mode = MeshMode::List;

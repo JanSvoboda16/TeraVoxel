@@ -4,19 +4,17 @@
  */
 #include "pch.h"
 #include "VolumeScene.h"
+#include "../TeraVoxel.Client.Core/TypeToString.h"
 
-template <typename T>
-VolumeScene<T>::VolumeScene(const std::shared_ptr<Camera>& camera, const ProjectInfo& projectInfo, const std::shared_ptr<VolumeLoaderFactory<T>>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory<T>>& visualizerFactory, const std::shared_ptr<MeshNode>& meshNode) //TODO new constructor
+VolumeScene::VolumeScene(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory>& visualizerFactory, const std::shared_ptr<MeshNode>& meshNode) //TODO new constructor
 {
-	_projectInfo = projectInfo;
 	_camera = camera;
-	_volumeVisualizer = visualizerFactory->Create(camera, projectInfo, volumeLoaderFactory, meshNode);
+	_volumeVisualizer = visualizerFactory->Create(camera, volumeLoaderFactory, meshNode);
 	_volumeLoaderFactory = volumeLoaderFactory;
 	_meshNode = meshNode;
 }
 
-template<typename T>
-VolumeScene<T>::~VolumeScene()
+VolumeScene::~VolumeScene()
 {
 	if (_renderingThread.valid())
 	{
@@ -24,8 +22,7 @@ VolumeScene<T>::~VolumeScene()
 	}
 }
 
-template <typename T>
-void VolumeScene<T>::ComputeFrame(int width, int height, bool _fast)
+void VolumeScene::ComputeFrame(int width, int height, bool _fast)
 {
 	_framebufferIndex = !_framebufferIndex;
 
@@ -63,33 +60,29 @@ void VolumeScene<T>::ComputeFrame(int width, int height, bool _fast)
 
 	if (_visualizerChanged)
 	{
-		_volumeVisualizer = _visualizerFactory->Create(_camera, _projectInfo, _volumeLoaderFactory, _meshNode);
+		_volumeVisualizer = _visualizerFactory->Create(_camera, _volumeLoaderFactory, _meshNode);
 		_visualizerChanged = false;
 	}
 
-	_renderingThread = std::async(std::launch::async, &VolumeScene<T>::ComputeFrameTask, this, width, height, _fast);
+	_renderingThread = std::async(std::launch::async, &VolumeScene::ComputeFrameTask, this, width, height, _fast);
 }
 
-template <typename T>
-int VolumeScene<T>::GetFrameWidth()
+int VolumeScene::GetFrameWidth()
 {
 	return _framebufferIndex ? frameWidth1 : frameWidth2;
 }
 
-template <typename T>
-int VolumeScene<T>::GetFrameHeight()
+int VolumeScene::GetFrameHeight()
 {
 	return _framebufferIndex ? frameHeight1 : frameHeight2;
 }
 
-template <typename T>
-bool VolumeScene<T>::DataChanged()
+bool VolumeScene::DataChanged()
 {
 	return _volumeVisualizer->DataChanged();
 }
 
-template <typename T>
-std::shared_ptr<unsigned char[]> VolumeScene<T>::GetFrame()
+std::shared_ptr<unsigned char[]> VolumeScene::GetFrame()
 {
 	if (!_frameReady)
 	{
@@ -98,51 +91,43 @@ std::shared_ptr<unsigned char[]> VolumeScene<T>::GetFrame()
 	return  _framebufferIndex ? _framebuffer1 : _framebuffer2;
 }
 
-template<typename T>
-inline std::shared_ptr<Camera> VolumeScene<T>::GetCamera()
+std::shared_ptr<Camera> VolumeScene::GetCamera()
 {
 	return _camera;
 }
 
-template<typename T>
-std::shared_ptr<MeshNode> VolumeScene<T>::GetMeshNode()
+std::shared_ptr<MeshNode> VolumeScene::GetMeshNode()
 {
 	return _meshNode;
 }
 
-template<typename T>
-bool VolumeScene<T>::FrameReady()
+std::shared_ptr<VolumeLoaderFactory> VolumeScene::GetVolumeLoaderFactory()
+{
+	return _volumeLoaderFactory;
+}
+
+bool VolumeScene::FrameReady()
 {
 	return _frameReady.load(std::memory_order::acquire);
 }
 
-template<typename T>
-bool VolumeScene<T>::RenderingInProgress()
+bool VolumeScene::RenderingInProgress()
 {
 	return _renderingInProgress;
 }
 
-template<typename T>
-void VolumeScene<T>::ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory<T>> visualizerFac)
+void VolumeScene::ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory> visualizerFac)
 {
 	_visualizerFactory = visualizerFac;
 	_visualizerChanged = true;
 }
 
-template<typename T>
-const char* VolumeScene<T>::GetDataTypeName()
-{
-	return TypeToString::ToString<T>();
-}
-
-template<typename T>
-ProjectInfo VolumeScene<T>::GetProjectInfo() 
+ProjectInfo VolumeScene::GetProjectInfo() 
 { 
-	return _projectInfo;
+	return _volumeLoaderFactory->GetProjectInfo();
 }
 
-template<typename T>
-void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
+void VolumeScene::ComputeFrameTask(int width, int height, bool _fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
 	
@@ -154,14 +139,3 @@ void VolumeScene<T>::ComputeFrameTask(int width, int height, bool _fast)
 	_renderingInProgress.store(false, std::memory_order::release);
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Ended", "", _fast ? "fast" : "full");
 }
-
-template VolumeScene<uint8_t>;
-template VolumeScene<uint16_t>;
-template VolumeScene<uint32_t>;
-template VolumeScene<uint64_t>;
-template VolumeScene<float>;
-template VolumeScene<double>;
-template VolumeScene<int8_t>;
-template VolumeScene<int16_t>;
-template VolumeScene<int32_t>;
-template VolumeScene<int64_t>;

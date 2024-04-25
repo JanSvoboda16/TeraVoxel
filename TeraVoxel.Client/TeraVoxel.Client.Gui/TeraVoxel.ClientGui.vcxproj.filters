@@ -28,6 +28,15 @@
     <Filter Include="Areas\MeshDemo">
       <UniqueIdentifier>{9062f6a5-a56f-43dd-b3e1-52747795116d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Areas\Tools">
+      <UniqueIdentifier>{0b6969e5-462a-484a-8b3f-a85c7a272817}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\Tools\SurfaceExtraction">
+      <UniqueIdentifier>{512567b7-b04e-4b98-836c-908d06091311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Areas\Tools\SurfaceExtraction\SeedSelection">
+      <UniqueIdentifier>{f2b38b78-7653-4579-8ebf-ccb015426a0c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImGui\imconfig.h">
@@ -80,6 +89,18 @@
     <ClInclude Include="SceneObjectsWindow.h">
       <Filter>Areas\MeshDemo</Filter>
     </ClInclude>
+    <ClInclude Include="ToolWindow.h">
+      <Filter>Areas\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="ISelectionView.h">
+      <Filter>Areas\Tools\SurfaceExtraction</Filter>
+    </ClInclude>
+    <ClInclude Include="SeedSelectionView.h">
+      <Filter>Areas\Tools\SurfaceExtraction\SeedSelection</Filter>
+    </ClInclude>
+    <ClInclude Include="SurfaceExtractionView.h">
+      <Filter>Areas\Tools\SurfaceExtraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImGui\imgui.cpp">
@@ -124,6 +145,15 @@
     </ClCompile>
     <ClCompile Include="SceneObjectsWindow.cpp">
       <Filter>Areas\MeshDemo</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolWindow.cpp">
+      <Filter>Areas\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="SurfaceExtractionView.cpp">
+      <Filter>Areas\Tools\SurfaceExtraction</Filter>
+    </ClCompile>
+    <ClCompile Include="SeedSelectionView.cpp">
+      <Filter>Areas\Tools\SurfaceExtraction\SeedSelection</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
