@@ -9,9 +9,10 @@
 VolumeScene::VolumeScene(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory>& visualizerFactory, const std::shared_ptr<MeshNode>& meshNode) //TODO new constructor
 {
 	_camera = camera;
-	_volumeVisualizer = visualizerFactory->Create(camera, volumeLoaderFactory, meshNode);
+	_volumeVisualizer = visualizerFactory->Create(camera, volumeLoaderFactory);
 	_volumeLoaderFactory = volumeLoaderFactory;
 	_meshNode = meshNode;
+	_meshVisualizer = std::make_shared<CPUMeshVisualizer>(meshNode, camera);
 }
 
 VolumeScene::~VolumeScene()
@@ -60,7 +61,7 @@ void VolumeScene::ComputeFrame(int width, int height, bool _fast)
 
 	if (_visualizerChanged)
 	{
-		_volumeVisualizer = _visualizerFactory->Create(_camera, _volumeLoaderFactory, _meshNode);
+		_volumeVisualizer = _visualizerFactory->Create(_camera, _volumeLoaderFactory);
 		_visualizerChanged = false;
 	}
 
@@ -131,9 +132,17 @@ void VolumeScene::ComputeFrameTask(int width, int height, bool _fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
 	
-	auto meshObject = std::make_shared<MeshNode>();
-	
-	_volumeVisualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1);
+	if (_fast) 
+	{
+		_camera->ChangeScreenSize(std::ceil(width / (float)2), std::ceil(height / (float)2));
+	}
+
+	_meshVisualizer->ComputeFrame();
+	auto meshFrameBuffer = _meshVisualizer->GetFrameBuffer();
+
+	_camera->ChangeScreenSize(width, height);
+
+	_volumeVisualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1, meshFrameBuffer);
 
 	_frameReady.store(true, std::memory_order::release);
 	_renderingInProgress.store(false, std::memory_order::release);

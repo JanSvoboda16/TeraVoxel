@@ -4,7 +4,7 @@
  */
 #pragma once
 #include<memory>
-#include"Camera.h"
+#include"Camera.cuh"
 #include <mutex>
 #include "CPURayCastingVolumeObjectMemory.h"
 #include <future>

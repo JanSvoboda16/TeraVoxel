@@ -1,5 +1,5 @@
 #include "MeshGenerator.h"
-#include "Transformations.h"
+#include "Transformations.cuh"
 
 Vector4b MeshGenerator::SphereRainbowColor(float theta, float phi, uint8_t alpha)
 {

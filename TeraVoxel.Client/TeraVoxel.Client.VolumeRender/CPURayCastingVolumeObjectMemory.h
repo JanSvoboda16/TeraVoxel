@@ -3,7 +3,7 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #pragma once
-#include "Camera.h"
+#include "Camera.cuh"
 #include "VolumeSegment.h"
 #include "../TeraVoxel.Client.Core/ProjectManager.h"
 #include "../TeraVoxel.Client.Core/ProjectInfo.h"

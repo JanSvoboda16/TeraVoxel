@@ -43,6 +43,9 @@
     <Filter Include="Tools\SurfaceExtractor">
       <UniqueIdentifier>{7fa1aa30-98bf-421d-a85f-58156057522f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Volume\Visualizers\GPURayCasting">
+      <UniqueIdentifier>{8b077cb7-1707-4fbc-abcb-227655304930}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EmptyVolumeVisualizer.h">
@@ -76,9 +79,6 @@
     <ClInclude Include="ColorMappingTable.h">
       <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="IVolumeScene.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -86,9 +86,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="NetMemoryVolumeSceneFactory.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Transformations.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="framework.h" />
@@ -99,7 +96,7 @@
     <ClInclude Include="FramebufferLayer.h">
       <Filter>Mesh\Visualizers</Filter>
     </ClInclude>
-    <ClInclude Include="MultiLayeredFramebuffer.h">
+    <ClInclude Include="CPUMultiLayeredFramebuffer.h">
       <Filter>Mesh\Visualizers</Filter>
     </ClInclude>
     <ClInclude Include="MeshGenerator.h">
@@ -126,9 +123,6 @@
       <Filter>Volume\Visualizers</Filter>
     </ClInclude>
     <ClInclude Include="VolumeVisualizerBase.h">
-      <Filter>Volume\Visualizers</Filter>
-    </ClInclude>
-    <ClInclude Include="CPURayCastingVolumeVisualizerBase.h">
       <Filter>Volume\Visualizers</Filter>
     </ClInclude>
     <ClInclude Include="IVolumeVisualizerFactory.h">
@@ -167,19 +161,35 @@
     <ClInclude Include="VolumeCacheGenericBase.h">
       <Filter>Volume\Data</Filter>
     </ClInclude>
+    <ClInclude Include="CPURayCastingVolumeVisualizerBase.h">
+      <Filter>Volume\Visualizers\CPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="GPURCVolumeVisualizerFactory.h" />
+    <ClInclude Include="MultiLayeredFramebufferBase.h">
+      <Filter>Mesh\Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.cuh">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Transformations.cuh">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="RayCastingUtilities.cuh">
+      <Filter>Volume\Visualizers</Filter>
+    </ClInclude>
+    <ClInclude Include="GPURayCastingVolumeTexture.cuh">
+      <Filter>Volume\Visualizers\GPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="GPURayCastingVolumeVisualizer.h">
+      <Filter>Volume\Visualizers\GPURayCasting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VolumeLoaderBase.cpp">
       <Filter>Volume\Data\VolumeLoaders</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Camera.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="VolumeScene.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Transformations.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp">
@@ -221,5 +231,16 @@
     <ClCompile Include="StlExporter.cpp">
       <Filter>Mesh\Data</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Camera.cu">
+      <Filter>Core</Filter>
+    </CudaCompile>
+    <CudaCompile Include="Transformations.cu">
+      <Filter>Core</Filter>
+    </CudaCompile>
+    <CudaCompile Include="GPURayCastingVisualizer.cu">
+      <Filter>Volume\Visualizers\GPURayCasting</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

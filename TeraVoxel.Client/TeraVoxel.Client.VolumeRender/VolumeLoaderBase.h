@@ -18,7 +18,7 @@ struct ComparePriority
 {
 	bool operator()(VolumeSegment<T>* lhs, VolumeSegment<T>* rhs)
 	{
-		return lhs->priority.load(std::memory_order::acquire) > rhs->priority.load(std::memory_order::acquire);
+		return lhs->priority.load(std::memory_order_acquire) > rhs->priority.load(std::memory_order_acquire);
 	}
 };
 
@@ -35,7 +35,6 @@ public:
 	std::unique_ptr<VolumeSegment<T>> LoadSync(int x, int y, int z, int downscale);
 
 	void BindOnSegmentLoaded(std::function<void(void)> function) { _onSegmentLoaded = function; }
-	ProjectInfo GetProjectInfo() { return _projectInfo; }
 
 protected:
 	std::list<VolumeSegment<T>*> _segmentsToLoad;

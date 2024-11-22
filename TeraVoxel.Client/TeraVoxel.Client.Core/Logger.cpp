@@ -5,6 +5,8 @@
 #include "pch.h"
 #include "Logger.h"
 
+Logger* logger;
+
 Logger::Logger(const std::string &filePath)
 {
 	timeStart = std::chrono::high_resolution_clock::now();

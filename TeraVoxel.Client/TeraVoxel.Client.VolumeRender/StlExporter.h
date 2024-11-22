@@ -2,7 +2,7 @@
 #include "IMeshExporter.h"
 #include <iostream>
 #include <fstream>
-#include "Transformations.h"
+#include "Transformations.cuh"
 
 class StlExporter : public IMeshExporter
 {

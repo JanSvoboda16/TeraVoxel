@@ -3,7 +3,6 @@
  * Based on: ImGui standalone example application for DirectX 11
  * License: See: /ImGui/LICENSE.txt
  */
-
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"

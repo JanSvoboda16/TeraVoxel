@@ -9,11 +9,11 @@
 #include <mutex>
 #include <chrono>
 
+
 class Logger
 {
 private:
 	Logger(const std::string &filePath);
-	inline static Logger* logger;
 	std::ofstream fileStream;
 	std::mutex mutex;
 	std::chrono::steady_clock::time_point timeStart;
@@ -25,4 +25,6 @@ public:
 	static void DestroyInstance();
 	void LogEvent(const std::string& component, const std::string& action, const std::string& value = "", const std::string & context = "");
 };
+
+
 

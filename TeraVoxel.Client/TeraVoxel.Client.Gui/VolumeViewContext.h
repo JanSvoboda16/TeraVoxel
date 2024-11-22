@@ -1,6 +1,6 @@
 #pragma once
 #include "../../TeraVoxel.Client.VolumeRender/VolumeScene.h"
-#include "../../TeraVoxel.Client.VolumeRender/Camera.h"
+#include "../../TeraVoxel.Client.VolumeRender/Camera.cuh"
 #include "../../TeraVoxel.Client.Core/WindowNotification.h"
 
 

@@ -3,8 +3,10 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #include "pch.h"
-#include "Camera.h"
+#include "Camera.cuh"
+#include "../TeraVoxel.Client.Core/Logger.h"
 
+__host__ 
 Camera::Camera(const Vector3f& observerCenter, int observerDistance, const  Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance, float farPlaneDistance, const std::shared_ptr<MeshNode> orbiterMeshNode)
 	: _observerCenterMeshNode(orbiterMeshNode)
 {
@@ -22,13 +24,13 @@ Camera::Camera(const Vector3f& observerCenter, int observerDistance, const  Vect
 	RecomputeParams();
 }
 
-void Camera::ChangePosition(const Vector3f& position)
+__host__ void Camera::ChangePosition(const Vector3f& position)
 {
 	_position = position;
 	RecomputeParams();
 }
 
-void Camera::ChangeObserverAxis(char axis, bool rotate)
+__host__ void Camera::ChangeObserverAxis(char axis, bool rotate)
 {
 	//y -> default
 	//x -> rotate -90 around z
@@ -47,7 +49,7 @@ void Camera::ChangeObserverAxis(char axis, bool rotate)
 	}
 }
 
-void Camera::Observe(float deltaXAngle, float deltaYAngle, float deltaDistance, float deltaXCenter, float deltaYCenter, float deltaZCenter)
+__host__ void Camera::Observe(float deltaXAngle, float deltaYAngle, float deltaDistance, float deltaXCenter, float deltaYCenter, float deltaZCenter)
 {
 	_totalObsYAngle += deltaYAngle;
 
@@ -73,7 +75,7 @@ void Camera::Observe(float deltaXAngle, float deltaYAngle, float deltaDistance, 
 	RecomputeParams();
 }
 
-void Camera::Rotate(const Vector3f& rotation)
+__host__ void Camera::Rotate(const Vector3f& rotation)
 {
 	auto x = Transformations::GetRotationMatrix('x', rotation[0]);
 	auto y = Transformations::GetRotationMatrix('y', rotation[1]);
@@ -82,26 +84,25 @@ void Camera::Rotate(const Vector3f& rotation)
 	RecomputeParams();
 }
 
-Matrix4f Camera::GetRotationMatrix()
+__host__ __device__ Matrix4f Camera::GetRotationMatrix()
 {
 	return _rotation;
 }
 
-void Camera::SetRotationMatrix(const Matrix4f &matrix)
-{;
+__host__ void Camera::SetRotationMatrix(const Matrix4f& matrix)
+{
 	_rotation = matrix;
 	RecomputeParams();
-
 }
 
-void Camera::ChangeScreenSize(int width, int height)
+__host__ void Camera::ChangeScreenSize(int width, int height)
 {
 	_screenHeight = height;
 	_screenWidth = width;
 	RecomputeParams();
 }
 
-Vector3f Camera::GetShrankRayDirection(int xPixel, int yPixel)
+__host__ __device__ Vector3f Camera::GetShrankRayDirection(int xPixel, int yPixel)
 {
 	float x = xPixel - _screenWidth / 2.0;
 	float y = yPixel - _screenHeight / 2.0;
@@ -109,7 +110,7 @@ Vector3f Camera::GetShrankRayDirection(int xPixel, int yPixel)
 	return (_rayShrankRotation * vector).head<3>();
 }
 
-Vector3f Camera::GetRayDirection(int xPixel, int yPixel)
+__host__ __device__ Vector3f Camera::GetRayDirection(int xPixel, int yPixel)
 {
 	float x = xPixel - _screenWidth / 2.0;
 	float y = yPixel - _screenHeight / 2.0;
@@ -117,66 +118,66 @@ Vector3f Camera::GetRayDirection(int xPixel, int yPixel)
 	return (_rotation * vector).head<3>();
 }
 
-Matrix4f Camera::GetProjectionMatrix()
+__host__ __device__ Matrix4f Camera::GetProjectionMatrix()
 {
 	return _projectionMatrix;
 }
 
-Matrix4f Camera::GetViewPortTransformationMatrix()
+__host__ __device__ Matrix4f Camera::GetViewPortTransformationMatrix()
 {
-	return Transformations::GetShrinkMatrix((_screenWidth-1) / 2.f, -(_screenHeight-1) / 2.f, 1) * Transformations::GetTranslationMatrix(1,-1,0);
+	return Transformations::GetShrinkMatrix((_screenWidth - 1) / 2.f, -(_screenHeight - 1) / 2.f, 1) * Transformations::GetTranslationMatrix(1, -1, 0);
 }
 
-Matrix4f Camera::GetPositionMatrix()
+__host__ __device__ Matrix4f Camera::GetPositionMatrix()
 {
 	return _positionMatrix;
 }
 
-float Camera::GetVoxelSizeMean()
+__host__ __device__ float Camera::GetVoxelSizeMean()
 {
 	return _voxelDimensions.array().mean();
 }
 
 
-Vector3f Camera::GedDistanceFromProjected(float zValue, int xPixel, int yPixel)
+__host__ __device__ Vector3f Camera::GedDistanceFromProjected(float zValue, int xPixel, int yPixel)
 {
 	float realZValue = _zValueCoef1 / (_zValueCoef2 - zValue);
 	float x = xPixel - _screenWidth / 2.0;
 	float y = yPixel - _screenHeight / 2.0;
 
-	float depthRation = 1/_depth * realZValue;
+	float depthRation = 1 / _depth * realZValue;
 
-	return (_rotation * Vector4f(x*depthRation, y*depthRation, realZValue,1)).head(3);
+	return (_rotation * Vector4f(x * depthRation, y * depthRation, realZValue, 1)).head(3);
 }
 
-void Camera::RecomputeParams()
+__host__  void Camera::RecomputeParams()
 {
 	_depth = _screenWidth / (2 * tanf(_viewAngle / 2.0));
 	_rayShrankRotation = Transformations::GetShrinkMatrix(_correction[0], _correction[1], _correction[2]) * _rotation;
 	_shrankSpacePosition = _position.array() * _correction.array();
 
-	float r = tanf(_viewAngle / 2)*_nearPlaneDistance;
-	float t = r * _screenHeight / _screenWidth;	
+	float r = tanf(_viewAngle / 2) * _nearPlaneDistance;
+	float t = r * _screenHeight / _screenWidth;
 
 	// camera is looking into positive x, not negative
-	_projectionMatrix << 
+	_projectionMatrix <<
 		_nearPlaneDistance / r, 0, 0, 0,
 		0, -_nearPlaneDistance / t, 0, 0,
-		0, 0, (_farPlaneDistance+_nearPlaneDistance) / (_farPlaneDistance- _nearPlaneDistance), -2.f * (_nearPlaneDistance * _farPlaneDistance) / (_farPlaneDistance- _nearPlaneDistance),
+		0, 0, (_farPlaneDistance + _nearPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance), -2.f * (_nearPlaneDistance * _farPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance),
 		0, 0, 1, 0;
 
 	_zValueCoef1 = (2 * _nearPlaneDistance * _farPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
-	_zValueCoef2 = (_farPlaneDistance+_nearPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
+	_zValueCoef2 = (_farPlaneDistance + _nearPlaneDistance) / (_farPlaneDistance - _nearPlaneDistance);
 
 	_positionMatrix = _rotation.inverse() * Transformations::GetTranslationMatrix(-_position[0], -_position[1], -_position[2]);
 
 	if (_observerCenterMeshNode != nullptr)
 	{
-		_observerCenterMeshNode->transformation = Transformations::GetTranslationMatrix(_observerCenter[0], _observerCenter[1], _observerCenter[2]) ;
-	}	
+		_observerCenterMeshNode->transformation = Transformations::GetTranslationMatrix(_observerCenter[0], _observerCenter[1], _observerCenter[2]);
+	}
 }
 
-void Camera::BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>& meshNode)
+__host__ void Camera::BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>& meshNode)
 {
 	_observerCenterMeshNode = meshNode;
 }

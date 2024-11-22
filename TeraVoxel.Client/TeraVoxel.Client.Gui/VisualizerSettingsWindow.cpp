@@ -5,6 +5,7 @@
 #include "VisualizerSettingsWindow.h"
 #include "../TeraVoxel.Client.VolumeRender/EmptyVolumeVisualizerFactory.h"
 #include "../TeraVoxel.Client.VolumeRender/CPURCVolumeVisualizerFactory.h"
+#include "../TeraVoxel.Client.VolumeRender/GPURCVolumeVisualizerFactory.h"
 
 void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
 {
@@ -19,7 +20,7 @@ void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
 			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<CPURCVolumeVisualizerFactory>(_fastRayCastingVisualizerSettings));
 			break;
 		case 2:
-			// Add your visualizer here
+			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<GPURCVolumeVisualizerFactory>(_fastRayCastingVisualizerSettings));
 			break;
 		}
 		_volumeViewContext->sceneUpdated.Notify();
@@ -36,8 +37,8 @@ void VisualizerSettingsWindow::ChangeView(int visualizerId)
 	case 1:
 		_view = std::shared_ptr<IView>((IView*) new CPURayCastingView(_volumeViewContext, _fastRayCastingVisualizerSettings));
 		break;
-	default:
-		// Add your visualizer view here
+	case 2:
+		_view = std::shared_ptr<IView>((IView*) new CPURayCastingView(_volumeViewContext, _fastRayCastingVisualizerSettings));
 		break;
 	}
 }
@@ -46,7 +47,7 @@ void VisualizerSettingsWindow::Update()
 {
 	ImGui::Begin("Visualizer Settings");
 
-	const char* visualizerNames[] = { "None", "CPU Ray casting", "Your visualizer" };
+	const char* visualizerNames[] = { "None", "CPU Ray casting", "GPU Ray casting" };
 
 	if (ImGui::Combo("Visualizer:", &_selectedVisualizerId, visualizerNames, IM_ARRAYSIZE(visualizerNames)))
 	{

@@ -37,6 +37,7 @@ void CPURayCastingView::LoadTable(std::string fileName)
 
 void CPURayCastingView::Update()
 {
+    // TODO FIX, DONT EDIT SETTINGS WHEN RENDERING
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
     ImGui::Text("Color Mapping Tables");
     if (ImGui::Button("Load"))

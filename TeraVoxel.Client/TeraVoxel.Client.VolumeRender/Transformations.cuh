@@ -4,10 +4,11 @@
  */
 #pragma once
 #include <Eigen/Dense>
+#include <device_launch_parameters.h>
 
 using Eigen::Matrix4f;
 
-class Transformations 
+class Transformations
 {
 public:
 	/// <summary>
@@ -16,7 +17,7 @@ public:
 	/// <param name="axis">Axis ('x', 'y', 'z')</param>
 	/// <param name="alfa">Angle in rads</param>
 	/// <returns>Rotation matrix</returns>
-	static Matrix4f GetRotationMatrix(char axis, float angle);
+	__host__ __device__ static Matrix4f GetRotationMatrix(char axis, float angle);
 	/// <summary>
 	/// Computes a shink matrix
 	/// </summary>
@@ -24,7 +25,7 @@ public:
 	/// <param name="y"></param>
 	/// <param name="z"></param>
 	/// <returns></returns>
-	static Matrix4f GetShrinkMatrix(float x, float y, float z);
+	__host__ __device__ static Matrix4f GetShrinkMatrix(float x, float y, float z);
 	/// <summary>
 	/// Computes a translation matrix
 	/// </summary>
@@ -32,7 +33,6 @@ public:
 	/// <param name="y"></param>
 	/// <param name="z"></param>
 	/// <returns></returns>
-	static Matrix4f GetTranslationMatrix(float x, float y, float z);
+	__host__ __device__ static Matrix4f GetTranslationMatrix(float x, float y, float z);
 
 };
-

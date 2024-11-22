@@ -4,7 +4,7 @@
  */
 
 #include "MarchingCubesSurfaceExtractor.h"
-#include "Transformations.h"
+#include "Transformations.cuh"
 
 __forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo)
 {

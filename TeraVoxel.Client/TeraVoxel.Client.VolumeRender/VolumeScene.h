@@ -4,7 +4,7 @@
  */
 #pragma once
 #include<memory>
-#include"Camera.h"
+#include"Camera.cuh"
 #include <mutex>
 #include "CPURayCastingVolumeObjectMemory.h"
 #include <future>
@@ -53,6 +53,7 @@ private:
 	std::shared_ptr<VolumeLoaderFactory> _volumeLoaderFactory;
 	std::shared_ptr<VolumeVisualizerBase> _volumeVisualizer;
 	std::shared_ptr<IVolumeVisualizerFactory> _visualizerFactory;
+	std::shared_ptr<CPUMeshVisualizer> _meshVisualizer;
 
 	bool _visualizerChanged = false;
 	std::atomic<bool> _frameReady = false;

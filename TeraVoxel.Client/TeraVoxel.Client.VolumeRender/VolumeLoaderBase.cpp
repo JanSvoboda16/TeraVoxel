@@ -73,10 +73,10 @@ void VolumeLoaderBase<T>::LoadingTask()
 		}
 		else
 		{
-			auto futureDownscale = volume->futureDownscale.load(std::memory_order::relaxed);
+			auto loadingDownscale = volume->loadingDownscale.load(std::memory_order::relaxed);
 			auto unusedCount = volume->unusedCount.load(std::memory_order::relaxed);
 			auto x = volume->x; auto y = volume->y; auto z = volume->z;
-			auto requiredMemory = GetBlockRequiredMemory(futureDownscale);
+			auto requiredMemory = GetBlockRequiredMemory(loadingDownscale);
 
 			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
 			if (unusedCount < 2 && (requiredMemory + MemoryContext::GetInstance().usedMemory.load(std::memory_order::acquire) <= MemoryContext::GetInstance().maxMemory.load(std::memory_order::acquire)) && unusedCount < 2)
@@ -91,7 +91,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 				{
 					try
 					{
-						data = LoadSegmentData(x, y, z, futureDownscale);
+						data = LoadSegmentData(x, y, z, loadingDownscale);
 						break;
 					}
 					catch (const std::exception& ex)
@@ -107,9 +107,9 @@ void VolumeLoaderBase<T>::LoadingTask()
 				VolumeSegment<T>* newVolume = new VolumeSegment<T>(x, y, z);
 				// New segment inicialization
 				newVolume->data = data;
-				newVolume->actualDownscale = futureDownscale;
-				newVolume->futureDownscale.store(futureDownscale, std::memory_order::relaxed);
-				newVolume->requiredDownscale = futureDownscale;
+				newVolume->actualDownscale = loadingDownscale;
+				newVolume->loadingDownscale.store(loadingDownscale, std::memory_order::relaxed);
+				newVolume->requiredDownscale = loadingDownscale;
 				newVolume->unusedCount.store(0, std::memory_order::relaxed);
 				newVolume->used.store(true, std::memory_order::relaxed);
 				newVolume->waitsToBeReloaded.store(false, std::memory_order::relaxed);
@@ -179,7 +179,7 @@ std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::LoadSync(int x, int y, in
 {
 	auto volume = std::make_unique<VolumeSegment<T>>(x, y, z);
 	volume->actualDownscale = downscale;
-	volume->futureDownscale = downscale;
+	volume->loadingDownscale = downscale;
 	volume->requiredDownscale = downscale;
 
 	for (size_t i = 0; i < 100; i++)
@@ -246,7 +246,7 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		}		
 
 		volume->actualDownscale = downscale;
-		volume->futureDownscale = downscale;
+		volume->loadingDownscale = downscale;
 		volume->requiredDownscale = downscale;
 
 		_loadedSegmentsMutex.lock();

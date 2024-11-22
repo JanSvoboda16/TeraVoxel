@@ -158,14 +158,14 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 					{
 						if (vol->waitsToBeReloaded.load(std::memory_order::acquire))
 						{
-							if (vol->futureDownscale > requiredDownscale)
+							if (vol->loadingDownscale > requiredDownscale)
 							{
-								vol->futureDownscale.store(requiredDownscale, std::memory_order::release);
+								vol->loadingDownscale.store(requiredDownscale, std::memory_order::release);
 							}
 						}
 						else
 						{
-							vol->futureDownscale.store(requiredDownscale, std::memory_order::release);
+							vol->loadingDownscale.store(requiredDownscale, std::memory_order::release);
 							_volumeLoader->AddToStack(vol);
 						}
 					}
@@ -319,7 +319,7 @@ void CPURayCastingVolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount
 				delete vol->data;
 				vol->data = downscaledData;
 				vol->actualDownscale = vol->requiredDownscale;
-				vol->futureDownscale = vol->requiredDownscale;
+				vol->loadingDownscale = vol->requiredDownscale;
 
 				count++;
 				if (count == maxCount)

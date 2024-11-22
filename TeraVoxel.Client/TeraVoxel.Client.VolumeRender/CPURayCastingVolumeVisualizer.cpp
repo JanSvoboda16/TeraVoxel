@@ -1,4 +1,14 @@
 ﻿#include "CPURayCastingVolumeVisualizer.h"
+#include <future>
+
+
+CPURayCastingVolumeVisualizer::CPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings>& settings) :
+	RayCastingVolumeVisualizerBase(camera, volumeLoaderFactory)
+{
+	_settings = settings;
+
+	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetProjectInfo().dataType.c_str(), camera, volumeLoaderFactory);
+}
 
 template <typename T>
 bool CPURayCastingVolumeVisualizer::DataChangedTemplated()
@@ -6,15 +16,15 @@ bool CPURayCastingVolumeVisualizer::DataChangedTemplated()
 	return (std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory))->MemoryChanged();
 }
 
-
 bool CPURayCastingVolumeVisualizer::DataChanged()
 {	
 	return CALL_TEMPLATED_FUNCTION(DataChangedTemplated, _volumeLoaderFactory->GetProjectInfo().dataType.c_str());
 }
 
 template<typename T>
-void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale)
+void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
+	auto cpuMultiLayeredFramebuffer = std::dynamic_pointer_cast<CPUMultiLayeredFramebuffer>(multiLayeredFramebuffer);
 	auto memory = std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory);
 	memory->Prepare();
 	_settingsCopy = *_settings;
@@ -23,14 +33,12 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale
 
 	Vector2i screenSize = this->_camera->GetScreenSize();
 	this->_camera->ChangeScreenSize(std::ceil(screenSize[0] / (float)downscale), std::ceil(screenSize[1] / (float)downscale));
-	_meshVisualizer.ComputeFrame();
-	_meshFramebuffer = _meshVisualizer.GetFrameBuffer();
 
 	auto renderingThreadCount = SettingsContext::GetInstance().renderingThreadCount.load(std::memory_order::acquire);
 	std::vector<std::future<void>> threads;
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
-		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer::ComputePartOfFrame<T>, this, renderingThreadCount, i, screenSize[0], screenSize[1], downscale, memory));
+		threads.push_back(std::async(std::launch::async, &CPURayCastingVolumeVisualizer::ComputePartOfFrame<T>, this, std::ref(framebuffer), renderingThreadCount, i, screenSize[0], screenSize[1], downscale, memory, cpuMultiLayeredFramebuffer));
 	}
 	for (size_t i = 0; i < renderingThreadCount; i++)
 	{
@@ -40,7 +48,7 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale
 
 	if (downscale != 1)
 	{
-		unsigned char* framebuffer = this->_framebuffer.get();
+		unsigned char* framebufferRaw = framebuffer.get();
 		auto screenSizes = this->_camera->GetScreenSize();
 		int width = screenSizes[0];
 		int height = screenSizes[1];
@@ -51,7 +59,7 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale
 			{
 				for (size_t c = 0; c < 4; c++)
 				{
-					framebuffer[y * width * 4 + x * 4 + c] = framebuffer[y / 2 * 2 * width * 4 + x / 2 * 2 * 4 + c];
+					framebufferRaw[y * width * 4 + x * 4 + c] = framebufferRaw[y / 2 * 2 * width * 4 + x / 2 * 2 * 4 + c];
 				}
 			}
 		}
@@ -60,16 +68,23 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(int downscale
 	memory->Revalidate();
 }
 
-void CPURayCastingVolumeVisualizer::ComputeFrameInternal(int downscale)
+void CPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
-	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetProjectInfo().dataType.c_str(),downscale);
+	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetProjectInfo().dataType.c_str(), framebuffer, downscale, multiLayeredFramebuffer);
 }
 
 
 template <typename T>
-void CPURayCastingVolumeVisualizer::ComputePartOfFrame(int threads, int threadIndex, int framebufferWidth, int framebufferHeight, int downscale, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>> &memory)
+void CPURayCastingVolumeVisualizer::CreateMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory)
 {
-	unsigned char* framebuffer = this->_framebuffer.get();
+	_memory = std::make_shared<CPURayCastingVolumeObjectMemory<T>>(camera, volumeLoaderFactory);
+}
+
+
+template <typename T>
+void CPURayCastingVolumeVisualizer::ComputePartOfFrame(std::shared_ptr<unsigned char[]>& framebuffer, int threads, int threadIndex, int framebufferWidth, int framebufferHeight, int downscale, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>> &memory, const std::shared_ptr<CPUMultiLayeredFramebuffer>& multiLayeredFramebuffer)
+{
+	unsigned char* framebufferRaw = framebuffer.get();
 
 	if (downscale == 1)
 	{
@@ -82,11 +97,11 @@ void CPURayCastingVolumeVisualizer::ComputePartOfFrame(int threads, int threadIn
 			{
 				break;
 			}
-			auto val = ComputeRay<T>(i % framebufferWidth, i / framebufferWidth, memory);
-			framebuffer[i * 4] = val.r;
-			framebuffer[i * 4 + 1] = val.g;
-			framebuffer[i * 4 + 2] = val.b;
-			framebuffer[i * 4 + 3] = val.a;
+			auto val = ComputeRay<T>(i % framebufferWidth, i / framebufferWidth, memory, multiLayeredFramebuffer);
+			framebufferRaw[i * 4] = val.r;
+			framebufferRaw[i * 4 + 1] = val.g;
+			framebufferRaw[i * 4 + 2] = val.b;
+			framebufferRaw[i * 4 + 3] = val.a;
 		}
 	}
 	else
@@ -102,12 +117,12 @@ void CPURayCastingVolumeVisualizer::ComputePartOfFrame(int threads, int threadIn
 			int y = i / framebufferWidth;
 			if (y % downscale == 0 && x % downscale == 0)
 			{
-				auto val = ComputeRay<T>(x/downscale, y/downscale, memory);
+				auto val = ComputeRay<T>(x/downscale, y/downscale, memory, multiLayeredFramebuffer);
 
-				framebuffer[i * 4] = val.r;
-				framebuffer[i * 4 + 1] = val.g;
-				framebuffer[i * 4 + 2] = val.b;
-				framebuffer[i * 4 + 3] = val.a;
+				framebufferRaw[i * 4] = val.r;
+				framebufferRaw[i * 4 + 1] = val.g;
+				framebufferRaw[i * 4 + 2] = val.b;
+				framebufferRaw[i * 4 + 3] = val.a;
 			}
 		}
 	}
@@ -124,12 +139,12 @@ __forceinline void CPURayCastingVolumeVisualizer::MixColors(float& r, float& g, 
 
 
 template <typename T>
-color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>& memory)
+color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>& memory, const std::shared_ptr<CPUMultiLayeredFramebuffer>& multiLayeredFramebuffer)
 {
 	ColorMappingTable mappingTable = _settingsCopy.mappingTable;
 	Vector3f stepVector = this->_camera->GetShrankRayDirection(x, y).normalized();
 
-	auto fragments = _meshFramebuffer->GetFragmentsOrdered(x, y);
+	auto fragments = multiLayeredFramebuffer->GetFragmentsOrdered(x, y);
 	float nextFragmentPahtLength = FLT_MAX;
 	int fragmentIndex = 0;
 

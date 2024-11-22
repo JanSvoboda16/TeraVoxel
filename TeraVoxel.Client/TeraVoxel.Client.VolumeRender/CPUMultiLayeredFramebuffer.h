@@ -2,11 +2,12 @@
 #include <memory>
 #include <vector>
 #include "FramebufferLayer.h"
+#include "MultiLayeredFramebufferBase.h"
 #include <algorithm>
 #include <mutex>
 
 
-class MultiLayeredFramebuffer
+class CPUMultiLayeredFramebuffer: public MultiLayeredFramebufferBase
 {
 	std::vector<FramebufferLayer> _alphaLayers;
 	FramebufferLayer _mainLayer;
@@ -16,7 +17,7 @@ class MultiLayeredFramebuffer
 	std::shared_ptr<std::atomic_bool[]> _spinlocks;
 
 public:
-	MultiLayeredFramebuffer(uint16_t width, uint16_t height);
+	CPUMultiLayeredFramebuffer(uint16_t width, uint16_t height);
 	
 	/// <summary>
 	/// Changes a virtual size of the internal buffers
@@ -64,7 +65,7 @@ public:
 	std::vector<Fragment> GetFragmentsOrdered(uint16_t x, uint16_t y);
 };
 
-inline MultiLayeredFramebuffer::MultiLayeredFramebuffer(uint16_t width, uint16_t height) :
+inline CPUMultiLayeredFramebuffer::CPUMultiLayeredFramebuffer(uint16_t width, uint16_t height) :
 	_width(width), _height(height), _alphaLayers(), _mainLayer(width, height)
 {
 	_alphaLayers.reserve(128);
@@ -76,7 +77,7 @@ inline MultiLayeredFramebuffer::MultiLayeredFramebuffer(uint16_t width, uint16_t
 	}
 }
 
-__forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, float depth)
+__forceinline void CPUMultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uint8_t r, uint8_t g, uint8_t b, uint8_t a, float depth)
 {
 	while (_spinlocks[x + y * _width].exchange(true, std::memory_order_acquire));
 
@@ -136,7 +137,7 @@ __forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, uin
 	_spinlocks[x + y * _width].store(false, std::memory_order_release);
 }
 
-__forceinline void MultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, const Fragment& fragment)
+__forceinline void CPUMultiLayeredFramebuffer::SetValue(uint16_t x, uint16_t y, const Fragment& fragment)
 {
 	SetValue(x, y, fragment.r, fragment.g, fragment.b, fragment.a, fragment.depth);
 }
@@ -161,7 +162,7 @@ __forceinline void SortFragments(std::vector<Fragment>& fragments)
 	}
 }
 
-__forceinline std::vector<Fragment> MultiLayeredFramebuffer::GetFragmentsOrdered(uint16_t x, uint16_t y)
+__forceinline std::vector<Fragment> CPUMultiLayeredFramebuffer::GetFragmentsOrdered(uint16_t x, uint16_t y)
 {
 	// pokud alfavrstev je 0, tak vrat hodnotu, jinak nacti vsechny hodnoty a serad je
 	std::vector<Fragment> fragments;
@@ -196,7 +197,7 @@ __forceinline std::vector<Fragment> MultiLayeredFramebuffer::GetFragmentsOrdered
 	return fragments;
 }
 
-inline void MultiLayeredFramebuffer::Resize(uint16_t width, uint16_t height)
+inline void CPUMultiLayeredFramebuffer::Resize(uint16_t width, uint16_t height)
 {
 	_mainLayer.Resize(width, height);
 
@@ -217,7 +218,7 @@ inline void MultiLayeredFramebuffer::Resize(uint16_t width, uint16_t height)
 	Clear();
 }
 
-inline void MultiLayeredFramebuffer::Clear()
+inline void CPUMultiLayeredFramebuffer::Clear()
 {
 	_mainLayer.Clear();
 	for (size_t i = 0; i < _usedAlphaLayers; i++)

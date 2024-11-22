@@ -5,7 +5,7 @@
 #pragma once
 #include <d3d11.h>
 #include <d3dcompiler.h>
-#include "../TeraVoxel.Client.VolumeRender/Camera.h"
+#include "../TeraVoxel.Client.VolumeRender/Camera.cuh"
 #include "../TeraVoxel.Client.VolumeRender/CPURayCastingVolumeObjectMemory.h"
 #include "../TeraVoxel.Client.VolumeRender/VolumeScene.h"
 #include "../TeraVoxel.Client.VolumeRender/ColorMappingTable.h"

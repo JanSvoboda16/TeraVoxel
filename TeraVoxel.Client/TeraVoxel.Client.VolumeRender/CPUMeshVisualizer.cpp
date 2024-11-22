@@ -306,7 +306,7 @@ void CPUMeshVisualizer::RenderNode(const std::shared_ptr<MeshNode>& node, const 
 CPUMeshVisualizer::CPUMeshVisualizer(const std::shared_ptr<MeshNode>& rootObject, const std::shared_ptr<Camera>& camera): _rootObject(rootObject), _camera(camera)
 {
 	auto screenSize = _camera->GetScreenSize();
-	_framebuffer = std::make_shared<MultiLayeredFramebuffer>(screenSize[0], screenSize[1]);
+	_framebuffer = std::make_shared<CPUMultiLayeredFramebuffer>(screenSize[0], screenSize[1]);
 }
 
 void CPUMeshVisualizer::ComputeFrame()

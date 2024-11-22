@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include "../TeraVoxel.Client.VolumeRender/MeshGenerator.h"
 #include "../TeraVoxel.Client.VolumeRender/MeshTreeExplorer.h"
-#include "../TeraVoxel.Client.VolumeRender/Transformations.h"
+#include "../TeraVoxel.Client.VolumeRender/Transformations.cuh"
 
 void SceneObjectsWindow::UpdateScene()
 {

@@ -1,7 +1,7 @@
 #pragma once
-#include "MultiLayeredFramebuffer.h"
+#include "CPUMultiLayeredFramebuffer.h"
 #include "MeshNode.h"
-#include "Camera.h"
+#include "Camera.cuh"
 #include <map>
 
 using Eigen::Vector2d;
@@ -23,10 +23,10 @@ public:
 	/// Returns the pointer to the internal buffer
 	/// </summary>
 	/// <returns></returns>
-	std::shared_ptr<MultiLayeredFramebuffer> GetFrameBuffer() { return _framebuffer; }
+	std::shared_ptr<CPUMultiLayeredFramebuffer> GetFrameBuffer() { return _framebuffer; }
 
 private:
-	std::shared_ptr<MultiLayeredFramebuffer> _framebuffer;
+	std::shared_ptr<CPUMultiLayeredFramebuffer> _framebuffer;
 	std::shared_ptr<MeshNode> _rootObject;
 	std::shared_ptr<Camera> _camera;
 	std::vector<Vector4i> _threadBoundaries;

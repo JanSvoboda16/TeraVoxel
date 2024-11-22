@@ -1,5 +1,5 @@
 #pragma once
-#include "Camera.h"
+#include "Camera.cuh"
 #include "../TeraVoxel.Client.Core/nlohman/json.hpp"
 #include <chrono>
 #include <queue>

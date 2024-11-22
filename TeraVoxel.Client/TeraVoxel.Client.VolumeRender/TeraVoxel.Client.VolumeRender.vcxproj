@@ -54,6 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.3.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -120,6 +121,9 @@
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <CudaCompile>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -138,9 +142,11 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <Optimization>Full</Optimization>
-      <AdditionalOptions>/openmp:llvm %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/openmp:llvm /DEIGEN_MAX_STATIC_ALIGN_BYTES=32 %(AdditionalOptions)</AdditionalOptions>
       <EnableParallelCodeGeneration>
       </EnableParallelCodeGeneration>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -149,9 +155,17 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <CudaCompile>
+      <HostDebugInfo>true</HostDebugInfo>
+    </CudaCompile>
+    <CudaCompile>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>-DEIGEN_MAX_STATIC_ALIGN_BYTES=32 %(AdditionalOptions)</AdditionalOptions>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Camera.cuh" />
     <ClInclude Include="CPUMeshVisualizer.h" />
     <ClInclude Include="CPURayCastingVolumeObjectMemoryBase.h" />
     <ClInclude Include="EigenBenchmark.h" />
@@ -162,6 +176,9 @@
     <ClInclude Include="CPURCVolumeVisualizerSettings.h" />
     <ClInclude Include="FramebufferLayer.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GPURayCastingVolumeTexture.cuh" />
+    <ClInclude Include="GPURayCastingVolumeVisualizer.h" />
+    <ClInclude Include="GPURCVolumeVisualizerFactory.h" />
     <ClInclude Include="IVolumeScene.h" />
     <ClInclude Include="ColorMappingTable.h" />
     <ClInclude Include="MarchingCubesSurfaceExtractor.h" />
@@ -170,16 +187,18 @@
     <ClInclude Include="MeshGenerator.h" />
     <ClInclude Include="MeshNode.h" />
     <ClInclude Include="MeshTreeExplorer.h" />
-    <ClInclude Include="MultiLayeredFramebuffer.h" />
+    <ClInclude Include="CPUMultiLayeredFramebuffer.h" />
+    <ClInclude Include="MultiLayeredFramebufferBase.h" />
     <ClInclude Include="NetVolumeLoader.h" />
     <ClInclude Include="NetVolumeLoaderFactory.h" />
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h" />
+    <ClInclude Include="RayCastingUtilities.cuh" />
     <ClInclude Include="SeedVolumeSelector.h" />
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="StlExporter.h" />
     <ClInclude Include="SurfaceExtractorBase.h" />
     <ClInclude Include="TrackableCamera.h" />
-    <ClInclude Include="Transformations.h" />
+    <ClInclude Include="Transformations.cuh" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="VolumeCacheGenericBase.h" />
     <ClInclude Include="VolumeLoaderBase.h" />
@@ -196,7 +215,6 @@
     <ClInclude Include="VolumeVisualizerSettingsBase.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CPUMeshVisualizer.cpp" />
     <ClCompile Include="CPURayCastingVolumeVisualizer.cpp" />
     <ClCompile Include="FramebufferLayer.cpp" />
@@ -214,7 +232,6 @@
     </ClCompile>
     <ClCompile Include="SeedVolumeSelector.cpp" />
     <ClCompile Include="StlExporter.cpp" />
-    <ClCompile Include="Transformations.cpp" />
     <ClCompile Include="CPURayCastingVolumeObjectMemory.cpp" />
     <ClCompile Include="VolumeLoaderBase.cpp" />
     <ClCompile Include="VolumeScene.cpp" />
@@ -225,6 +242,13 @@
       <Project>{90278900-7984-4d8f-bec4-0d6b10f8e63d}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="Camera.cu" />
+    <CudaCompile Include="GPURayCastingVisualizer.cu" />
+    <CudaCompile Include="Transformations.cu" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.3.targets" />
+  </ImportGroup>
 </Project>

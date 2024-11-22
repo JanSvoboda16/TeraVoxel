@@ -13,11 +13,11 @@ struct VolumeSegment
 	std::atomic<int> unusedCount = 0;				// How many times was not used (continuously)
 	std::atomic<bool> used = false;					// Was used in actual frame
 	std::atomic<bool> waitsToBeReloaded = false;	// Wait in the reload stack or is being reloaded
-	std::atomic<short> futureDownscale = 500;		// Dowsncale that the segment will have in future (after reload) or has now
+	std::atomic<short> loadingDownscale = 500;		// Dowsncale that the segment will have in future (after reload) or has now
 	
 	short actualDownscale = 500;					// High value -> will be always reloaded first
 	short x, y, z;	//READONLY						// Indexes of this segment
-	short requiredDownscale = 0;				// Downscale that is requiews for actual view
+	short requiredDownscale = 0;				// Downscale that is requiews for actual view (can be higher than future
 	
 	T* data;								// DATA
 
