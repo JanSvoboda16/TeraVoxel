@@ -164,7 +164,6 @@
     <ClInclude Include="CPURayCastingVolumeVisualizerBase.h">
       <Filter>Volume\Visualizers\CPURayCasting</Filter>
     </ClInclude>
-    <ClInclude Include="GPURCVolumeVisualizerFactory.h" />
     <ClInclude Include="MultiLayeredFramebufferBase.h">
       <Filter>Mesh\Visualizers</Filter>
     </ClInclude>
@@ -181,6 +180,15 @@
       <Filter>Volume\Visualizers\GPURayCasting</Filter>
     </ClInclude>
     <ClInclude Include="GPURayCastingVolumeVisualizer.h">
+      <Filter>Volume\Visualizers\GPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialTable.cuh">
+      <Filter>Volume\Visualizers\GPURayCasting</Filter>
+    </ClInclude>
+    <ClInclude Include="GPURCVolumeVisualizerSettings.h" />
+    <ClInclude Include="GPURCVolumeVisualizerFactory.h" />
+    <ClInclude Include="GPUEntity.h" />
+    <ClInclude Include="GPURayCastingVolumeMemory.cuh">
       <Filter>Volume\Visualizers\GPURayCasting</Filter>
     </ClInclude>
   </ItemGroup>

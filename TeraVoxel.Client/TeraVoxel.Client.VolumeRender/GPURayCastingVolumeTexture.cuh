@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <Eigen/Dense>
-
+/*
 template <typename T>
 class GPURayCastingVolumeTexture 
 {
@@ -60,7 +60,6 @@ public:
 
 		cudaMemcpy3D(&copyParams);
 
-
 		cudaResourceDesc resDesc = {};
 		resDesc.resType = cudaResourceTypeArray;
 		resDesc.res.array.array = _arrays_h[index];
@@ -111,4 +110,4 @@ public:
 
 	cudaArray_t* _arrays_d;
 	cudaTextureObject_t* _textures_d;
-};
+};*/

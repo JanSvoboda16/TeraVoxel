@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CPURayCastingView.h" />
+    <ClInclude Include="GPURayCastingView.h" />
     <ClInclude Include="ImGui\Backends\imgui_impl_dx11.h" />
     <ClInclude Include="ImGui\Backends\imgui_impl_win32.h" />
     <ClInclude Include="ImGui\imconfig.h" />
@@ -172,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CPURayCastingView.cpp" />
+    <ClCompile Include="GPURayCastingView.cpp" />
     <ClCompile Include="ImGui\Backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="ImGui\Backends\imgui_impl_win32.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />

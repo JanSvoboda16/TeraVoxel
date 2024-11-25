@@ -176,12 +176,16 @@
     <ClInclude Include="CPURCVolumeVisualizerSettings.h" />
     <ClInclude Include="FramebufferLayer.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GPUEntity.h" />
+    <ClInclude Include="GPURayCastingVolumeMemory.cuh" />
     <ClInclude Include="GPURayCastingVolumeTexture.cuh" />
     <ClInclude Include="GPURayCastingVolumeVisualizer.h" />
+    <ClInclude Include="GPURCVolumeVisualizerSettings.h" />
     <ClInclude Include="GPURCVolumeVisualizerFactory.h" />
     <ClInclude Include="IVolumeScene.h" />
     <ClInclude Include="ColorMappingTable.h" />
     <ClInclude Include="MarchingCubesSurfaceExtractor.h" />
+    <ClInclude Include="MaterialTable.cuh" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="IMeshExporter.h" />
     <ClInclude Include="MeshGenerator.h" />

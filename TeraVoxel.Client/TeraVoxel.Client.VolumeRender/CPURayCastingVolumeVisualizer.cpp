@@ -276,11 +276,11 @@ color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_
 					stepMultiplyer = gridSize * 0.5; // equals 2^downscale
 
 					bool itemFound = false; size_t index;
-					size_t tableSize = mappingTable.Table.size();
+					size_t tableSize = mappingTable.table.size();
 					for (size_t i = 0; i < tableSize; i++)
 					{
-						const ColorMappingItem& item2 = mappingTable.Table.at(i);
-						if (item2.Range[0] <= value && item2.Range[1] >= value)
+						const ColorMappingItem& item2 = mappingTable.table.at(i);
+						if (item2.range[0] <= value && item2.range[1] >= value)
 						{
 							itemFound = true;
 							index = i;
@@ -314,20 +314,20 @@ color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_
 						double reflectiony = 2 * lightDotGrad * gy - lighty;
 						double reflectionz = 2 * lightDotGrad * gz - lightz;
 
-						double ambientInt = _settingsCopy.ampbientIntensity;
+						double ambientInt = _settingsCopy.ambientIntensity;
 						double difusionInt = fmax(0.0, gx * lightx + gy * lighty + gz * lightz) * _settingsCopy.difustionIntensity;
 						double reflectionInt = powf(fmax(0.0, reflectionx * stepVector[0] + reflectiony * stepVector[1] + reflectionz * stepVector[2]), _settingsCopy.reflectionSharpness) * _settingsCopy.reflectionIntensity;
 
 						double lightInt = (ambientInt + difusionInt);
 
 						// Color computing
-						const ColorMappingItem& item = mappingTable.Table.at(index);
+						const ColorMappingItem& item = mappingTable.table.at(index);
 
-						double valminran0 = value - item.Range[0];
-						double red = item.DreDivDra() * valminran0 + item.ColorFrom[0];
-						double green = item.DgrDivDra() * valminran0 + item.ColorFrom[1];
-						double blue = item.DblDivDra() * valminran0 + item.ColorFrom[2];
-						double alpha = item.DalDivDra() * valminran0 + item.ColorFrom[3];
+						double valminran0 = value - item.range[0];
+						double red = item.DreDivDra() * valminran0 + item.colorFrom[0];
+						double green = item.DgrDivDra() * valminran0 + item.colorFrom[1];
+						double blue = item.DblDivDra() * valminran0 + item.colorFrom[2];
+						double alpha = item.DalDivDra() * valminran0 + item.colorFrom[3];
 
 						alpha = 1.0 - pow(1 - alpha, alphaCoeficient * stepMultiplyer);//changes projection: (fabsf(red - rl) + fabsf(green - gl) + fabsf(blue - bl)) * alpha /3;
 
@@ -379,11 +379,11 @@ color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_
 				}
 
 				bool itemFound = false; size_t index;
-				size_t tableSize = mappingTable.Table.size();
+				size_t tableSize = mappingTable.table.size();
 				for (size_t i = 0; i < tableSize; i++)
 				{
-					const ColorMappingItem& item2 = mappingTable.Table.at(i);
-					if (item2.Range[0] <= value && item2.Range[1] >= value)
+					const ColorMappingItem& item2 = mappingTable.table.at(i);
+					if (item2.range[0] <= value && item2.range[1] >= value)
 					{
 						itemFound = true;
 						index = i;
@@ -394,13 +394,13 @@ color CPURayCastingVolumeVisualizer::ComputeRay(int x, int y, const std::shared_
 				if (itemFound)
 				{
 					// Color computing
-					const ColorMappingItem& item = mappingTable.Table.at(index);
+					const ColorMappingItem& item = mappingTable.table.at(index);
 
-					float valminran0 = value - item.Range[0];
-					float red = item.DreDivDra() * valminran0 + item.ColorFrom[0];
-					float green = item.DgrDivDra() * valminran0 + item.ColorFrom[1];
-					float blue = item.DblDivDra() * valminran0 + item.ColorFrom[2];
-					float alpha = item.DalDivDra() * valminran0 + item.ColorFrom[3];
+					float valminran0 = value - item.range[0];
+					float red = item.DreDivDra() * valminran0 + item.colorFrom[0];
+					float green = item.DgrDivDra() * valminran0 + item.colorFrom[1];
+					float blue = item.DblDivDra() * valminran0 + item.colorFrom[2];
+					float alpha = item.DalDivDra() * valminran0 + item.colorFrom[3];
 
 					alpha = 1.0 - pow(1 - alpha, alphaCoeficient * stepMultiplyer);
 

@@ -20,7 +20,7 @@ void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
 			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<CPURCVolumeVisualizerFactory>(_fastRayCastingVisualizerSettings));
 			break;
 		case 2:
-			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<GPURCVolumeVisualizerFactory>(_fastRayCastingVisualizerSettings));
+			_volumeViewContext->scene->ChangeVisualizer(std::make_shared<GPURCVolumeVisualizerFactory>(_gpuRayCastingVisualizerSettings));
 			break;
 		}
 		_volumeViewContext->sceneUpdated.Notify();
@@ -38,7 +38,7 @@ void VisualizerSettingsWindow::ChangeView(int visualizerId)
 		_view = std::shared_ptr<IView>((IView*) new CPURayCastingView(_volumeViewContext, _fastRayCastingVisualizerSettings));
 		break;
 	case 2:
-		_view = std::shared_ptr<IView>((IView*) new CPURayCastingView(_volumeViewContext, _fastRayCastingVisualizerSettings));
+		_view = std::shared_ptr<IView>((IView*) new GPURayCastingView(_volumeViewContext, _gpuRayCastingVisualizerSettings));
 		break;
 	}
 }

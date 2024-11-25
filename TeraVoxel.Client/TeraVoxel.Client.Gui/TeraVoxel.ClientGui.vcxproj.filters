@@ -101,6 +101,9 @@
     <ClInclude Include="SurfaceExtractionView.h">
       <Filter>Areas\Tools\SurfaceExtraction</Filter>
     </ClInclude>
+    <ClInclude Include="GPURayCastingView.h">
+      <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ImGui\imgui.cpp">
@@ -154,6 +157,9 @@
     </ClCompile>
     <ClCompile Include="SeedSelectionView.cpp">
       <Filter>Areas\Tools\SurfaceExtraction\SeedSelection</Filter>
+    </ClCompile>
+    <ClCompile Include="GPURayCastingView.cpp">
+      <Filter>Areas\VisualizationEditor\VisualizerPartialViews</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

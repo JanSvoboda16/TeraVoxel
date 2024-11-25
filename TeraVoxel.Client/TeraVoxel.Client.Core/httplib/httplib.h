@@ -404,8 +404,8 @@ public:
   MultipartReader multipart_reader_;
 };
 
-using Range = std::pair<ssize_t, ssize_t>;
-using Ranges = std::vector<Range>;
+using range = std::pair<ssize_t, ssize_t>;
+using Ranges = std::vector<range>;
 
 struct Request {
   std::string method;

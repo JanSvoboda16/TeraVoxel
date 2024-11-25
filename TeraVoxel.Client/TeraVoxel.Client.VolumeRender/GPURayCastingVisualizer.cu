@@ -1,87 +1,108 @@
 ﻿#undef EIGEN_USE_GPU
 #include <fstream>
-#include "GPURayCastingVolumeVisualizer.h"
-#include "../TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <cuda_fp16.h>
+#include "GPURayCastingVolumeVisualizer.h"
 #include <iostream>
+#include "../TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 #include "VolumeLoaderBase.h"
 #include "../TeraVoxel.Client.Core/ProjectManager.h"
 #include "RayCastingUtilities.cuh"
+#include "GPURayCastingVolumeMemory.cuh"
 
-__device__ float getTextureValue2(Vector3i position, GPURayCastingVolumeTexture<float>* texture) {
-    cudaTextureObject_t tex = texture->GetTexture_D(position / 256, 0);
-
-    if (tex == 0)
-    {
-        return 0;
-    }
-
-    float texPosX = position[0] % 256;
-    float texPosY = position[1] % 256;
-    float texPosZ = position[2] % 256;
-
-    return tex3D<float>(tex, texPosX + 0.5f, texPosY + 0.5f, texPosZ + 0.5f);
-}
-
-__device__ float getTextureCornerValue(Vector3f position, GPURayCastingVolumeTexture<float>* texture)
+struct Light
 {
-    Vector3i pos000 = position.cast<int>();
-    Vector3i pos001 = pos000 + Vector3i(0, 0, 1);
-    Vector3i pos010 = pos000 + Vector3i(0, 1, 0);
-    Vector3i pos011 = pos000 + Vector3i(0, 1, 1);
+    Vector3f positionOdDirection;
+    bool directional;
+    float intensity;
+};
 
-    Vector3i pos100 = pos000 + Vector3i(1, 0, 0);
-    Vector3i pos101 = pos000 + Vector3i(1, 0, 1);
-    Vector3i pos110 = pos000 + Vector3i(1, 1, 0);
-    Vector3i pos111 = pos000 + Vector3i(1, 1, 1);
+__inline__ __device__ Vector3f ComputeShadowRay(Camera* camera, Vector3f position, const Vector3f& lightPos, GPURayCastingVolumeTexture* texture, const Vector3f& volumeDimensions, const MaterialTableItem* materialTable, uint16_t materialTableSize)
+{
+    const float stepSize = 1.f;
+    const Vector3f step = (lightPos - position).normalized() * stepSize;
+    position += step;
+    Vector3f start, end;
 
-    float val000 = getTextureValue2(pos000, texture);
-    float val001 = getTextureValue2(pos001, texture);
-    float val010 = getTextureValue2(pos010, texture);
-    float val011 = getTextureValue2(pos011, texture);
-    float val100 = getTextureValue2(pos100, texture);
-    float val101 = getTextureValue2(pos101, texture);
-    float val110 = getTextureValue2(pos110, texture);
-    float val111 = getTextureValue2(pos111, texture);
+    const float alphaCoef = camera->DeshrinkVector(step).norm();
+  
+    bool intersected = RayCastingUtilities::ComputeRayIntersection(step, position, volumeDimensions, start, end);
+    const uint32_t stepCount = (start - end).norm() / stepSize;
 
-    position = position - pos000.cast<float>();
-    float c00 = val000 * (1.f - position[0]) + val100 * position[0];
-    float c01 = val001 * (1.f - position[0]) + val101 * position[0];
-    float c10 = val010 * (1.f - position[0]) + val110 * position[0];
-    float c11 = val011 * (1.f - position[0]) + val111 * position[0];
+    Vector3f translucency(1.f, 1.f, 1.f);
 
-    float c0 = c00 * (1.f - position[1]) + c10 * position[1];
-    float c1 = c01 * (1.f - position[1]) + c11 * position[1];
-    return c0 * (1.f - position[2]) + c1 * position[2];
+    if (intersected)
+    {
+        for (uint32_t i = 0; i < stepCount; i++)
+        {
+            float value = texture->GetTextureValue(position);
+
+            bool itemFound = false;
+            uint16_t index = 0;
+            for (size_t j = 0; j < materialTableSize; j++)
+            {
+                const MaterialTableItem& item = materialTable[j];
+                if (item.range[0] <= value && item.range[1] >= value)
+                {
+                    itemFound = true;
+                    index = j;
+                    break;
+                }
+            }
+
+            if (itemFound)
+            {
+                const MaterialTableItem& item = materialTable[index];
+                float valminran0 = value - item.range[0];
+
+                float tr = (item.RedTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[0]);
+                float tg = (item.GreenTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[1]);
+                float tb = (item.BlueTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[2]);
+
+                translucency[0] = translucency[0] * powf(tr, alphaCoef);
+                translucency[1] = translucency[1] * powf(tg, alphaCoef);
+                translucency[2] = translucency[2] * powf(tb, alphaCoef);
+
+                if ((translucency.array() < 0.02f).all())
+                {
+                    break;
+                }
+            }
+
+            position += step;
+        }
+    }
+
+    return translucency;
 }
 
-__device__ float getTextureValue(Vector3f position, GPURayCastingVolumeTexture<float>* texture) 
-{   
+__global__ void ComputeShadowsKernel(GPURayCastingVolumeTexture* volume, cudaSurfaceObject_t shadowTexture, Camera* camera, Vector3f lightPos, Vector3i sizes, int subsamplingFactor, MaterialTableItem* materialTable, uint16_t materialTableSize)
+{
+    const int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int y = blockIdx.y * blockDim.y + threadIdx.y;
+    const int z = blockIdx.z * blockDim.z + threadIdx.z;
 
-    float texPosX = fmodf(position[0], 256);
-    float texPosY = fmodf(position[1], 256);
-    float texPosZ = fmodf(position[2], 256);
-
-    if (texPosX > 255.f || texPosY > 255.f || texPosZ > 255.f)
+    if (x >= sizes.x() || y >= sizes.y() || z >= sizes.z()) 
     {
-        return getTextureCornerValue(position, texture);
-    }
-    
-    cudaTextureObject_t tex = texture->GetTexture_D(position.cast<int>() / 256, 0);
-    if (tex == 0)
-    {
-        return 0;
+        return;
     }
 
-    return tex3D<float>(tex, texPosX + 0.5f, texPosY + 0.5f, texPosZ + 0.5f);
+    float4 value;
+    Vector3f shadow = ComputeShadowRay(camera, Vector3f(x, y, z) * (float)subsamplingFactor, lightPos, volume, (sizes * subsamplingFactor).cast<float>(), materialTable, materialTableSize);
+    value.x = shadow.x(); // Převod z float na __half
+    value.y = shadow.y();
+    value.z = shadow.z();
+
+    surf3Dwrite(value, shadowTexture, x*sizeof(float4), y, z); // Zápis do surface objectu   
+
 }
 
-
-__global__ void fillRedKernel(unsigned char* image, int width, int height, int iteration, Camera* camera, GPURayCastingVolumeTexture<float>* texture, Vector3f volumeDimensions, float minVal, float maxVal)
-{    
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
+__global__ void ComputeFrameKernel(unsigned char* image, int width, int height, Camera* camera, GPURayCastingVolumeTexture* texture, Vector3f volumeDimensions, MaterialTableItem* materialTable, uint16_t materialTableSize, cudaTextureObject_t shaddowTexture, int shadowSubsampling)
+{
+    const Vector3f lightPos(200000, 0, 0);
+    const int x = blockIdx.x * blockDim.x + threadIdx.x;
+    const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (x >= width || y >= height) {
         return;
@@ -90,148 +111,118 @@ __global__ void fillRedKernel(unsigned char* image, int width, int height, int i
     int framebufferIndex = (y * width + x) * 4;
     float stepSize = 0.5;
 
+    
+
     Vector3f step = camera->GetShrankRayDirection(x, y).normalized()*stepSize;
     Vector3f position = camera->GetShrankPosition();
     Vector3f start, end;
-    
+
+    float aplhaCoeficient = camera->DeshrinkVector(step).norm();
+
     bool intersected = RayCastingUtilities::ComputeRayIntersection(step, position, volumeDimensions, start, end);
-    
+
     position = start;
 
-    
+
     uint32_t stepCount = (start - end).norm() / stepSize;
 
-    Vector4f colorAcumulator(0.f, 0.f, 0.f, 0.f);
+    Vector3f colorAcumulator(0.f, 0.f, 0.f);
+    Vector3f translucency(1.f, 1.f, 1.f);
 
     if (intersected)
     {
         for (uint32_t i = 0; i < stepCount; i++)
-        {          
-            int value = getTextureValue(position, texture);
+        {
+            float value = texture->GetTextureValue(position);
 
-            float fvalue = (value - minVal) / (maxVal - minVal);
-            fvalue = (fvalue < 0 || fvalue > 1) ? 0 : fvalue;
-            float r = fvalue;
-            float g = fvalue;
-            float b = fvalue;
-            float a = fvalue;
+            bool itemFound = false;
+            uint16_t index = 0;
+            for (size_t j = 0; j < materialTableSize; j++)
+            {
+                const MaterialTableItem& item = materialTable[j];
+                if (item.range[0] <= value && item.range[1] >= value)
+                {
+                    itemFound = true;
+                    index = j;
+                    break;
+                }
+            }
 
-            colorAcumulator[0] = colorAcumulator[0] + r * a * (1 - colorAcumulator[3]);
-            colorAcumulator[1] = colorAcumulator[1] + g * a * (1 - colorAcumulator[3]);
-            colorAcumulator[2] = colorAcumulator[2] + b * a * (1 - colorAcumulator[3]);
-            colorAcumulator[3] = colorAcumulator[3] + a * (1 - colorAcumulator[3]);
+            if (itemFound)
+            {
+                Vector3f grad = texture->GetTextureGrad(position);
+                Vector3f normal = -grad.normalized();
+                Vector3f light = (lightPos - position).normalized();
+
+                float normalizedGradSize = fminf(grad.norm() / texture->GetMaxValue(), 1.f);
+                bool frontGrad = grad.dot(-normal) > 0;
+                float4 shTex = tex3D<float4>(shaddowTexture, position.x() / shadowSubsampling, position.y() / shadowSubsampling, position.z() / shadowSubsampling);
+                Vector3f shadow(shTex.x, shTex.y, shTex.z);
+                Vector3f lightIntensity = shadow * 0.7f;
+                Vector3f diffusedIntensity1 = lightIntensity * frontGrad * max(normal.dot(light), 0.f) * normalizedGradSize;
+                Vector3f diffusedIntensity2 = lightIntensity * (1.f - normalizedGradSize);
+                Vector3f totalLight = diffusedIntensity1 + diffusedIntensity2 + Vector3f(0.3f, 0.3f, 0.3f);
+
+                const MaterialTableItem& item = materialTable[index];
+                float valminran0 = value - item.range[0];
+
+                float r = (item.RedReflectionDivRange() * valminran0 + item.reflectionColorFrom[0]) * totalLight[0];
+                float g = (item.GreenReflectionDivRange() * valminran0 + item.reflectionColorFrom[1]) * totalLight[1];
+                float b = (item.BlueReflectionDivRange() * valminran0 + item.reflectionColorFrom[2]) * totalLight[2];
+
+                float tr = (item.RedTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[0]);
+                float tg = (item.GreenTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[1]);
+                float tb = (item.BlueTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[2]);
+
+                float reflectness = 1.f - max(max(tr, tg), tb); // if material is transparent, light probably goes more into material
+                colorAcumulator[0] = colorAcumulator[0] + r * reflectness * translucency[0];
+                colorAcumulator[1] = colorAcumulator[1] + g * reflectness * translucency[1];
+                colorAcumulator[2] = colorAcumulator[2] + b * reflectness * translucency[2];
+
+                translucency[0] = translucency[0] * powf(tr, aplhaCoeficient * stepSize);
+                translucency[1] = translucency[1] * powf(tg, aplhaCoeficient * stepSize);
+                translucency[2] = translucency[2] * powf(tb, aplhaCoeficient * stepSize);
+
+                if ((translucency.array() < 0.02f).all())
+                {
+                    break;
+                }
+            }
 
             position += step;
         }
     }
 
-    
-    image[framebufferIndex] = min((int)(colorAcumulator[0]*255), 255);     // Red
-    image[framebufferIndex + 1] = min((int)(colorAcumulator[1]*255), 255);   // Green
-    image[framebufferIndex + 2] = min((int)(colorAcumulator[2]*255), 255);  // Blue
-    image[framebufferIndex + 3] = min((int)(colorAcumulator[3]*255), 255);   // Alfa
-
-   
-
+    image[framebufferIndex] = min((int)(colorAcumulator[0] * 255), 255);     // Red
+    image[framebufferIndex + 1] = min((int)(colorAcumulator[1] * 255), 255);   // Green
+    image[framebufferIndex + 2] = min((int)(colorAcumulator[2] * 255), 255);  // Blue
+    image[framebufferIndex + 3] = 255;   // Alfa   
 }
 
-GPURayCastingVolumeVisualizer::GPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings>& settings)
-    :VolumeVisualizerBase(camera, volumeLoaderFactory)
+GPURayCastingVolumeVisualizer::GPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<GPURCVolumeVisualizerSettings>& settings)
+    : VolumeVisualizerBase(camera, volumeLoaderFactory),
+    _settings(settings),
+    _memory(std::make_unique<GPURayCastingVolumeMemory>(camera, volumeLoaderFactory))
 {
-    std::shared_ptr<VolumeLoaderGenericBase> loaderBase = _volumeLoaderFactory->Create();
-    auto loader = std::dynamic_pointer_cast<VolumeLoaderBase<int16_t>>(loaderBase);
-    const auto segmentSize = _projectInfo.segmentSize;
-
-    const auto sizeX = _projectInfo.sizeX;
-    const auto sizeY = _projectInfo.sizeY;
-    const auto sizeZ = _projectInfo.sizeZ;
-
-    const auto sCountX = sizeX / segmentSize;
-    const auto sCountY = sizeY / segmentSize;
-    const auto sCountZ = sizeZ / segmentSize;
-
-    GPURayCastingVolumeTexture<float>* texture = new GPURayCastingVolumeTexture<float>(Vector3i(sCountX, sCountY, sCountZ), 1, 256);   
-    uint32_t voxelsInSegment = segmentSize * segmentSize * segmentSize;
-
-    std::vector<float> h_array;
-    h_array.resize(voxelsInSegment);
-
-    for (size_t bz = 0; bz < sCountZ; bz++)
-    {
-        for (size_t by = 0; by < sCountY; by++)
-        {
-            for (size_t bx = 0; bx < sCountX; bx++)
-            {
-
-                auto data = loader->LoadSync(bx, by, bz, 0);                
-
-                for (size_t i = 0; i < voxelsInSegment; ++i)
-                {
-                    uint16_t z = i / (segmentSize* segmentSize);
-                    uint16_t y = (i % (segmentSize* segmentSize)) / segmentSize;
-                    uint16_t x = (i % (segmentSize* segmentSize)) % segmentSize;
-                    uint32_t mortonIndex = Serialization::GetZCurveIndex(x, y, z);
-                    h_array[i] = data->data[mortonIndex];                    
-                }
-
-                texture->CreateTexture(Vector3i(bx, by, bz), 0, h_array.data());
-            }
-        }
-    }
-   
-
-    cudaMalloc(&_texture, sizeof(GPURayCastingVolumeTexture<float>));
-    cudaMemcpy(_texture, texture, sizeof(GPURayCastingVolumeTexture<float>), cudaMemcpyHostToDevice);  
-   
-
-
     
-
-    /*std::vector<float> h_array;
-    h_array.reserve(256 * 256 * 256);
-    
-    for (size_t i = 0; i < 256 * 256 * 256; ++i)
-    {
-        uint16_t z = i / (256 * 256);
-        uint16_t y = (i % (256 * 256)) / 256;
-        uint16_t x = (i % (256 * 256)) % 256;
-        uint32_t mortonIndex = Serialization::GetZCurveIndex(x, y, z);
-        h_array[i] = data->data[mortonIndex];
-    }
-
-    cudaExtent extent = make_cudaExtent(256, 256, 256);
-    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float>();
-    cudaMalloc3DArray(&_textureArrayDevice, &channelDesc, extent);
-
-    cudaMemcpy3DParms copyParams = { 0 };
-    copyParams.srcPtr = make_cudaPitchedPtr(h_array.data(), 256 * sizeof(float), 256, 256);
-    copyParams.dstArray = _textureArrayDevice;
-    copyParams.extent = extent;
-    copyParams.kind = cudaMemcpyHostToDevice;
-
-    cudaMemcpy3D(&copyParams);
-
-
-    cudaResourceDesc resDesc = {};
-    resDesc.resType = cudaResourceTypeArray;
-    resDesc.res.array.array = _textureArrayDevice;
-
-    cudaTextureDesc texDesc = {};
-    texDesc.addressMode[0] = cudaAddressModeBorder;  // Wrap, Clamp, Border
-    texDesc.addressMode[1] = cudaAddressModeBorder;
-    texDesc.addressMode[2] = cudaAddressModeBorder;
-    texDesc.filterMode = cudaFilterModeLinear;      // Linear nebo Point
-    texDesc.readMode = cudaReadModeElementType;
-    texDesc.normalizedCoords = 0;                   // Použít norm. souřadnice (0 až 1).
-
-    cudaCreateTextureObject(&_texObj, &resDesc, &texDesc, nullptr);*/
-
 }
 
 GPURayCastingVolumeVisualizer::~GPURayCastingVolumeVisualizer()
 {
-    cudaDestroyTextureObject(_texObj);
-    cudaFreeArray(_textureArrayDevice);
+    if (_materialTable_d != nullptr)
+    {
+        cudaFree(_materialTable_d);
+    }
+
+    if (_shadowTexture != NULL)
+    {
+        cudaDestroyTextureObject(_shadowTexture);
+    }
+
+    if (_shadowArray != nullptr) 
+    {
+        cudaFreeArray(_shadowArray);
+    }
 }
 
 bool GPURayCastingVolumeVisualizer::DataChanged()
@@ -239,8 +230,85 @@ bool GPURayCastingVolumeVisualizer::DataChanged()
     return false;
 }
 
+void GPURayCastingVolumeVisualizer::UpdateShadowTexture(Camera* camera_d) 
+{
+    if (_shadowArray != nullptr)
+    {
+        cudaFreeArray(_shadowArray);
+        _shadowArray = nullptr;
+    }
+
+    if (_shadowTexture != NULL)
+    {
+        cudaDestroyTextureObject(_shadowTexture);
+        _shadowTexture = NULL;
+    }
+
+    uint8_t subsamplingFactor = 2;
+    int sizeX = _projectInfo.dataSizeX / subsamplingFactor;
+    int sizeY = _projectInfo.dataSizeY / subsamplingFactor;
+    int sizeZ = _projectInfo.dataSizeZ / subsamplingFactor;
+
+    cudaExtent extent = make_cudaExtent(sizeX, sizeY, sizeZ);
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+    cudaMalloc3DArray(&_shadowArray, & channelDesc, extent);
+
+    // Definice dimenzí bloků a mřížky
+    dim3 blockSize(4,4,4);
+    dim3 gridSize((sizeX + blockSize.x - 1) / blockSize.x, (sizeY + blockSize.y - 1) / blockSize.y, (sizeZ + blockSize.z - 1) / blockSize.z);
+
+  
+
+    cudaResourceDesc resDesc = {};
+    resDesc.resType = cudaResourceTypeArray;
+    resDesc.res.array.array = _shadowArray;
+
+    cudaSurfaceObject_t surfObj;
+    cudaCreateSurfaceObject(&surfObj, &resDesc);
+
+    ComputeShadowsKernel << <gridSize, blockSize >> > (_memory->GetTextureDevicePtr(), surfObj,camera_d, Vector3f(20000, 0, 0), Vector3i(sizeX, sizeY, sizeZ), 2, _materialTable_d, _settings->materialTable.table.size());
+    cudaDeviceSynchronize();
+
+    cudaTextureDesc texDesc = {};
+    texDesc.addressMode[0] = cudaAddressModeClamp;
+    texDesc.addressMode[1] = cudaAddressModeClamp;
+    texDesc.addressMode[2] = cudaAddressModeClamp;
+    texDesc.filterMode = cudaFilterModeLinear; 
+    texDesc.readMode = cudaReadModeElementType;
+    texDesc.normalizedCoords = 0; 
+
+    cudaCreateTextureObject(&_shadowTexture, &resDesc, &texDesc, nullptr);
+
+    cudaDestroySurfaceObject(surfObj);
+
+}
+
+void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d)
+{
+    bool recomputeShadows = false;
+    if (_settings->VersionId() != _settingsDeviceVersion)
+    {
+        _settings->materialTable.RecomputeDeltas();
+        if (_materialTable_d != nullptr) 
+        {
+            cudaFree(_materialTable_d);
+        }
+        _materialTable_d = _settings->materialTable.CreateTableOnDevice();
+        _settingsDeviceVersion = _settings->VersionId();
+
+        recomputeShadows = true;
+    }
+
+    if (recomputeShadows)
+    {
+        UpdateShadowTexture(camera_d);
+    }
+}
+
 void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
+   
+
     Vector2i screenSize = _camera->GetScreenSize();
 
     long width = screenSize[0];
@@ -255,16 +323,15 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
     cudaMalloc((void**)&d_camera, sizeof(Camera));
     cudaMemcpy(d_camera, _camera.get(), sizeof(Camera), cudaMemcpyHostToDevice);
 
+    UpdateEntities(d_camera);
+
     // Definice dimenzí bloků a mřížky
     dim3 blockSize(16, 16);
     dim3 gridSize((width + blockSize.x - 1) / blockSize.x, (height + blockSize.y - 1) / blockSize.y);
-    static int iteration = 0;
-    iteration += 1;
 
     // Spuštění kernelu
-    fillRedKernel << <gridSize, blockSize >> > (d_image, width, height, iteration, d_camera, _texture, Vector3f(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ), -20000, 200);
+    ComputeFrameKernel<<<gridSize, blockSize>>>(d_image, width, height, d_camera, _memory->GetTextureDevicePtr(), Vector3f(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ), _materialTable_d, _settings->materialTable.table.size(), _shadowTexture, 2);
 
-    // Čekání na dokončení všech operací
     cudaDeviceSynchronize();
 
 

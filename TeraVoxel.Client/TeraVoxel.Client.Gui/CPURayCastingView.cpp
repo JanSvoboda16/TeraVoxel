@@ -93,7 +93,7 @@ void CPURayCastingView::Update()
 
     if (ImGui::Button("Add row"))
     {
-        _visualizerSettings->mappingTable.Table.push_back(ColorMappingItem());
+        _visualizerSettings->mappingTable.table.push_back(ColorMappingItem());
         _volumeViewContext->sceneUpdated.Notify();
     }
 
@@ -108,7 +108,7 @@ void CPURayCastingView::Update()
         ImGui::TableHeadersRow();
 
         ImGuiListClipper clipper;
-        clipper.Begin(_visualizerSettings->mappingTable.Table.size());
+        clipper.Begin(_visualizerSettings->mappingTable.table.size());
 
         while (clipper.Step())
         {
@@ -119,7 +119,7 @@ void CPURayCastingView::Update()
                 ImGui::TableSetColumnIndex(0);
                 ImGui::PushItemWidth(-1);
                 auto rangeLabel = "##Range" + std::to_string(row);
-                if (ImGui::InputFloat2(rangeLabel.c_str(), (_visualizerSettings->mappingTable.Table[row].Range)))
+                if (ImGui::InputFloat2(rangeLabel.c_str(), (_visualizerSettings->mappingTable.table[row].range)))
                     _volumeViewContext->sceneUpdated.Notify();
                 ImGui::PopItemWidth();
 
@@ -127,21 +127,21 @@ void CPURayCastingView::Update()
                 auto colorFromLabel = "##ColorFrom" + std::to_string(row);
                 ImGui::TableSetColumnIndex(1);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::ColorEdit4(colorFromLabel.c_str(), (_visualizerSettings->mappingTable.Table[row].ColorFrom), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_Float))
+                if (ImGui::ColorEdit4(colorFromLabel.c_str(), (_visualizerSettings->mappingTable.table[row].colorFrom), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_Float))
                     _volumeViewContext->sceneUpdated.Notify();
                 ImGui::PopItemWidth();
 
                 auto colorToLabel = "##ColorTo" + std::to_string(row);
                 ImGui::TableSetColumnIndex(2);
                 ImGui::PushItemWidth(-1);
-                if (ImGui::ColorEdit4(colorToLabel.c_str(), (_visualizerSettings->mappingTable.Table[row].ColorTo), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_Float))
+                if (ImGui::ColorEdit4(colorToLabel.c_str(), (_visualizerSettings->mappingTable.table[row].colorTo), ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_Float))
                     _volumeViewContext->sceneUpdated.Notify();
                 ImGui::PopItemWidth();
 
                 auto deleteLabel = "Delete##" + std::to_string(row);
                 ImGui::TableSetColumnIndex(3);
                 if (ImGui::Button(deleteLabel.c_str())) {
-                    _visualizerSettings->mappingTable.Table.erase(_visualizerSettings->mappingTable.Table.begin() + row);
+                    _visualizerSettings->mappingTable.table.erase(_visualizerSettings->mappingTable.table.begin() + row);
                     _volumeViewContext->sceneUpdated.Notify();
                 }
             }            
@@ -153,7 +153,7 @@ void CPURayCastingView::Update()
             _volumeViewContext->sceneUpdated.Notify();
         }
         if (_visualizerSettings->shading) {
-            if (ImGui::DragFloat("Ambient intensity", &_visualizerSettings->ampbientIntensity)) {
+            if (ImGui::DragFloat("Ambient intensity", &_visualizerSettings->ambientIntensity)) {
                 _volumeViewContext->sceneUpdated.Notify();
             }
             if (ImGui::DragFloat("Difusion intensity", &_visualizerSettings->difustionIntensity)) {

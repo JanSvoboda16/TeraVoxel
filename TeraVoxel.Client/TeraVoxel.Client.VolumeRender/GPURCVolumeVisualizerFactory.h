@@ -5,7 +5,7 @@
 class GPURCVolumeVisualizerFactory : public IVolumeVisualizerFactory
 {
 public:
-	GPURCVolumeVisualizerFactory(std::shared_ptr<CPURCVolumeVisualizerSettings> settings)
+	GPURCVolumeVisualizerFactory(std::shared_ptr<GPURCVolumeVisualizerSettings> settings)
 	{
 		_settings = settings;
 	}
@@ -16,5 +16,5 @@ public:
 	}
 
 private:
-	std::shared_ptr<CPURCVolumeVisualizerSettings> _settings;
+	std::shared_ptr<GPURCVolumeVisualizerSettings> _settings;
 };

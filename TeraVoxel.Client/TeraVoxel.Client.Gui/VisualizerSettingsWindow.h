@@ -11,6 +11,7 @@
 #include <fstream>
 #include "../TeraVoxel.Client.Core/nlohman/json.hpp"
 #include "CPURayCastingView.h"
+#include "GPURayCastingView.h"
 
  // Used for changing and controlling visualizers
 class VisualizerSettingsWindow : public IView
@@ -19,6 +20,8 @@ public:
 	VisualizerSettingsWindow(std::shared_ptr<VolumeViewContext> volumeViewContext) : _volumeViewContext(volumeViewContext)
 	{
 		_fastRayCastingVisualizerSettings = std::make_shared<CPURCVolumeVisualizerSettings>();
+		_gpuRayCastingVisualizerSettings = std::make_shared<GPURCVolumeVisualizerSettings>();
+
 		_volumeViewContext->sceneReplaced.Register([this]() { SetVisualizer(_selectedVisualizerId); });
 
 		SetVisualizer(_selectedVisualizerId);
@@ -29,6 +32,7 @@ public:
 private:
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
 	std::shared_ptr<CPURCVolumeVisualizerSettings> _fastRayCastingVisualizerSettings;
+	std::shared_ptr<GPURCVolumeVisualizerSettings> _gpuRayCastingVisualizerSettings;
 	std::shared_ptr<IView> _view;
 
 	int _selectedVisualizerId = 1;
