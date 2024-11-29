@@ -17,8 +17,6 @@ public:
 
 	bool DataChanged() override;
 
-
-
 private:
 	template <typename T>
 	void CoumputeFrameInternalTemplated(int downscale);
@@ -33,9 +31,20 @@ private:
 	std::unique_ptr<GPURayCastingVolumeMemory> _memory;
 	std::shared_ptr<GPURCVolumeVisualizerSettings> _settings;
 
+
+
 	MaterialTableItem* _materialTable_d = nullptr;
 	int64_t _settingsDeviceVersion = -1;
 
-	cudaTextureObject_t _shadowTexture = NULL;
-	cudaArray_t _shadowArray = nullptr;
+	// Arrays are on hosts, not objects
+	cudaTextureObject_t* _shadowTextures_h = NULL;
+	cudaArray_t* _shadowArrays_h = nullptr;
+
+	cudaTextureObject_t* _shadowTextures_d = NULL;
+
+	LightSettings* _lightSettings_d = nullptr;
+
+	uint8_t _numShadows = 0;
+
+	uint8_t _subsamplingFactor = 4;
 };

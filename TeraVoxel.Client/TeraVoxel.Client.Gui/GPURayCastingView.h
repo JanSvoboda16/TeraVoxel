@@ -19,17 +19,23 @@ public:
 
 private:
 	std::vector<std::string> _materialTables; // Names of all mapping tables
+	std::vector<std::string> _lightings;
+
 	std::shared_ptr<GPURCVolumeVisualizerSettings> _visualizerSettings;
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
 
 	GPURCVolumeVisualizerSettings _visualizerSettingsPrivate;
 
 	// Saves the current mapping table to a file
-	void SaveToFile(std::string fileName);
+	void SaveTable(std::string fileName);
 	// Loads all table's names
 	void LoadTables();
 	// Loads the selected table
 	void LoadTable(std::string fileName);
+
+	void SaveLighting(std::string fileName);
+	void LoadLightings();
+	void LoadLighting(std::string fileName);
 	// 
 	void UpdateSettings();
 };

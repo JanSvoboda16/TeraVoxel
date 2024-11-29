@@ -17,14 +17,12 @@ public:
 	float translucencyColorFrom[3] = { 0.99f, 0.99f, 0.99f }; // Color of max (RGBA)
 	float translucencyColorTo[3] = { 0.99f, 0.99f, 0.99f }; // Color of min (RGBA)
 
-	float diffuseReflectionFrom = 0.f;
-	float diffuseReflectionTo = 0.f;
 	float specularReflectionFrom = 0.f;
 	float specularReflectionTo = 0.f;
-	float specularRoughnessFrom = 0.f;
-	float specularRoughnessTo = 0.f;
+	float specularSharpnessFrom = 0.f;
+	float specularSharpnessTo = 0.f;
 
-	NLOHMANN_DEFINE_TYPE_INTRUSIVE(MaterialTableItem, range, reflectionColorFrom, reflectionColorTo, diffuseReflectionFrom, specularReflectionTo, specularRoughnessFrom, specularRoughnessTo)
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(MaterialTableItem, range, reflectionColorFrom, reflectionColorTo, translucencyColorFrom, translucencyColorTo, specularReflectionFrom, specularReflectionTo, specularSharpnessFrom, specularSharpnessTo)
 
 	// Recomputes all precomputed values
 	__host__ void RecomputeDeltas() 
@@ -38,9 +36,8 @@ public:
 		_greenTransDivRange = (translucencyColorTo[1] - translucencyColorFrom[1]) / _deltaRange;
 		_blueTransDivRange = (translucencyColorTo[2] - translucencyColorFrom[2]) / _deltaRange;
 
-		_ddiffDivDra = (diffuseReflectionTo - diffuseReflectionFrom) / _deltaRange;
 		_dspecRefDivDra = (specularReflectionTo - specularReflectionFrom) / _deltaRange;
-		_dspecRouDivDra = (specularRoughnessTo - specularRoughnessFrom) / _deltaRange;
+		_dspecSharpDivDra = (specularSharpnessTo - specularSharpnessFrom) / _deltaRange;
 	};
 
 	__host__ __device__ float DeltaRange() const { return _deltaRange; };
@@ -53,9 +50,8 @@ public:
 	__host__ __device__ float GreenTranslucencyDivRange() const { return _greenTransDivRange; };
 	__host__ __device__ float BlueTranslucencyDivRange() const { return _blueTransDivRange; };
 
-	__host__ __device__ float DdiffDivDra() const { return _ddiffDivDra; };
-	__host__ __device__ float DspecRefDivDra() const { return _dspecRefDivDra; };
-	__host__ __device__ float DspecRouDivDra() const { return _dspecRouDivDra; };
+	__host__ __device__ float SpecularReflectionDivRange() const { return _dspecRefDivDra; };
+	__host__ __device__ float SpecularSharpnessDivRange() const { return _dspecSharpDivDra; };
 
 private:
 	// Precomputed values
@@ -69,9 +65,8 @@ private:
 	float _greenTransDivRange;
 	float _blueTransDivRange;
 
-	float _ddiffDivDra;
 	float _dspecRefDivDra;
-	float _dspecRouDivDra;
+	float _dspecSharpDivDra;
 };
 
 class MaterialTable

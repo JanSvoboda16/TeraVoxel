@@ -11,18 +11,14 @@
 #include "RayCastingUtilities.cuh"
 #include "GPURayCastingVolumeMemory.cuh"
 
-struct Light
-{
-    Vector3f positionOdDirection;
-    bool directional;
-    float intensity;
-};
+#define MAX_LIGHTS 5
 
-__inline__ __device__ Vector3f ComputeShadowRay(Camera* camera, Vector3f position, const Vector3f& lightPos, GPURayCastingVolumeTexture* texture, const Vector3f& volumeDimensions, const MaterialTableItem* materialTable, uint16_t materialTableSize)
+__inline__ __device__ Vector3f ComputeShadowRay(Camera* camera, Vector3f position, const Vector3f& lightPos, GPURayCastingVolumeTexture* texture, const Vector3f& volumeDimensions, float skipDistance, const MaterialTableItem* materialTable, uint16_t materialTableSize)
 {
     const float stepSize = 1.f;
-    const Vector3f step = (lightPos - position).normalized() * stepSize;
-    position += step;
+    const Vector3f direction = (lightPos - position).normalized();
+    const Vector3f step = direction * stepSize;
+    position += direction * skipDistance;
     Vector3f start, end;
 
     const float alphaCoef = camera->DeshrinkVector(step).norm();
@@ -89,18 +85,16 @@ __global__ void ComputeShadowsKernel(GPURayCastingVolumeTexture* volume, cudaSur
     }
 
     float4 value;
-    Vector3f shadow = ComputeShadowRay(camera, Vector3f(x, y, z) * (float)subsamplingFactor, lightPos, volume, (sizes * subsamplingFactor).cast<float>(), materialTable, materialTableSize);
+    Vector3f shadow = ComputeShadowRay(camera, Vector3f(x, y, z) * (float)subsamplingFactor, lightPos, volume, (sizes * subsamplingFactor).cast<float>(), subsamplingFactor, materialTable, materialTableSize);
     value.x = shadow.x(); // Převod z float na __half
     value.y = shadow.y();
     value.z = shadow.z();
 
-    surf3Dwrite(value, shadowTexture, x*sizeof(float4), y, z); // Zápis do surface objectu   
-
+    surf3Dwrite(value, shadowTexture, x*sizeof(float4), y, z); // Zápis do surface objectu  
 }
 
-__global__ void ComputeFrameKernel(unsigned char* image, int width, int height, Camera* camera, GPURayCastingVolumeTexture* texture, Vector3f volumeDimensions, MaterialTableItem* materialTable, uint16_t materialTableSize, cudaTextureObject_t shaddowTexture, int shadowSubsampling)
+__global__ void ComputeFrameKernel(unsigned char* image, int width, int height, Camera* camera, GPURayCastingVolumeTexture* texture, Vector3f volumeDimensions, MaterialTableItem* materialTable, uint16_t materialTableSize, cudaTextureObject_t* shaddowTextures, int shadowSubsampling, LightSettings* lightSettings)
 {
-    const Vector3f lightPos(200000, 0, 0);
     const int x = blockIdx.x * blockDim.x + threadIdx.x;
     const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
@@ -112,8 +106,8 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
     float stepSize = 0.5;
 
     
-
-    Vector3f step = camera->GetShrankRayDirection(x, y).normalized()*stepSize;
+    Vector3f direction = camera->GetShrankRayDirection(x, y).normalized();
+    Vector3f step = direction * stepSize;
     Vector3f position = camera->GetShrankPosition();
     Vector3f start, end;
 
@@ -123,8 +117,9 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
 
     position = start;
 
-
     uint32_t stepCount = (start - end).norm() / stepSize;
+
+    float stepWordSpaceLength = aplhaCoeficient * stepSize;
 
     Vector3f colorAcumulator(0.f, 0.f, 0.f);
     Vector3f translucency(1.f, 1.f, 1.f);
@@ -152,36 +147,65 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
             {
                 Vector3f grad = texture->GetTextureGrad(position);
                 Vector3f normal = -grad.normalized();
-                Vector3f light = (lightPos - position).normalized();
-
-                float normalizedGradSize = fminf(grad.norm() / texture->GetMaxValue(), 1.f);
-                bool frontGrad = grad.dot(-normal) > 0;
-                float4 shTex = tex3D<float4>(shaddowTexture, position.x() / shadowSubsampling, position.y() / shadowSubsampling, position.z() / shadowSubsampling);
-                Vector3f shadow(shTex.x, shTex.y, shTex.z);
-                Vector3f lightIntensity = shadow * 0.7f;
-                Vector3f diffusedIntensity1 = lightIntensity * frontGrad * max(normal.dot(light), 0.f) * normalizedGradSize;
-                Vector3f diffusedIntensity2 = lightIntensity * (1.f - normalizedGradSize);
-                Vector3f totalLight = diffusedIntensity1 + diffusedIntensity2 + Vector3f(0.3f, 0.3f, 0.3f);
-
+                float normalizedGradSize = fminf(grad.norm() / texture->GetMaxValue(), 1.f);              
+                bool frontGrad = direction.dot(grad) > 0;
+                
                 const MaterialTableItem& item = materialTable[index];
                 float valminran0 = value - item.range[0];
 
-                float r = (item.RedReflectionDivRange() * valminran0 + item.reflectionColorFrom[0]) * totalLight[0];
-                float g = (item.GreenReflectionDivRange() * valminran0 + item.reflectionColorFrom[1]) * totalLight[1];
-                float b = (item.BlueReflectionDivRange() * valminran0 + item.reflectionColorFrom[2]) * totalLight[2];
+                Vector3f totalReflectedIntensity(0.f, 0.f, 0.f);
+                for (size_t l = 0; l < lightSettings->numLights; l++)
+                {
+                    Light& light = lightSettings->lights[l];
+                    Vector3f lightPos(light.position[0], light.position[1], light.position[2]);
+                    Vector3f lightDirection = (lightPos - position).normalized();
 
+                    float4 shTex = tex3D<float4>(shaddowTextures[l], position.x() / shadowSubsampling + 0.5f, position.y() / shadowSubsampling + 0.5f, position.z() / shadowSubsampling + 0.5f);
+                    Vector3f shadow(shTex.x, shTex.y, shTex.z);
+                    Vector3f lightIntensity = shadow * light.intensity; // Light intensity will be parameter
+
+                    float specularCoeficient = (item.SpecularReflectionDivRange() * valminran0 + item.specularReflectionFrom);
+                    float specularSharpness = (item.SpecularSharpnessDivRange() * valminran0 + item.specularSharpnessFrom);
+
+                    // Split available "energy" to specular and diffused partition.
+                    float specularEnergy = specularCoeficient * normalizedGradSize; // only on front sides
+                    float diffusedEnergy = 1.f - specularEnergy;
+                    float diffusedEnergy1 = diffusedEnergy * normalizedGradSize;
+                    float diffusedEnergy2 = diffusedEnergy * (1.f - normalizedGradSize);
+
+                    // Intensities for 100% white material and not translucent material
+                    Vector3f R = 2 * (normal.dot(lightDirection)) * normal - lightDirection;
+                    Vector3f specularIntensity = specularEnergy * lightIntensity * powf(fmaxf(0.f, R.dot(-direction)), specularSharpness) * ((9.f * specularSharpness + 3.f) / 6.24f) * frontGrad; // Normalizace
+                    Vector3f diffusedIntensity1 = diffusedEnergy1 * lightIntensity * max(normal.dot(lightDirection), 0.f) * 0.2387f * frontGrad;
+                    Vector3f diffusedIntensity2 = diffusedEnergy2 * lightIntensity * (1.f - normalizedGradSize) * 0.1193f;  // 0.4 is good coeficient for reflecting to one dise vs dispersing
+                    totalReflectedIntensity += diffusedIntensity1 + diffusedIntensity2 + specularIntensity;
+                }         
+
+                totalReflectedIntensity += Vector3f(lightSettings->ambientIntensity, lightSettings->ambientIntensity, lightSettings->ambientIntensity);
+
+                // Compute translucency
                 float tr = (item.RedTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[0]);
                 float tg = (item.GreenTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[1]);
                 float tb = (item.BlueTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[2]);
 
-                float reflectness = 1.f - max(max(tr, tg), tb); // if material is transparent, light probably goes more into material
-                colorAcumulator[0] = colorAcumulator[0] + r * reflectness * translucency[0];
-                colorAcumulator[1] = colorAcumulator[1] + g * reflectness * translucency[1];
-                colorAcumulator[2] = colorAcumulator[2] + b * reflectness * translucency[2];
+                // Apply material
+                float reflectness = 1.f - max(max(tr, tg), tb); // if material is transparent, light interact less with it
+                float r = (item.RedReflectionDivRange() * valminran0 + item.reflectionColorFrom[0]) * totalReflectedIntensity[0];
+                float g = (item.GreenReflectionDivRange() * valminran0 + item.reflectionColorFrom[1]) * totalReflectedIntensity[1];
+                float b = (item.BlueReflectionDivRange() * valminran0 + item.reflectionColorFrom[2]) * totalReflectedIntensity[2];
 
-                translucency[0] = translucency[0] * powf(tr, aplhaCoeficient * stepSize);
-                translucency[1] = translucency[1] * powf(tg, aplhaCoeficient * stepSize);
-                translucency[2] = translucency[2] * powf(tb, aplhaCoeficient * stepSize);
+                r *= reflectness;
+                g *= reflectness;
+                b *= reflectness;
+
+                // Acumulation
+                colorAcumulator[0] = colorAcumulator[0] + r * translucency[0];
+                colorAcumulator[1] = colorAcumulator[1] + g * translucency[1];
+                colorAcumulator[2] = colorAcumulator[2] + b * translucency[2];
+
+                translucency[0] = translucency[0] * powf(tr, stepWordSpaceLength);
+                translucency[1] = translucency[1] * powf(tg, stepWordSpaceLength);
+                translucency[2] = translucency[2] * powf(tb, stepWordSpaceLength);
 
                 if ((translucency.array() < 0.02f).all())
                 {
@@ -204,7 +228,24 @@ GPURayCastingVolumeVisualizer::GPURayCastingVolumeVisualizer(const std::shared_p
     _settings(settings),
     _memory(std::make_unique<GPURayCastingVolumeMemory>(camera, volumeLoaderFactory))
 {
-    
+
+    int sizeX = _projectInfo.dataSizeX / _subsamplingFactor;
+    int sizeY = _projectInfo.dataSizeY / _subsamplingFactor;
+    int sizeZ = _projectInfo.dataSizeZ / _subsamplingFactor;
+
+    cudaExtent extent = make_cudaExtent(sizeX, sizeY, sizeZ);
+    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>(); 
+
+    _shadowArrays_h = new cudaArray_t[MAX_LIGHTS];
+    _shadowTextures_h = new cudaTextureObject_t[MAX_LIGHTS];
+
+    for (size_t i = 0; i < MAX_LIGHTS; i++)
+    {
+        _shadowArrays_h[i] = nullptr;
+        _shadowTextures_h[i] = NULL;
+    }
+
+    cudaMalloc(&_shadowTextures_d, sizeof(cudaTextureObject_t) * MAX_LIGHTS);
 }
 
 GPURayCastingVolumeVisualizer::~GPURayCastingVolumeVisualizer()
@@ -214,15 +255,21 @@ GPURayCastingVolumeVisualizer::~GPURayCastingVolumeVisualizer()
         cudaFree(_materialTable_d);
     }
 
-    if (_shadowTexture != NULL)
+    if (_lightSettings_d != nullptr)
     {
-        cudaDestroyTextureObject(_shadowTexture);
+        cudaFree(_lightSettings_d);
     }
 
-    if (_shadowArray != nullptr) 
+    for (size_t i = 0; i < _numShadows; i++)
     {
-        cudaFreeArray(_shadowArray);
+        cudaDestroyTextureObject(_shadowTextures_h[i]);
+        cudaFreeArray(_shadowArrays_h[i]);
     }
+
+    delete[] _shadowArrays_h;
+    delete[] _shadowTextures_h;
+
+    cudaFree(_shadowTextures_d);
 }
 
 bool GPURayCastingVolumeVisualizer::DataChanged()
@@ -232,55 +279,69 @@ bool GPURayCastingVolumeVisualizer::DataChanged()
 
 void GPURayCastingVolumeVisualizer::UpdateShadowTexture(Camera* camera_d) 
 {
-    if (_shadowArray != nullptr)
+    int sizeX = _projectInfo.dataSizeX / _subsamplingFactor;
+    int sizeY = _projectInfo.dataSizeY / _subsamplingFactor;
+    int sizeZ = _projectInfo.dataSizeZ / _subsamplingFactor;
+
+    for (size_t i = _numShadows; i < _settings->lightSettings.numLights; i++)
     {
-        cudaFreeArray(_shadowArray);
-        _shadowArray = nullptr;
+        cudaExtent extent = make_cudaExtent(sizeX, sizeY, sizeZ);
+        cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
+        cudaMalloc3DArray(&_shadowArrays_h[i], &channelDesc, extent);
     }
 
-    if (_shadowTexture != NULL)
+    for (size_t i = _settings->lightSettings.numLights; i < _numShadows; i++)
     {
-        cudaDestroyTextureObject(_shadowTexture);
-        _shadowTexture = NULL;
+        cudaFreeArray(_shadowArrays_h[i]);
+        
+        if (_shadowTextures_h[i] != NULL) 
+        {
+            cudaDestroyTextureObject(_shadowTextures_h[i]);
+            _shadowTextures_h[i] = NULL;
+        }
     }
 
-    uint8_t subsamplingFactor = 2;
-    int sizeX = _projectInfo.dataSizeX / subsamplingFactor;
-    int sizeY = _projectInfo.dataSizeY / subsamplingFactor;
-    int sizeZ = _projectInfo.dataSizeZ / subsamplingFactor;
+    _numShadows = _settings->lightSettings.numLights;
 
-    cudaExtent extent = make_cudaExtent(sizeX, sizeY, sizeZ);
-    cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<float4>();
-    cudaMalloc3DArray(&_shadowArray, & channelDesc, extent);
+    for (size_t i = 0; i < _settings->lightSettings.numLights; i++)
+    {
+        cudaTextureObject_t texture = _shadowTextures_h[i];
+        cudaArray_t shadowArray = _shadowArrays_h[i];
 
-    // Definice dimenzí bloků a mřížky
-    dim3 blockSize(4,4,4);
-    dim3 gridSize((sizeX + blockSize.x - 1) / blockSize.x, (sizeY + blockSize.y - 1) / blockSize.y, (sizeZ + blockSize.z - 1) / blockSize.z);
+        if (_shadowTextures_h[i] != NULL)
+        {
+            cudaDestroyTextureObject(_shadowTextures_h[i]);
+            _shadowTextures_h[i] = NULL;
+        }        
 
-  
+        // Definice dimenzí bloků a mřížky
+        dim3 blockSize(4, 4, 4);
+        dim3 gridSize((sizeX + blockSize.x - 1) / blockSize.x, (sizeY + blockSize.y - 1) / blockSize.y, (sizeZ + blockSize.z - 1) / blockSize.z);
 
-    cudaResourceDesc resDesc = {};
-    resDesc.resType = cudaResourceTypeArray;
-    resDesc.res.array.array = _shadowArray;
+        cudaResourceDesc resDesc = {};
+        resDesc.resType = cudaResourceTypeArray;
+        resDesc.res.array.array = shadowArray;
 
-    cudaSurfaceObject_t surfObj;
-    cudaCreateSurfaceObject(&surfObj, &resDesc);
+        cudaSurfaceObject_t surfObj;
+        cudaCreateSurfaceObject(&surfObj, &resDesc);
+        auto& light = _settings->lightSettings.lights[i];
+        ComputeShadowsKernel << <gridSize, blockSize >> > (_memory->GetTextureDevicePtr(), surfObj, camera_d, Vector3f(light.position[0], light.position[1], light.position[2]), Vector3i(sizeX, sizeY, sizeZ), _subsamplingFactor, _materialTable_d, _settings->materialTable.table.size());
+        cudaDeviceSynchronize();
 
-    ComputeShadowsKernel << <gridSize, blockSize >> > (_memory->GetTextureDevicePtr(), surfObj,camera_d, Vector3f(20000, 0, 0), Vector3i(sizeX, sizeY, sizeZ), 2, _materialTable_d, _settings->materialTable.table.size());
-    cudaDeviceSynchronize();
+        cudaTextureDesc texDesc = {};
+        texDesc.addressMode[0] = cudaAddressModeClamp;
+        texDesc.addressMode[1] = cudaAddressModeClamp;
+        texDesc.addressMode[2] = cudaAddressModeClamp;
+        texDesc.filterMode = cudaFilterModeLinear;
+        texDesc.readMode = cudaReadModeElementType;
+        texDesc.normalizedCoords = 0;
 
-    cudaTextureDesc texDesc = {};
-    texDesc.addressMode[0] = cudaAddressModeClamp;
-    texDesc.addressMode[1] = cudaAddressModeClamp;
-    texDesc.addressMode[2] = cudaAddressModeClamp;
-    texDesc.filterMode = cudaFilterModeLinear; 
-    texDesc.readMode = cudaReadModeElementType;
-    texDesc.normalizedCoords = 0; 
+        cudaCreateTextureObject(&_shadowTextures_h[i], &resDesc, &texDesc, nullptr);
 
-    cudaCreateTextureObject(&_shadowTexture, &resDesc, &texDesc, nullptr);
+        cudaDestroySurfaceObject(surfObj);
+    }   
 
-    cudaDestroySurfaceObject(surfObj);
-
+    cudaMemcpy(_shadowTextures_d, _shadowTextures_h, sizeof(cudaTextureObject_t) * MAX_LIGHTS, cudaMemcpyHostToDevice);
 }
 
 void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d)
@@ -293,8 +354,18 @@ void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d)
         {
             cudaFree(_materialTable_d);
         }
+
         _materialTable_d = _settings->materialTable.CreateTableOnDevice();
         _settingsDeviceVersion = _settings->VersionId();
+
+
+        if (_lightSettings_d != nullptr)
+        {
+            cudaFree(_lightSettings_d);
+        }
+
+        cudaMalloc(&_lightSettings_d, sizeof(LightSettings));
+        cudaMemcpy(_lightSettings_d, &_settings->lightSettings, sizeof(LightSettings), cudaMemcpyHostToDevice);
 
         recomputeShadows = true;
     }
@@ -306,9 +377,7 @@ void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d)
 }
 
 void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
-{
-   
-
+{ 
     Vector2i screenSize = _camera->GetScreenSize();
 
     long width = screenSize[0];
@@ -330,7 +399,7 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
     dim3 gridSize((width + blockSize.x - 1) / blockSize.x, (height + blockSize.y - 1) / blockSize.y);
 
     // Spuštění kernelu
-    ComputeFrameKernel<<<gridSize, blockSize>>>(d_image, width, height, d_camera, _memory->GetTextureDevicePtr(), Vector3f(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ), _materialTable_d, _settings->materialTable.table.size(), _shadowTexture, 2);
+    ComputeFrameKernel<<<gridSize, blockSize>>>(d_image, width, height, d_camera, _memory->GetTextureDevicePtr(), Vector3f(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ), _materialTable_d, _settings->materialTable.table.size(), _shadowTextures_d, _subsamplingFactor, _lightSettings_d);
 
     cudaDeviceSynchronize();
 

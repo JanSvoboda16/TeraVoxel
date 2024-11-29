@@ -29,7 +29,7 @@ public:
 
 
 private:
-	__device__ float GetTextureValue2(Vector3i position) 
+	__device__ __inline__ float GetTextureValue2(Vector3i position) 
 	{
 		cudaTextureObject_t tex = GetTextureSegment(position / _segmentSize);
 
@@ -45,7 +45,7 @@ private:
 		return tex3D<float>(tex, texPosX + 0.5f, texPosY + 0.5f, texPosZ + 0.5f);
 	}
 
-	__device__ float GetTextureCornerValue(Vector3f position)
+	__device__ __inline__ float GetTextureCornerValue(Vector3f position)
 	{
 		Vector3i pos000 = position.cast<int>();
 		Vector3i pos001 = pos000 + Vector3i(0, 0, 1);
@@ -202,6 +202,11 @@ void GPURayCastingVolumeMemory::Preload()
 					h_array[i] = data->data[mortonIndex];
 				}
 
+
+				MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
+				MemoryContext::GetInstance().usedMemory -= loader->GetBlockRequiredMemory(0);
+				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
+
 				CreateTexture<float>(Vector3i(bx, by, bz), h_array.data());
 			}
 		}
@@ -270,7 +275,7 @@ GPURayCastingVolumeTexture::GPURayCastingVolumeTexture(cudaTextureObject_t* text
 	_valueMultiplier(valueMutliplier)
 {}
 
- __device__ cudaTextureObject_t GPURayCastingVolumeTexture::GetTextureSegment(const Eigen::Vector3i& segment)
+ __device__ __inline__ cudaTextureObject_t GPURayCastingVolumeTexture::GetTextureSegment(const Eigen::Vector3i& segment)
 {
 	if ((segment.array() >= _segmentCount.array()).any())
 	{
@@ -282,13 +287,13 @@ GPURayCastingVolumeTexture::GPURayCastingVolumeTexture(cudaTextureObject_t* text
 	return _textures_d[index];
 }
 
-__device__ float GPURayCastingVolumeTexture::GetTextureValue(const Vector3f& position)
+__device__ __inline__ float GPURayCastingVolumeTexture::GetTextureValue(const Vector3f& position)
 {
 	 float texPosX = fmodf(position[0], _segmentSize);
 	 float texPosY = fmodf(position[1], _segmentSize);
 	 float texPosZ = fmodf(position[2], _segmentSize);
 
-	 if (texPosX > _segmentSize || texPosY > _segmentSize || texPosZ > _segmentSize)
+	 if (texPosX > (_segmentSize - 1) || texPosY > (_segmentSize - 1) || texPosZ > (_segmentSize - 1))
 	 {
 		 return GetTextureCornerValue(position);
 	 }
@@ -302,7 +307,7 @@ __device__ float GPURayCastingVolumeTexture::GetTextureValue(const Vector3f& pos
 	 return tex3D<float>(tex, texPosX + 0.5f, texPosY + 0.5f, texPosZ + 0.5f);
  }
 
-__device__ Vector3f GPURayCastingVolumeTexture::GetTextureGrad(const Vector3f& position)
+__device__ __inline__ Vector3f GPURayCastingVolumeTexture::GetTextureGrad(const Vector3f& position)
 {
 	float center = GetTextureValue(position);
 	float cx = GetTextureValue(position + Vector3f(1.f, 0.f, 0.f));

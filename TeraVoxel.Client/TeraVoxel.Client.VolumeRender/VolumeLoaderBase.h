@@ -36,6 +36,7 @@ public:
 
 	void BindOnSegmentLoaded(std::function<void(void)> function) { _onSegmentLoaded = function; }
 
+	uint64_t GetBlockRequiredMemory(int downscale);
 protected:
 	std::list<VolumeSegment<T>*> _segmentsToLoad;
 	std::queue<std::unique_ptr<VolumeSegment<T>>> _loadedSegments;
@@ -49,7 +50,7 @@ protected:
 	std::function<void(void)> _onSegmentLoaded = [=]() {};
 
 	void PreloadTask(short threadIndex, short threadCount, int downscale);
-	uint64_t GetBlockRequiredMemory(int downscale);
+	
 	virtual T* LoadSegmentData(int x, int y, int z, int downscale) = 0;
 
 	void LoadingTask();
