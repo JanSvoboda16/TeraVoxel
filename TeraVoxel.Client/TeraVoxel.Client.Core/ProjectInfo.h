@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Author: Jan Svoboda
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
@@ -16,6 +16,7 @@ enum ProjectState
 	ProjectConverted
 };
 
+// TODO rozdělit na project info a DatasetInfo
 class ProjectInfo
 {
 	public:

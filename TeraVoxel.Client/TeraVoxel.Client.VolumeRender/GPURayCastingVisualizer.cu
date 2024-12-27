@@ -176,8 +176,8 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
                     // Intensities for 100% white material and not translucent material
                     Vector3f R = 2 * (normal.dot(lightDirection)) * normal - lightDirection;
                     Vector3f specularIntensity = specularEnergy * lightIntensity * powf(fmaxf(0.f, R.dot(-direction)), specularSharpness) * ((9.f * specularSharpness + 3.f) / 6.24f) * frontGrad; // Normalizace
-                    Vector3f diffusedIntensity1 = diffusedEnergy1 * lightIntensity * max(normal.dot(lightDirection), 0.f) * 0.2387f * frontGrad;
-                    Vector3f diffusedIntensity2 = diffusedEnergy2 * lightIntensity * (1.f - normalizedGradSize) * 0.1193f;  // 0.4 is good coeficient for reflecting to one dise vs dispersing
+                    Vector3f diffusedIntensity1 = diffusedEnergy1 * lightIntensity * max(normal.dot(lightDirection), 0.f) * 0.477f * frontGrad;
+                    Vector3f diffusedIntensity2 = diffusedEnergy2 * lightIntensity * 0.239;  // 0.4 is good coeficient for reflecting to one dise vs dispersing
                     totalReflectedIntensity += diffusedIntensity1 + diffusedIntensity2 + specularIntensity;
                 }         
 
