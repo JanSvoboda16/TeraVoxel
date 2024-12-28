@@ -176,9 +176,6 @@
     <ClInclude Include="RayCastingUtilities.cuh">
       <Filter>Volume\Visualizers</Filter>
     </ClInclude>
-    <ClInclude Include="GPURayCastingVolumeTexture.cuh">
-      <Filter>Volume\Visualizers\GPURayCasting</Filter>
-    </ClInclude>
     <ClInclude Include="GPURayCastingVolumeVisualizer.h">
       <Filter>Volume\Visualizers\GPURayCasting</Filter>
     </ClInclude>

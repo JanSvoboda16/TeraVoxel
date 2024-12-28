@@ -8,7 +8,8 @@
 #include "../TeraVoxel.Client.VolumeRender/GPURCVolumeVisualizerFactory.h"
 
 void VisualizerSettingsWindow::SetVisualizer(int visualizerId)
-{
+{   
+	// TODO  -> do only when scene is editable. Should not cause any problems now. 
 	if (_volumeViewContext->scene != nullptr)
 	{
 		switch (visualizerId)

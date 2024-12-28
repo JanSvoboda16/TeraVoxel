@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #pragma once
 #pragma once
 #include "IView.h"
@@ -14,6 +18,7 @@ class GPURayCastingView : public IView
 {
 public:
 	GPURayCastingView(std::shared_ptr<VolumeViewContext> volumeViewContext, std::shared_ptr<GPURCVolumeVisualizerSettings> visualizerSettings);;
+	~GPURayCastingView();
 
 	void Update() override;
 
@@ -36,7 +41,7 @@ private:
 	void SaveLighting(std::string fileName);
 	void LoadLightings();
 	void LoadLighting(std::string fileName);
-	// 
+	
 	void UpdateSettings();
 };
 

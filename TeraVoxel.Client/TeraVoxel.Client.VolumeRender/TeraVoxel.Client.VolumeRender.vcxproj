@@ -185,7 +185,6 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="GPUEntity.h" />
     <ClInclude Include="GPURayCastingVolumeMemory.cuh" />
-    <ClInclude Include="GPURayCastingVolumeTexture.cuh" />
     <ClInclude Include="GPURayCastingVolumeVisualizer.h" />
     <ClInclude Include="GPURCVolumeVisualizerSettings.h" />
     <ClInclude Include="GPURCVolumeVisualizerFactory.h" />

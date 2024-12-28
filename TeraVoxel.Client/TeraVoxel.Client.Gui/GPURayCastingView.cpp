@@ -1,3 +1,8 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+
 #include "GPURayCastingView.h"
 #include "imgui_stdlib.h"
 
@@ -12,6 +17,11 @@ GPURayCastingView::GPURayCastingView(std::shared_ptr<VolumeViewContext> volumeVi
 	_volumeViewContext->sceneEditable.Register(this, "UpdateSettings", [this]() { UpdateSettings(); });
 	LoadTables();
     LoadLightings();
+}
+
+GPURayCastingView::~GPURayCastingView()
+{
+    _volumeViewContext->sceneEditable.Unregister(this, "UpdateSettings");
 }
 
 void GPURayCastingView::Update()

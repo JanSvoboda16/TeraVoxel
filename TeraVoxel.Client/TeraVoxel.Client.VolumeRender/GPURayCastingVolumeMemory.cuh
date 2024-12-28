@@ -1,4 +1,8 @@
-﻿#pragma once
+﻿/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+#pragma once
 #include <fstream>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
@@ -14,21 +18,44 @@
 #include "VolumeLoaderBase.h"
 #include "../TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 
+/// <summary>
+/// Class used for storing volumetric data in textures by blocks on the GPU.
+/// </summary>
 class GPURayCastingVolumeTexture
 {
 public:
 	__host__ GPURayCastingVolumeTexture(cudaTextureObject_t* textures_d, const Eigen::Vector3i& segmentCount, uint16_t segmentSize, float valueMultiplier);
-
+	/// <summary>
+	/// Gets block (texture) on coordinates.
+	/// </summary>
+	/// <param name="segment">coordinates</param>
+	/// <returns></returns>
 	__device__ cudaTextureObject_t GetTextureSegment(const Eigen::Vector3i& segment);
 
+	/// <summary>
+	/// Gets value on the given position.
+	/// </summary>
+	/// <param name="position">coordinates</param>
+	/// <returns>value</returns>
 	__device__ float GetTextureValue(const Vector3f& position);
 
+	/// <summary>
+	/// Computes gradient on the given position.
+	/// </summary>
+	/// <param name="position">coordinates</param>
+	/// <returns>gradietn</returns>
 	__device__ Vector3f GetTextureGrad(const Vector3f& position);
 
+	/// <summary>
+	/// Gets max value in the texture (used for normalization)
+	/// </summary>
+	/// <returns>max value</returns>
 	__device__ float GetMaxValue() { return _valueMultiplier; }
 
 
 private:
+
+	// Similar to GetTextureValue. IMPORTANT -> NO RECURSION ON GPU
 	__device__ __inline__ float GetTextureValue2(Vector3i position) 
 	{
 		cudaTextureObject_t tex = GetTextureSegment(position / _segmentSize);
@@ -45,6 +72,7 @@ private:
 		return tex3D<float>(tex, texPosX + 0.5f, texPosY + 0.5f, texPosZ + 0.5f);
 	}
 
+	// Using software interpolation
 	__device__ __inline__ float GetTextureCornerValue(Vector3f position)
 	{
 		Vector3i pos000 = position.cast<int>();
@@ -83,7 +111,9 @@ private:
 	float _valueMultiplier;
 };
 
-
+/// <summary>
+/// Class designed for managing textures on the GPU and automatically loading data into these textures.
+/// </summary>
 class GPURayCastingVolumeMemory 
 {
 public:
@@ -98,6 +128,7 @@ private:
 	template<typename T>
 	float GetValueMultiplicator();
 
+	// Preloads data 
 	template<typename T>
 	void Preload();
 

@@ -1,9 +1,12 @@
-﻿#include "VolumeVisualizerBase.h"
+﻿/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+#include "VolumeVisualizerBase.h"
 #include "ColorMappingTable.h"
 #include "CPURCVolumeVisualizerSettings.h"
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
-#include "GPURayCastingVolumeTexture.cuh"
 #include "GPURCVolumeVisualizerSettings.h"
 
 class GPURayCastingVolumeMemory;
@@ -18,33 +21,37 @@ public:
 	bool DataChanged() override;
 
 private:
-	template <typename T>
-	void CoumputeFrameInternalTemplated(int downscale);
-
+	/// <summary>
+	/// Updates entities in the scene if need to be updated
+	/// </summary>
+	/// <param name="camera_d"></param>
 	void UpdateEntities(Camera* camera_d);
 
+	/// <summary>
+	/// Remoputes shadows in the scene
+	/// </summary>
+	/// <param name="camera_d">Device camera pointer</param>
 	void UpdateShadowTexture(Camera* camera_d);
 
-	// Dědí se přes VolumeVisualizerBase.
+	/// <summary>
+	/// Computes frame
+	/// </summary>
+	/// <param name="framebuffer"></param>
+	/// <param name="downscale"></param>
+	/// <param name="multiLayeredFramebuffer"></param>
 	void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) override;
 
 	std::unique_ptr<GPURayCastingVolumeMemory> _memory;
 	std::shared_ptr<GPURCVolumeVisualizerSettings> _settings;
 
-
-
 	MaterialTableItem* _materialTable_d = nullptr;
 	int64_t _settingsDeviceVersion = -1;
 
-	// Arrays are on hosts, not objects
+	// Shadows - Arrays are on host, objects are on GPU
 	cudaTextureObject_t* _shadowTextures_h = NULL;
-	cudaArray_t* _shadowArrays_h = nullptr;
-
+	cudaArray_t* _shadowArrays_h = nullptr;	
 	cudaTextureObject_t* _shadowTextures_d = NULL;
-
 	LightSettings* _lightSettings_d = nullptr;
-
 	uint8_t _numShadows = 0;
-
-	uint8_t _subsamplingFactor = 4;
+	uint8_t _shadowSubsampling = 4;
 };

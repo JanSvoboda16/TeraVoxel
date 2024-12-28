@@ -35,7 +35,7 @@ private:
 	std::shared_ptr<GPURCVolumeVisualizerSettings> _gpuRayCastingVisualizerSettings;
 	std::shared_ptr<IView> _view;
 
-	int _selectedVisualizerId = 1;
+	int _selectedVisualizerId = 2;
 
 	/// <summary>
 	/// Set a selected visualizer to the scene
