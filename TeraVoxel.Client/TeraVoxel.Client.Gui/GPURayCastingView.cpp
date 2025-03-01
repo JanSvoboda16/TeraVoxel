@@ -94,101 +94,96 @@ void GPURayCastingView::Update()
             ImGui::TableSetupColumn("Material To", ImGuiTableColumnFlags_None);
             ImGui::TableHeadersRow();
 
-            ImGuiListClipper clipper;
-            clipper.Begin(_visualizerSettingsPrivate.materialTable.table.size());
-
-            while (clipper.Step())
+   
+            for (int row = 0; row < _visualizerSettingsPrivate.materialTable.table.size(); row++)
             {
-                for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++)
-                {
-                    ImGui::TableNextRow();
+                ImGui::TableNextRow();
 
-                    ImGui::TableSetColumnIndex(0);
-                    ImGui::PushItemWidth(-1);
-                    auto rangeLabel = "##Range" + std::to_string(row);
-                    if (ImGui::InputFloat2(rangeLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].range))
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    ImGui::PopItemWidth();
+                ImGui::TableSetColumnIndex(0);
+                ImGui::PushItemWidth(-1);
+                auto rangeLabel = "##Range" + std::to_string(row);
+                if (ImGui::InputFloat2(rangeLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].range))
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                ImGui::PopItemWidth();
 
-                    auto deleteLabel = "Delete##" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(3);
-                    if (ImGui::Button(deleteLabel.c_str())) {
-                        _visualizerSettingsPrivate.materialTable.table.erase(_visualizerSettingsPrivate.materialTable.table.begin() + row);
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    }
-
-                    auto colorFromLabel = "##ColorFrom" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::ColorEdit3(colorFromLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].reflectionColorFrom, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    ImGui::PopItemWidth();
-
-                    auto colorToLabel = "##ColorTo" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::ColorEdit3(colorToLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].reflectionColorTo, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    ImGui::PopItemWidth();
-
-                    ImGui::TableNextRow();
-                    auto transFromLabel = "##TransFrom" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::ColorEdit3(transFromLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].translucencyColorFrom, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    ImGui::PopItemWidth();
-
-                    auto transToLabel = "##TransTo" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::ColorEdit3(transToLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].translucencyColorTo, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    ImGui::PopItemWidth();
-
-                    ImGui::TableNextRow();
-                    auto specRefFromLabel = "##SpecRefFrom" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::InputFloat(specRefFromLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularReflectionFrom, 0.05f))
-                    {
-                        CLAMP_FLOAT(_visualizerSettingsPrivate.materialTable.table[row].specularReflectionFrom, 0.f, 1.f);
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    }
-                    ImGui::PopItemWidth();
-
-                    auto specRefToLabel = "##SpecRefTo" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::InputFloat(specRefToLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularReflectionTo, 0.05f))
-                    {
-                        CLAMP_FLOAT(_visualizerSettingsPrivate.materialTable.table[row].specularReflectionTo, 0.f, 1.f);
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    }
-                    ImGui::PopItemWidth();
-
-                    ImGui::TableNextRow();
-                    auto specSharpFromLabel = "##SpecSharpFrom" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::InputFloat(specSharpFromLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessFrom, 0.05f))
-                    {
-                        CLAMP_FLOAT_MIN(_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessFrom, 0);
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    }
-                    ImGui::PopItemWidth();
-
-                    auto specSharpToLabel = "##SpecSharpTo" + std::to_string(row);
-                    ImGui::TableSetColumnIndex(2);
-                    ImGui::PushItemWidth(-1);
-                    if (ImGui::InputFloat(specSharpToLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessTo, 0.05f))
-                    {
-                        CLAMP_FLOAT_MIN(_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessTo, 0);
-                        _visualizerSettingsPrivate.IncrementVersionId();
-                    }
-                    ImGui::PopItemWidth();
+                auto deleteLabel = "Delete##" + std::to_string(row);
+                ImGui::TableSetColumnIndex(3);
+                if (ImGui::Button(deleteLabel.c_str())) {
+                    _visualizerSettingsPrivate.materialTable.table.erase(_visualizerSettingsPrivate.materialTable.table.begin() + row);
+                    _visualizerSettingsPrivate.IncrementVersionId();
                 }
-            }
+
+                auto colorFromLabel = "##ColorFrom" + std::to_string(row);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::ColorEdit3(colorFromLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].reflectionColorFrom, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                ImGui::PopItemWidth();
+
+                auto colorToLabel = "##ColorTo" + std::to_string(row);
+                ImGui::TableSetColumnIndex(2);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::ColorEdit3(colorToLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].reflectionColorTo, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                ImGui::PopItemWidth();
+
+                ImGui::TableNextRow();
+                auto transFromLabel = "##TransFrom" + std::to_string(row);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::ColorEdit3(transFromLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].translucencyColorFrom, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                ImGui::PopItemWidth();
+
+                auto transToLabel = "##TransTo" + std::to_string(row);
+                ImGui::TableSetColumnIndex(2);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::ColorEdit3(transToLabel.c_str(), _visualizerSettingsPrivate.materialTable.table[row].translucencyColorTo, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_Float))
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                ImGui::PopItemWidth();
+
+                ImGui::TableNextRow();
+                auto specRefFromLabel = "##SpecRefFrom" + std::to_string(row);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::InputFloat(specRefFromLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularReflectionFrom, 0.05f))
+                {
+                    CLAMP_FLOAT(_visualizerSettingsPrivate.materialTable.table[row].specularReflectionFrom, 0.f, 1.f);
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                }
+                ImGui::PopItemWidth();
+
+                auto specRefToLabel = "##SpecRefTo" + std::to_string(row);
+                ImGui::TableSetColumnIndex(2);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::InputFloat(specRefToLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularReflectionTo, 0.05f))
+                {
+                    CLAMP_FLOAT(_visualizerSettingsPrivate.materialTable.table[row].specularReflectionTo, 0.f, 1.f);
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::TableNextRow();
+                auto specSharpFromLabel = "##SpecSharpFrom" + std::to_string(row);
+                ImGui::TableSetColumnIndex(1);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::InputFloat(specSharpFromLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessFrom, 0.05f))
+                {
+                    CLAMP_FLOAT_MIN(_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessFrom, 0);
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                }
+                ImGui::PopItemWidth();
+
+                auto specSharpToLabel = "##SpecSharpTo" + std::to_string(row);
+                ImGui::TableSetColumnIndex(2);
+                ImGui::PushItemWidth(-1);
+                if (ImGui::InputFloat(specSharpToLabel.c_str(), &_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessTo, 0.05f))
+                {
+                    CLAMP_FLOAT_MIN(_visualizerSettingsPrivate.materialTable.table[row].specularSharpnessTo, 0);
+                    _visualizerSettingsPrivate.IncrementVersionId();
+                }
+                ImGui::PopItemWidth();
+            }            
 
             ImGui::EndTable();
         }
