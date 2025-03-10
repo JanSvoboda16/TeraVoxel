@@ -1,0 +1,3 @@
+[submodule "TeraVoxel.Client/Submodules/NeuroVoxel"]
+	path = TeraVoxel.Client/Submodules/NeuroVoxel
+	url = https://github.com/JanSvoboda16/NeuroVoxel
