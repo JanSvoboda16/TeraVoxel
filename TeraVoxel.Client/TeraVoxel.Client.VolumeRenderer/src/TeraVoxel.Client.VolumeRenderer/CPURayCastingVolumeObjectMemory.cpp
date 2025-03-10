@@ -23,18 +23,20 @@ CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::s
 	_projectInfo = volumeLoaderFactory->GetProjectInfo();
 	_camera = camera;
 	xSegmentCount = _projectInfo.sizeX / _projectInfo.segmentSize;
-	ySegmentCountCount = _projectInfo.sizeY / _projectInfo.segmentSize;
+	ySegmentCount = _projectInfo.sizeY / _projectInfo.segmentSize;
 	zSegmentCount = _projectInfo.sizeZ / _projectInfo.segmentSize;
 	_oneDivSegmentSize = 1.0 / _projectInfo.segmentSize;
 	_segmentSize = _projectInfo.segmentSize;
 	_segmentSizeShifter = (int)(log2(_segmentSize) + 0.5);
 	_volumeLoader = std::unique_ptr<VolumeLoaderBase<T>>(dynamic_cast<VolumeLoaderBase<T>*>(volumeLoaderFactory->Create(SettingsContext::GetInstance().loadingThreadCount).release()));
 
-	_segmentCount = (uint64_t)xSegmentCount * (uint64_t)ySegmentCountCount * (uint64_t)zSegmentCount;
+	_segmentCount = (uint64_t)xSegmentCount * (uint64_t)ySegmentCount * (uint64_t)zSegmentCount;
 	_volumes.resize(_segmentCount);
+	_tickets.resize(_segmentCount, nullptr);
 
+	_used = std::vector<std::atomic<bool>>(_segmentCount);
 	_lowResolutionVolumes.resize(_segmentCount);
-	maxSegmentIndex = xSegmentCount * ySegmentCountCount * zSegmentCount - 1;
+	maxSegmentIndex = xSegmentCount * ySegmentCount * zSegmentCount - 1;
 
 	// Preload low quality segments
 	Preload(SettingsContext::GetInstance().preloadingThreadCount.load(std::memory_order::acquire));
@@ -61,8 +63,9 @@ void CPURayCastingVolumeObjectMemory<T>::Preload(short threadCount)
 		{
 			break;
 		}
-		int_fast16_t segmentIndex = volume->x + volume->y * xSegmentCount + volume->z * xSegmentCount * ySegmentCountCount;
-		_volumes[segmentIndex] = new VolumeSegment<T>(volume->x, volume->y, volume->z);
+		int_fast16_t segmentIndex = volume->x + volume->y * xSegmentCount + volume->z * xSegmentCount * ySegmentCount;
+
+		_volumes[segmentIndex] = nullptr;
 		_lowResolutionVolumes[segmentIndex] = volume.release();
 	}
 }
@@ -102,14 +105,15 @@ void CPURayCastingVolumeObjectMemory<T>::ProcessDelete(std::vector<VolumeSegment
 {
 	int size = volumes.size();
 	for (size_t i = 0; i < size; i++)
-	{
+	{		
 		auto volume = volumes.back();
-		if (volume->data != nullptr)
+		if (volume == nullptr)
 		{
-			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-			MemoryContext::GetInstance().usedMemory -= GetBlockRequiredMemory(volume->actualDownscale);
-			MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
+			continue;
 		}
+		MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
+		MemoryContext::GetInstance().usedMemory -= GetBlockRequiredMemory(volume->downscale);
+		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 		delete volume;
 		volumes.pop_back();
 	}
@@ -124,28 +128,56 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 
 	for (size_t z = 0; z < zSegmentCount; z++)
 	{
-		for (size_t y = 0; y < ySegmentCountCount; y++)
+		for (size_t y = 0; y < ySegmentCount; y++)
 		{
 			for (size_t x = 0; x < xSegmentCount; x++)
 			{
-				auto index = x + y * xSegmentCount + z * xSegmentCount * ySegmentCountCount;
+				auto index = x + y * xSegmentCount + z * xSegmentCount * ySegmentCount;
 				VolumeSegment<T>* vol = _volumes[index];
 
-				if (vol->actualDownscale <= vol->requiredDownscale && vol->used)
+				int requiredDownscale = GetRequiredDownscale((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
+
+
+				auto ticket = _tickets[index];
+
+
+				if (ticket != nullptr && (ticket->state == RequestState::Loaded || _tickets[index]->state == RequestState::UnableToLoad))
 				{
-					countOfOkQuality++;
+					_tickets[index] = nullptr;
+					ticket = nullptr;
 				}
 
-				if (vol->used.load(std::memory_order_relaxed))
+				if (!ramAlmostFull) 
 				{
-					countVisible++;
-				}
+					if (ticket == nullptr)
+					{
+						if (vol == nullptr && _used[index].load(std::memory_order_relaxed)
+							|| (vol != nullptr && _used[index].load(std::memory_order_relaxed) && vol->downscale > requiredDownscale))
+						{
+							float priority = GetPriority((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
 
+							_tickets[index] = _volumeLoader->LoadAsync(x, y, z, requiredDownscale, priority);
+						}
+					}
+					else
+					{
+						float priority = GetPriority((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
+
+						ticket->mutex.lock();
+
+						ticket->needed = _used[index].load(std::memory_order_relaxed) && ticket->downscale > requiredDownscale;
+						ticket->downscale = requiredDownscale;
+						ticket->priority = priority;
+
+						ticket->mutex.unlock();
+					}
+				}
+				/*
 				if (vol->used.load(std::memory_order_relaxed))
 				{
 					int requiredDownscale = GetRequiredDownscale((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
 
-					vol->priority.store(GetPriority((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2));
+					vol->priority.store();
 
 					// Important for refresh after zooming on the loaded scene -> step depend on quality
 					if (vol->requiredDownscale != requiredDownscale)
@@ -166,15 +198,15 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 						else
 						{
 							vol->loadingDownscale.store(requiredDownscale, std::memory_order::release);
-							_volumeLoader->AddToStack(vol);
+							_volumeLoader->LoadAsync(vol);
 						}
 					}
-				}
+				}*/
 			}
 		}
 	}
 
-	int segmentCount = xSegmentCount * ySegmentCountCount * zSegmentCount;
+	int segmentCount = xSegmentCount * ySegmentCount * zSegmentCount;
 
 	Logger::GetInstance()->LogEvent("VolumeObjectMemory", "QualityInfo", std::to_string(countOfOkQuality / (double)countVisible));
 
@@ -195,22 +227,14 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 	// Usage variables setting
 	for (size_t z = 0; z < zSegmentCount; z++)
 	{
-		for (size_t y = 0; y < ySegmentCountCount; y++)
+		for (size_t y = 0; y < ySegmentCount; y++)
 		{
 			for (size_t x = 0; x < xSegmentCount; x++)
 			{
-				auto index = x + y * xSegmentCount + z * xSegmentCount * ySegmentCountCount;
+				auto index = x + y * xSegmentCount + z * xSegmentCount * ySegmentCount;
 				VolumeSegment<T>* vol = _volumes[index];
 
-				if (!vol->used.load(std::memory_order_acquire))
-				{
-					vol->unusedCount.fetch_add(1, std::memory_order_acq_rel);
-				}
-				else
-				{
-					vol->unusedCount.store(0, std::memory_order_release);
-					vol->used.store(false, std::memory_order_release);
-				}
+				_used[index].store(false, std::memory_order_release);
 			}
 		}
 	}
@@ -230,7 +254,7 @@ void CPURayCastingVolumeObjectMemory<T>::Prepare()
 		{
 			break;
 		}
-		int_fast16_t segmentIndex = volume->x + volume->y * xSegmentCount + volume->z * xSegmentCount * ySegmentCountCount;
+		int_fast16_t segmentIndex = volume->x + volume->y * xSegmentCount + volume->z * xSegmentCount * ySegmentCount;
 		if (_volumes[segmentIndex] != nullptr)
 		{
 			_volumesToDelete.push_back(_volumes[segmentIndex]);
@@ -253,14 +277,13 @@ void CPURayCastingVolumeObjectMemory<T>::DeleteNotUsed(int maxCount)
 	{
 		VolumeSegment<T>* vol = _volumes[i];
 
-		if (vol->data != nullptr)
+		if (vol != nullptr)
 		{
-			if (!vol->used.load(std::memory_order_acquire) && !vol->waitsToBeReloaded.load(std::memory_order_acquire))
+			if (!_used[i].load(std::memory_order_acquire))
 			{
 				_volumesToDeleteMutex.lock();
-				auto newVolume = new VolumeSegment<T>(vol->x, vol->y, vol->z);
 				_volumesToDelete.push_back(vol);
-				_volumes[i] = newVolume;
+				_volumes[i] = nullptr;
 				_volumesToDeleteMutex.unlock();
 
 				count++;
@@ -282,19 +305,21 @@ void CPURayCastingVolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount
 	for (size_t i = 0; i < _segmentCount; i++)
 	{
 		VolumeSegment<T>* vol = _volumes[i];
-		if (vol->data != nullptr)
+		if (vol != nullptr)
 		{
+			Eigen::Vector3i XYZ = Serialization::IdxToXYZ(i, Eigen::Vector3i(xSegmentCount, ySegmentCount, zSegmentCount));
+			auto requiredDownscale = GetRequiredDownscale((XYZ.x() << _segmentSizeShifter) + _segmentSize / 2, (XYZ.y() << _segmentSizeShifter) + _segmentSize / 2, (XYZ.z() << _segmentSizeShifter) + _segmentSize / 2);
 			// The quality is better than we need 
-			if (!vol->waitsToBeReloaded.load(std::memory_order_acquire) && vol->actualDownscale < vol->requiredDownscale)
+			if (vol->downscale < requiredDownscale)
 			{
 				// NOT BEING RELOADED -> only this thread has access to this block
 
 				// Downscale a block to the required quality
-				int downscaledSegmentSize = _segmentSize >> vol->requiredDownscale;
+				int downscaledSegmentSize = _segmentSize >> requiredDownscale;
 				T* downscaledData = new T[downscaledSegmentSize * downscaledSegmentSize * downscaledSegmentSize];
-				int actualSegmentSize = _segmentSize >> vol->actualDownscale;
+				int actualSegmentSize = _segmentSize >> vol->downscale;
 				int downscaledVoxelCount = downscaledSegmentSize * downscaledSegmentSize * downscaledSegmentSize;
-				int downscale = vol->requiredDownscale - vol->actualDownscale;
+				int downscale = requiredDownscale - vol->downscale;
 				int downscaleVoxCount = (size_t)1 << downscale; // 1 << downscale == 2 ^ downscale
 				downscaleVoxCount = downscaleVoxCount * downscaleVoxCount * downscaleVoxCount;
 
@@ -312,14 +337,13 @@ void CPURayCastingVolumeObjectMemory<T>::DownscaleWithHigherQuality(int maxCount
 
 				// Recomputing RAM 
 				MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-				MemoryContext::GetInstance().usedMemory -= GetBlockRequiredMemory(vol->actualDownscale) - GetBlockRequiredMemory(vol->requiredDownscale);
+				MemoryContext::GetInstance().usedMemory -= GetBlockRequiredMemory(vol->downscale) - GetBlockRequiredMemory(requiredDownscale);
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
 				// Swapping data
 				delete vol->data;
 				vol->data = downscaledData;
-				vol->actualDownscale = vol->requiredDownscale;
-				vol->loadingDownscale = vol->requiredDownscale;
+				vol->downscale = requiredDownscale;
 
 				count++;
 				if (count == maxCount)
@@ -339,22 +363,22 @@ __forceinline T CPURayCastingVolumeObjectMemory<T>::GetValue(uint_fast16_t xInde
 	uint_fast16_t xSegment = xIndex >> _segmentSizeShifter;
 	uint_fast16_t ySegent = yIndex >> _segmentSizeShifter;
 	uint_fast16_t zSegment = zIndex >> _segmentSizeShifter;
-	uint_fast32_t segmentIndex = xSegment + ySegent * xSegmentCount + zSegment * xSegmentCount * ySegmentCountCount;
+	uint_fast32_t segmentIndex = xSegment + ySegent * xSegmentCount + zSegment * xSegmentCount * ySegmentCount;
 
 	VolumeSegment<T>* volume = nullptr;
 	volume = _volumes[segmentIndex];
 
-	if (!volume->used.load(std::memory_order::acquire))  // This condition is important for optimalization
+	if (!_used[segmentIndex].load(std::memory_order::acquire))  // This condition is important for optimalization
 	{
-		volume->used.store(true, std::memory_order::seq_cst); // seq_cst cause faster change in all threads -> less calling
+		_used[segmentIndex].store(true, std::memory_order::seq_cst); // seq_cst cause faster change in all threads -> less calling
 	}
 
-	if (volume->data == nullptr)
+	if (volume == nullptr)
 	{
 		volume = _lowResolutionVolumes[segmentIndex]; // If a volume segment is not loaded we use a low resolution one
 	}
 
-	downscale = volume->actualDownscale;
+	downscale = volume->downscale;
 
 	auto index = Serialization::GetZCurveIndex(
 		(xIndex % _segmentSize) >> downscale, // >> downscale ==  / 2^downscale

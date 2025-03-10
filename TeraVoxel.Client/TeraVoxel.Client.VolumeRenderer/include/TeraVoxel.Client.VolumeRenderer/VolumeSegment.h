@@ -5,20 +5,34 @@
 #pragma once
 #include <memory>
 #include <shared_mutex>
+#include <Eigen/Dense>
+
+enum RequestState
+{
+	WaitingToBeLoaded,
+	BeingLoaded,
+	Loaded,
+	UnableToLoad
+};
+
+struct VolumeSegmentRequestTicket
+{
+	std::mutex mutex;
+
+	int downscale;
+	Eigen::Vector3i coordinates;
+
+	float priority;
+	bool needed = true;
+	RequestState state;
+};
 
 template <typename T>
 struct VolumeSegment
-{
-	std::atomic<float> priority = 0;
-	std::atomic<int> unusedCount = 0;				// How many times was not used (continuously)
-	std::atomic<bool> used = false;					// Was used in actual frame
-	std::atomic<bool> waitsToBeReloaded = false;	// Wait in the reload stack or is being reloaded
-	std::atomic<short> loadingDownscale = 500;		// Dowsncale that the segment will have in future (after reload) or has now
-	
-	short actualDownscale = 500;					// High value -> will be always reloaded first
-	short x, y, z;	//READONLY						// Indexes of this segment
-	short requiredDownscale = 0;				// Downscale that is requiews for actual view (can be higher than future
-	
+{	
+	short downscale = 500;					    // High value -> will be always reloaded first
+	short x, y, z;	//READONLY					// Indexes of this segment
+
 	T* data;								// DATA
 
 	VolumeSegment(short x, short y, short z, T* data = nullptr) :

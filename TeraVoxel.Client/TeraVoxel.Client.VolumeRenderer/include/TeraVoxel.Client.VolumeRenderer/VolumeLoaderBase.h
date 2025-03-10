@@ -28,7 +28,7 @@ class VolumeLoaderBase : public VolumeLoaderGenericBase
 public:
 	VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount);
 	virtual ~VolumeLoaderBase();
-	void AddToStack(VolumeSegment<T>* segment);
+	std::shared_ptr<VolumeSegmentRequestTicket> LoadAsync(int x, int y, int z, int downscale, float priority);
 	void Preload(int downscale, int threadCount);
 	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
 	std::unique_ptr<VolumeSegment<T>> LoadSync(int x, int y, int z, int downscale);
@@ -37,15 +37,15 @@ public:
 
 	uint64_t GetBlockRequiredMemory(int downscale);
 protected:
-	std::list<VolumeSegment<T>*> _segmentsToLoad;
+	std::list<std::shared_ptr<VolumeSegmentRequestTicket>> _tickets;
 	std::queue<std::unique_ptr<VolumeSegment<T>>> _loadedSegments;
-	std::mutex _segmentsToLoadMutex;
+	std::mutex _ticketsMutex;
 	std::mutex _loadedSegmentsMutex;
 	
 	int _segmentCountX, _segmentCountY, _segmentCountZ, _threadCount;
 
 	std::list<std::future<void>> _loadingTreads;
-	bool _endLoopingThreads;
+	bool _endLoopingThreads = false;
 	std::function<void(void)> _onSegmentLoaded = [=]() {};
 
 	void PreloadTask(short threadIndex, short threadCount, int downscale);
@@ -53,6 +53,5 @@ protected:
 	virtual T* LoadSegmentData(int x, int y, int z, int downscale) = 0;
 
 	void LoadingTask();
-
 };
 

@@ -64,16 +64,18 @@ public:
 private:
 	std::vector<VolumeSegment<T>*> _volumesToDelete;		// Volume segments that will bee deleted
 	std::mutex _reloadStackMutex, _volumesToDeleteMutex;	// Mutexes
-	std::vector<VolumeSegment<T>*> _lowResolutionVolumes;					// Low resolution volume segments
+	std::vector<VolumeSegment<T>*> _lowResolutionVolumes;	// Low resolution volume segments
 		
 	// For other architectures std::atomic should be used
 	std::vector<VolumeSegment<T>*> _volumes;								// Volume segments
+	std::vector<std::atomic<bool>> _used;
+	std::vector<std::shared_ptr<VolumeSegmentRequestTicket>> _tickets;
 		
 	std::shared_ptr<Camera> _camera;	// Scene camera	
 	ProjectInfo _projectInfo;					// Informations about the curent project
 	std::unique_ptr<VolumeLoaderBase<T>> _volumeLoader;
 
-	uint_fast16_t xSegmentCount, ySegmentCountCount, zSegmentCount; // Count of volume segments in each axis
+	uint_fast16_t xSegmentCount, ySegmentCount, zSegmentCount; // Count of volume segments in each axis
 	uint_fast32_t maxSegmentIndex;									// Max index of the volume segment
 
 	float _oneDivSegmentSize = 0; 
