@@ -24,5 +24,5 @@ set_target_properties(TeraVoxel.Client.VolumeRenderer
 find_package(CUDAToolkit)
 
 # Závislosti
-target_link_libraries(TeraVoxel.Client.VolumeRenderer PUBLIC TeraVoxel.Client.Core CUDA::cudart_static)
+target_link_libraries(TeraVoxel.Client.VolumeRenderer PUBLIC TeraVoxel.Client.Core CUDA::cudart_static NeuroVoxel)
 
