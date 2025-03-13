@@ -272,9 +272,9 @@ GPURayCastingVolumeVisualizer::GPURayCastingVolumeVisualizer(const std::shared_p
     _memory(std::make_unique<GPURayCastingVolumeMemory>(camera, volumeLoaderFactory))
 {
 
-    int sizeX = _projectInfo.dataSizeX / _shadowSubsampling;
-    int sizeY = _projectInfo.dataSizeY / _shadowSubsampling;
-    int sizeZ = _projectInfo.dataSizeZ / _shadowSubsampling;
+    int sizeX = _datasetInfo.dataSizeX / _shadowSubsampling;
+    int sizeY = _datasetInfo.dataSizeY / _shadowSubsampling;
+    int sizeZ = _datasetInfo.dataSizeZ / _shadowSubsampling;
 
     /* Shadow textures creation */
 
@@ -324,9 +324,9 @@ bool GPURayCastingVolumeVisualizer::DataChanged()
 
 void GPURayCastingVolumeVisualizer::UpdateShadowTexture(Camera* camera_d) 
 {
-    int sizeX = _projectInfo.dataSizeX / _shadowSubsampling;
-    int sizeY = _projectInfo.dataSizeY / _shadowSubsampling;
-    int sizeZ = _projectInfo.dataSizeZ / _shadowSubsampling;
+    int sizeX = _datasetInfo.dataSizeX / _shadowSubsampling;
+    int sizeY = _datasetInfo.dataSizeY / _shadowSubsampling;
+    int sizeZ = _datasetInfo.dataSizeZ / _shadowSubsampling;
 
     // Create more arrays if light/s was/were created
     for (size_t i = _numShadows; i < _settings->lightSettings.numLights; i++)
@@ -449,7 +449,7 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
     dim3 gridSize((width + blockSize.x - 1) / blockSize.x, (height + blockSize.y - 1) / blockSize.y);
     
     // Computation
-    ComputeFrameKernel<<<gridSize, blockSize>>>(d_image, width, height, d_camera, _memory->GetTextureDevicePtr(), Vector3f(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ), _materialTable_d, _settings->materialTable.table.size(), _shadowTextures_d, _shadowSubsampling, _lightSettings_d);
+    ComputeFrameKernel<<<gridSize, blockSize>>>(d_image, width, height, d_camera, _memory->GetTextureDevicePtr(), Vector3f(_datasetInfo.dataSizeX, _datasetInfo.dataSizeY, _datasetInfo.dataSizeZ), _materialTable_d, _settings->materialTable.table.size(), _shadowTextures_d, _shadowSubsampling, _lightSettings_d);
     cudaDeviceSynchronize();
 
     // Copy framebuffer back to CPU (not great, but needed for CPU renderer compatibility)

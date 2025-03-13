@@ -6,12 +6,12 @@
 #include "TeraVoxel.Client.VolumeRenderer/MarchingCubesSurfaceExtractor.h"
 #include "TeraVoxel.Client.VolumeRenderer/Transformations.cuh"
 
-__forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo)
+__forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z)
 {
 	bool* data = binMap->data;
-	if (x >= 0 && x < projectInfo.dataSizeX && y >= 0 && y < projectInfo.dataSizeY && z >= 0 && z < projectInfo.dataSizeZ)
+	if (x >= 0 && x < _datasetInfo.dataSizeX && y >= 0 && y < _datasetInfo.dataSizeY && z >= 0 && z < _datasetInfo.dataSizeZ)
 	{
-		return data[x + y * projectInfo.dataSizeX + z * projectInfo.dataSizeX * projectInfo.dataSizeY];
+		return data[x + y * _datasetInfo.dataSizeX + z * _datasetInfo.dataSizeX * _datasetInfo.dataSizeY];
 	}
 	else
 	{
@@ -19,7 +19,7 @@ __forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr
 	}
 }
 
-std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, const ProjectInfo& projectInfo, bool interpolate, const Eigen::Vector2f &interpolationBoundary)
+std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, bool interpolate, const Eigen::Vector2f &interpolationBoundary)
 {
 	Mesh mesh;
 	mesh.SetMode(MeshMode::List);
@@ -28,21 +28,21 @@ std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const st
 	bool* data = binMap->data;
 	char colorer = 0;
 	
-	for (int z = -1; z < projectInfo.dataSizeZ; z++)
+	for (int z = -1; z < _datasetInfo.dataSizeZ; z++)
 	{
-		for (int y = -1; y < projectInfo.dataSizeY; y++)
+		for (int y = -1; y < _datasetInfo.dataSizeY; y++)
 		{
-			for (int x = -1; x < projectInfo.dataSizeX; x++)
+			for (int x = -1; x < _datasetInfo.dataSizeX; x++)
 			{
-				int v000 = GetValue(binMap, x, y, z, projectInfo);
-				int v001 = GetValue(binMap, x + 1, y, z, projectInfo);
-				int v010 = GetValue(binMap, x + 1, y + 1, z, projectInfo);
-				int v011 = GetValue(binMap, x , y + 1, z, projectInfo);
+				int v000 = GetValue(binMap, x, y, z);
+				int v001 = GetValue(binMap, x + 1, y, z);
+				int v010 = GetValue(binMap, x + 1, y + 1, z);
+				int v011 = GetValue(binMap, x , y + 1, z);
 
-				int v100 = GetValue(binMap, x, y, z + 1, projectInfo);
-				int v101 = GetValue(binMap, x + 1, y, z + 1, projectInfo);
-				int v110 = GetValue(binMap, x +1 , y + 1, z + 1, projectInfo);
-				int v111 = GetValue(binMap, x, y + 1, z + 1, projectInfo);
+				int v100 = GetValue(binMap, x, y, z + 1);
+				int v101 = GetValue(binMap, x + 1, y, z + 1);
+				int v110 = GetValue(binMap, x +1 , y + 1, z + 1);
+				int v111 = GetValue(binMap, x, y + 1, z + 1);
 
 				int index = v000 | (v001 << 1) | (v010 << 2) | (v011 << 3) | (v100 << 4) | (v101 << 5) | (v110 << 6) | (v111 << 7);
 
@@ -76,7 +76,7 @@ std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const st
 	}
 
 	auto node = std::make_shared<MeshNode>();
-	node->transformation = Transformations::GetShrinkMatrix(projectInfo.voxelDimensions[0], projectInfo.voxelDimensions[1], projectInfo.voxelDimensions[2]);
+	node->transformation = Transformations::GetShrinkMatrix(_datasetInfo.voxelDimensions[0], _datasetInfo.voxelDimensions[1], _datasetInfo.voxelDimensions[2]);
 	node->meshes.push_back(std::move(mesh));
 
 	
@@ -93,7 +93,7 @@ float ComputeDistance(float value1, float value2, float edgeValue) {
 
 
 Vertex MarchingCubesSurfaceExtractor::IndexToVertex(int index, const Vector4b& color, const Vector3f& position, bool interpolate, const Eigen::Vector2f& interpolationBoundary) {
-	return CALL_TEMPLATED_FUNCTION(IndexToVertexTemplated, _volumeCache->GetProjectInfo().dataType.c_str(), index, color,  position, interpolate, interpolationBoundary);
+	return CALL_TEMPLATED_FUNCTION(IndexToVertexTemplated, _volumeCache->GetDatasetInfo().dataType.c_str(), index, color,  position, interpolate, interpolationBoundary);
 }
 
 template <typename T>
@@ -117,8 +117,8 @@ Vector3f MarchingCubesSurfaceExtractor::InterpolateVectorTemplated(Vector3f vect
 		point2 = point1 + Vector3f(0, 0, 1);
 	}
 
-	if ((point1.x() < _projectInfo.dataSizeX && point1.y() < _projectInfo.dataSizeY && point1.z() < _projectInfo.dataSizeZ && point1.x() >= 0 && point1.y() >= 0 && point1.z() >= 0)
-		&& (point2.x() < _projectInfo.dataSizeX && point2.y() < _projectInfo.dataSizeY && point2.z() < _projectInfo.dataSizeZ && point2.x() >= 0 && point2.y() >= 0 && point2.z() >= 0))
+	if ((point1.x() < _datasetInfo.dataSizeX && point1.y() < _datasetInfo.dataSizeY && point1.z() < _datasetInfo.dataSizeZ && point1.x() >= 0 && point1.y() >= 0 && point1.z() >= 0)
+		&& (point2.x() < _datasetInfo.dataSizeX && point2.y() < _datasetInfo.dataSizeY && point2.z() < _datasetInfo.dataSizeZ && point2.x() >= 0 && point2.y() >= 0 && point2.z() >= 0))
 	{
 		T value1 = cache->GetValue(point1.x(), point1.y(), point1.z());
 		T value2 = cache->GetValue(point2.x(), point2.y(), point2.z());

@@ -1,7 +1,10 @@
 #include "TeraVoxel.Client.VolumeRenderer/NetVolumeLoader.h"
+#include <NeuroVoxel/MultiHashDataReader.h>
 
 template <typename T>
-NetVolumeLoader<T>::NetVolumeLoader(const ProjectInfo& projectInfo, int threadCount, const ProjectManager& projectManager) : VolumeLoaderBase<T>(projectInfo, threadCount)
+NetVolumeLoader<T>::NetVolumeLoader(const ProjectInfo& projectInfo, int threadCount, const ProjectManager& projectManager) : 
+	VolumeLoaderBase<T>(projectInfo.ToBlockBasedDatasetInfo(), threadCount),
+	_projectInfo(projectInfo)
 {
 	_projectManager = projectManager;
 }
@@ -17,14 +20,14 @@ T* NetVolumeLoader<T>::LoadSegmentData(int x, int y, int z, int downscale)
 {
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
-	int downscaledSegmentSize = this->_projectInfo.segmentSize / (int)pow(2, downscale);
+	int downscaledSegmentSize = _projectInfo.segmentSize / (int)pow(2, downscale);
 	int segmentSize = downscaledSegmentSize * downscaledSegmentSize * downscaledSegmentSize;
 	std::vector<unsigned char> byteData;
 
 	// Segment loading from the server
 	try
 	{
-		byteData = _projectManager.GetSegment(this->_projectInfo.name, x, y, z, downscale, segmentSize * sizeof(T), this->_projectInfo.compressed);
+		byteData = _projectManager.GetSegment(_projectInfo.name, x, y, z, downscale, segmentSize * sizeof(T), _projectInfo.compressed);
 	}
 	catch (const std::exception& ex)
 	{
@@ -34,8 +37,8 @@ T* NetVolumeLoader<T>::LoadSegmentData(int x, int y, int z, int downscale)
 	T* data = new T[segmentSize];
 
 	bool sameEndianites = false;
-	if ((this->_projectInfo.isLittleEndian && std::endian::native == std::endian::little)
-		|| (!this->_projectInfo.isLittleEndian && std::endian::native == std::endian::big))
+	if ((_projectInfo.isLittleEndian && std::endian::native == std::endian::little)
+		|| (!_projectInfo.isLittleEndian && std::endian::native == std::endian::big))
 	{
 		sameEndianites = true;
 	}
@@ -43,7 +46,7 @@ T* NetVolumeLoader<T>::LoadSegmentData(int x, int y, int z, int downscale)
 	Logger::GetInstance()->LogEvent("NetVolumeLoader", "SegmentLoading:Reserialization:Started", "", std::format("{0},{1},{2},{3}", x, y, z, downscale));
 
 	// Reserialization
-	if (this->_projectInfo.zTransformed)
+	if (_projectInfo.zTransformed)
 	{		
 		if (sameEndianites)
 		{

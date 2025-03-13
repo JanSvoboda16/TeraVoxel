@@ -14,6 +14,7 @@
 #include "TeraVoxel.Client.VolumeRenderer/NetVolumeLoaderFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/CPURCVolumeVisualizerFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/EmptyVolumeVisualizerFactory.h"
+#include "TeraVoxel.Client.VolumeRenderer/NeuroVoxelVolumeLoaderFactory.h"
 
  /// <summary>
  /// Used for creating a typed instance of the VolumeScene class. 
@@ -32,7 +33,7 @@ public:
 
 		// Volume loader
 		ProjectManager projectManager(serverUrl);
-		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NetVolumeLoaderFactory>(projectManager, projectInfo);
+		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NeuroVoxelVolumeLoaderFactory>(NeuroVoxel::CompressedDataset::Open("C:\\Diplomka Experimenty\\Compressed\\chameleon"));
 
 		auto rootMeshNode = std::make_shared<MeshNode>();
 

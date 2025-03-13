@@ -34,7 +34,7 @@ public:
 	bool FrameReady();
 	bool RenderingInProgress();
 	void ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory> visualizerFac);
-	ProjectInfo GetProjectInfo();
+	DatasetInfo GetDatasetInfo();
 
 private:
 	int frameWidth1;				// Width of framebuffer1

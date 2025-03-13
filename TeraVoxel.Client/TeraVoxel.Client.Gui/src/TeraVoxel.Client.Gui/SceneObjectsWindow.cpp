@@ -9,7 +9,7 @@ void SceneObjectsWindow::UpdateScene()
 	if (_sceneUpdateNeeded)
 	{
 		auto meshNode = _volumeViewContext->scene->GetMeshNode();
-		auto projectInfo = _volumeViewContext->scene->GetProjectInfo();
+		auto projectInfo = _volumeViewContext->scene->GetDatasetInfo();
 		MeshTreeExplorer::Delete(meshNode, "CenterCross");
 		MeshTreeExplorer::Delete(meshNode, "BoundingBox");
 

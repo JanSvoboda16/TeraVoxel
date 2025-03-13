@@ -7,15 +7,16 @@
 #include "TeraVoxel.Client.VolumeRenderer/SurfaceExtractorBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeCache.h"
 
+// TODO TIED TO PROJECT INFO
 class MarchingCubesSurfaceExtractor : public SurfaceExtractorBase
 {
 public:	
-	MarchingCubesSurfaceExtractor(const std::shared_ptr<VolumeCacheGenericBase> &volumeCache) : _volumeCache(volumeCache), _projectInfo(volumeCache->GetProjectInfo()){ }
-	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, const ProjectInfo& projectInfo, bool interpolate, const Eigen::Vector2f &interpolationBoundary) override;
+	MarchingCubesSurfaceExtractor(const std::shared_ptr<VolumeCacheGenericBase> &volumeCache) : _volumeCache(volumeCache), _datasetInfo(volumeCache->GetDatasetInfo()){ }
+	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, bool interpolate, const Eigen::Vector2f &interpolationBoundary) override;
 	
 private:
 	Vertex IndexToVertex(int index, const Vector4b& color, const Vector3f &position, bool interpolate, const Eigen::Vector2f& interpolationBoundary);
-	bool GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z, const ProjectInfo& projectInfo);
+	bool GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z);
 
 	template <typename T>
 	Vector3f InterpolateVectorTemplated(Vector3f vector, Vector3f position, const Eigen::Vector2f& interpolationBoundary);
@@ -23,7 +24,7 @@ private:
 	Vertex IndexToVertexTemplated(int index, const Vector4b& color, const Vector3f& position, bool interpolate, const Eigen::Vector2f& interpolationBoundary);
 
 	std::shared_ptr<VolumeCacheGenericBase> _volumeCache;
-	ProjectInfo _projectInfo;
+	DatasetInfo _datasetInfo;
 };
 
 // table from: https://github.com/Freedom-Coding/Marching-cubes/blob/main/MarchingTable.cs

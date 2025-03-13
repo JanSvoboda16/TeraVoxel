@@ -17,7 +17,7 @@ class VolumeCache : public VolumeCacheGenericBase
 public:
 	VolumeCache(const std::shared_ptr<VolumeLoaderFactory> &loaderFac) : 
 		_volumeLoader(std::dynamic_pointer_cast<VolumeLoaderBase<T>>(std::shared_ptr<VolumeLoaderGenericBase>(loaderFac->Create(1)))), 
-		VolumeCacheGenericBase(loaderFac->GetProjectInfo()) { }
+		VolumeCacheGenericBase(loaderFac->GetDatasetInfo()) { }
 
 	~VolumeCache() {
 		Flush();
@@ -25,16 +25,17 @@ public:
 
 	T GetValue(size_t x, size_t y, size_t z) 
 	{
+		auto datasetInfo = _volumeLoader->GetDatasetInfo();
 		T value;
-		uint16_t blockIdX = x / _projectInfo.segmentSize;
-		uint16_t blockIdY = y / _projectInfo.segmentSize;
-		uint16_t blockIdZ = z / _projectInfo.segmentSize;
+		uint16_t blockIdX = x / datasetInfo.segmentSize;
+		uint16_t blockIdY = y / datasetInfo.segmentSize;
+		uint16_t blockIdZ = z / datasetInfo.segmentSize;
 
-		int xb = x % _projectInfo.segmentSize;
-		int yb = y % _projectInfo.segmentSize;
-		int zb = z % _projectInfo.segmentSize;
+		int xb = x % datasetInfo.segmentSize;
+		int yb = y % datasetInfo.segmentSize;
+		int zb = z % datasetInfo.segmentSize;
 
-		int key = blockIdX + blockIdY * _projectInfo.segmentSize + blockIdZ * _projectInfo.segmentSize * _projectInfo.segmentSize;
+		int key = blockIdX + blockIdY * datasetInfo.segmentSize + blockIdZ * datasetInfo.segmentSize * datasetInfo.segmentSize;
 
 		std::shared_ptr<VolumeSegment<T>> block = nullptr;
 		if (_lastSegmentId == key) 
@@ -60,9 +61,11 @@ public:
 		return value;
 	}	
 
-	void Flush() override {
+	void Flush() override 
+	{
+		auto datasetInfo = _volumeLoader->GetDatasetInfo();
 		MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-		MemoryContext::GetInstance().usedMemory -= _cache.size() * _projectInfo.segmentSize * _projectInfo.segmentSize * _projectInfo.segmentSize * sizeof(T);
+		MemoryContext::GetInstance().usedMemory -= _cache.size() * datasetInfo.segmentSize * datasetInfo.segmentSize * datasetInfo.segmentSize * sizeof(T);
 		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 		_cache.clear();
 	}
@@ -82,7 +85,7 @@ public:
 	VolumeCacheFactory() = delete;
 
 	static std::unique_ptr<VolumeCacheGenericBase> VolumeCacheCreate(const std::shared_ptr<VolumeLoaderFactory>& loaderFac) {
-		return CALL_TEMPLATED_FUNCTION(VolumeCacheCreateTemplated, loaderFac->GetProjectInfo().dataType.c_str(), loaderFac);
+		return CALL_TEMPLATED_FUNCTION(VolumeCacheCreateTemplated, loaderFac->GetDatasetInfo().dataType.c_str(), loaderFac);
 	}
 private:
 	template <typename T>

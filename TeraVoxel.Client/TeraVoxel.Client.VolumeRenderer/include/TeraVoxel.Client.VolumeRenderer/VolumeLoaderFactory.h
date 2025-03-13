@@ -8,10 +8,10 @@ class VolumeLoaderFactory
 public:
 	virtual ~VolumeLoaderFactory() {}
 	virtual std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount = SettingsContext::GetInstance().loadingThreadCount) = 0;
-	ProjectInfo GetProjectInfo() { return _projectInfo; }
-	VolumeLoaderFactory(const ProjectInfo& projectInfo) : _projectInfo(projectInfo) { }
+	BlockBasedDatasetInfo GetDatasetInfo() { return _datasetInfo; }
+	VolumeLoaderFactory(const BlockBasedDatasetInfo& datasetInfo) : _datasetInfo(datasetInfo) { }
 
 protected:
-	ProjectInfo _projectInfo;
+	BlockBasedDatasetInfo _datasetInfo;
 };
 

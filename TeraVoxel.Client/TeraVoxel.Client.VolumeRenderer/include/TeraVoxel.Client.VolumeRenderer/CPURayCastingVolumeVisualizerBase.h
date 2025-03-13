@@ -19,7 +19,7 @@ inline RayCastingVolumeVisualizerBase::RayCastingVolumeVisualizerBase(const std:
 
 inline bool RayCastingVolumeVisualizerBase::ComputeRayIntersection(const Vector3f& rayDireciton, Vector3f& start, Vector3f& stop)
 {	
-	auto projectInfo = _volumeLoaderFactory->GetProjectInfo();
+	auto projectInfo = _volumeLoaderFactory->GetDatasetInfo();
 	auto dataSizes = Vector3f(projectInfo.dataSizeX, projectInfo.dataSizeY, projectInfo.dataSizeZ);
 
 	return RayCastingUtilities::ComputeRayIntersection(rayDireciton, this->_camera->GetShrankPosition(), dataSizes, start, stop);

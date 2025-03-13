@@ -123,9 +123,9 @@ void VolumeScene::ChangeVisualizer(std::shared_ptr<IVolumeVisualizerFactory> vis
 	_visualizerChanged = true;
 }
 
-ProjectInfo VolumeScene::GetProjectInfo() 
+DatasetInfo VolumeScene::GetDatasetInfo() 
 { 
-	return _volumeLoaderFactory->GetProjectInfo();
+	return _volumeLoaderFactory->GetDatasetInfo();
 }
 
 void VolumeScene::ComputeFrameTask(int width, int height, bool _fast)

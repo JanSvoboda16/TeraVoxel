@@ -40,7 +40,7 @@ public:
 	/// Returns an information about the loaded project
 	/// </summary>
 	/// <returns>Information</returns>
-	ProjectInfo GetProjectInfo();
+	DatasetInfo GetDatasetInfo();
 
 	std::array<int,3> GetDataSizes();
 		
@@ -72,7 +72,7 @@ private:
 	std::vector<std::shared_ptr<VolumeSegmentRequestTicket>> _tickets;
 		
 	std::shared_ptr<Camera> _camera;	// Scene camera	
-	ProjectInfo _projectInfo;					// Informations about the curent project
+	BlockBasedDatasetInfo _datasetInfo;					// Informations about the curent project
 	std::unique_ptr<VolumeLoaderBase<T>> _volumeLoader;
 
 	uint_fast16_t xSegmentCount, ySegmentCount, zSegmentCount; // Count of volume segments in each axis

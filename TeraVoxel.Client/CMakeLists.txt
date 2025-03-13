@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.21)
 
 project(TeraVoxel.Client LANGUAGES CXX CUDA)
 
-set(CMAKE_CONFIGURATION_TYPES "Release;Debug" CACHE STRING "Limit build types to Release and Debug" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "Release;Debug;RelWithDebInfo" CACHE STRING "Limit build types to Release and Debug" FORCE)
 
 # Nastavení standardů pro C++ a CUDA
 set(CMAKE_CXX_STANDARD 20)
@@ -29,8 +29,8 @@ endif()
 set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCHITECTURES})
 message(STATUS "Building for CUDA architectures: ${CMAKE_CUDA_ARCHITECTURES}")
 
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --allow-unsupported-compiler -Xcompiler -openmp ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
+set(CUDA_NVCC_FLAGS --allow-unsupported-compiler -Xcompiler -openmp ")
+set(CMAKE_CXX_FLAGS -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
 
 #CONAN
 # Nastavení výstupního adresáře pro Conan

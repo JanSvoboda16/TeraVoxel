@@ -7,10 +7,10 @@
 
 VolumeSelectorBase::VolumeSelectorBase(const std::shared_ptr<VolumeCacheGenericBase>& volumeCache) :
 	_volumeCache(volumeCache),
-	_projectInfo(volumeCache->GetProjectInfo())
+	_datasetInfo(volumeCache->GetDatasetInfo())
 {
-	auto countOfItems = _projectInfo.dataSizeX * _projectInfo.dataSizeY * _projectInfo.dataSizeZ;
-	_mask = std::make_shared<VolumeSegment<bool>>(_projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ, new bool[countOfItems]);
+	auto countOfItems = _datasetInfo.dataSizeX * _datasetInfo.dataSizeY * _datasetInfo.dataSizeZ;
+	_mask = std::make_shared<VolumeSegment<bool>>(_datasetInfo.dataSizeX, _datasetInfo.dataSizeY, _datasetInfo.dataSizeZ, new bool[countOfItems]);
 
 	std::fill(_mask->data, _mask->data + countOfItems, false);
 }

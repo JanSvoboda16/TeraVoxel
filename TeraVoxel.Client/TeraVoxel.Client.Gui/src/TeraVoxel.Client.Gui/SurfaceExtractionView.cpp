@@ -96,7 +96,7 @@ void SurfaceExtractionView::Update()
 
 		if (ImGui::Button("Extract"))
 		{
-			_surface = _extractor->ExtractSurface(_selectorView->GetSelection(), _volumeViewContext->scene->GetProjectInfo(), _interpolate, _interpolationBoundaries);
+			_surface = _extractor->ExtractSurface(_selectorView->GetSelection(), _interpolate, _interpolationBoundaries);
 			_surface->name = "Surface";
 			_sceneUpdateNeeded = true;
 			_cache->Flush();

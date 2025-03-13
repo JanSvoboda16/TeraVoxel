@@ -21,8 +21,8 @@ set_target_properties(TeraVoxel.Client.VolumeRenderer
        CUDA_RESOLVE_DEVICE_SYMBOLS ON
 )
 
-find_package(CUDAToolkit)
+#find_package(CUDAToolkit)
 
 # Závislosti
-target_link_libraries(TeraVoxel.Client.VolumeRenderer PUBLIC TeraVoxel.Client.Core CUDA::cudart_static NeuroVoxel)
+target_link_libraries(TeraVoxel.Client.VolumeRenderer PUBLIC TeraVoxel.Client.Core  NeuroVoxel) #CUDA::cudart_static
 

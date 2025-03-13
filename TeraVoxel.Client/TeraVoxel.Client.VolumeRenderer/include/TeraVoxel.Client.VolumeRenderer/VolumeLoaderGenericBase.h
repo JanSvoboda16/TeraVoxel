@@ -4,10 +4,12 @@
 class VolumeLoaderGenericBase
 {
 public:
+	VolumeLoaderGenericBase(const BlockBasedDatasetInfo& datasetInfo) : _datasetInfo(datasetInfo)
+	{ }
 	virtual ~VolumeLoaderGenericBase() {}
-	ProjectInfo& GetProjectInfo() { return _projectInfo; }
+	virtual BlockBasedDatasetInfo& GetDatasetInfo() { return _datasetInfo; };
 
 protected:
-	ProjectInfo _projectInfo;
+	BlockBasedDatasetInfo _datasetInfo;
 };
 

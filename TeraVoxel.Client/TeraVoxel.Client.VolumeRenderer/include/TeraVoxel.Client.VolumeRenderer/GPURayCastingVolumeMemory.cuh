@@ -132,7 +132,7 @@ private:
 	template<typename T>
 	void Preload();
 
-	ProjectInfo _projectInfo;
+	BlockBasedDatasetInfo _datasetInfo;
 	Eigen::Vector3i _segmentCount;
 	uint16_t _segmentSize;
 
@@ -200,11 +200,11 @@ template<typename T>
 void GPURayCastingVolumeMemory::Preload()
 {
 	auto loader = std::dynamic_pointer_cast<VolumeLoaderBase<T>>(_volumeLoader);
-	const auto segmentSize = _projectInfo.segmentSize;
+	const auto segmentSize = _datasetInfo.segmentSize;
 
-	const auto sizeX = _projectInfo.sizeX;
-	const auto sizeY = _projectInfo.sizeY;
-	const auto sizeZ = _projectInfo.sizeZ;
+	const auto sizeX = _datasetInfo.sizeX;
+	const auto sizeY = _datasetInfo.sizeY;
+	const auto sizeZ = _datasetInfo.sizeZ;
 
 	const auto sCountX = sizeX / segmentSize;
 	const auto sCountY = sizeY / segmentSize;
@@ -266,12 +266,12 @@ GPURayCastingVolumeMemory::~GPURayCastingVolumeMemory()
 }
 
 GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory):
-	_projectInfo(volumeLoaderFactory->GetProjectInfo()),
+	_datasetInfo(volumeLoaderFactory->GetDatasetInfo()),
 	_volumeLoader(volumeLoaderFactory->Create())
 {	
 
-	_segmentSize = _projectInfo.segmentSize;
-	_segmentCount = Vector3i(_projectInfo.sizeX / _segmentSize, _projectInfo.sizeY / _segmentSize, _projectInfo.sizeZ / _segmentSize);
+	_segmentSize = _datasetInfo.segmentSize;
+	_segmentCount = Vector3i(_datasetInfo.sizeX / _segmentSize, _datasetInfo.sizeY / _segmentSize, _datasetInfo.sizeZ / _segmentSize);
 
 	uint32_t totalSegments = _segmentCount[0] * _segmentCount[1] * _segmentCount[2];	
 
@@ -291,12 +291,12 @@ GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_ptr<Camer
 	cudaMemcpy(_textures_d, _textures_h, sizeof(cudaTextureObject_t) * totalSegments, cudaMemcpyHostToDevice);
 
 
-	GPURayCastingVolumeTexture composedTexture(_textures_d, _segmentCount, _segmentSize, CALL_TEMPLATED_FUNCTION(GetValueMultiplicator, _projectInfo.dataType.c_str()));
+	GPURayCastingVolumeTexture composedTexture(_textures_d, _segmentCount, _segmentSize, CALL_TEMPLATED_FUNCTION(GetValueMultiplicator, _datasetInfo.dataType.c_str()));
 
 	cudaMalloc(&_composedTexture_d, sizeof(GPURayCastingVolumeTexture));
 	cudaMemcpy(_composedTexture_d, &composedTexture, sizeof(GPURayCastingVolumeTexture), cudaMemcpyHostToDevice);
 
-	CALL_TEMPLATED_FUNCTION(Preload, _projectInfo.dataType.c_str());
+	CALL_TEMPLATED_FUNCTION(Preload, _datasetInfo.dataType.c_str());
 }
 
 GPURayCastingVolumeTexture::GPURayCastingVolumeTexture(cudaTextureObject_t* textures_d, const Eigen::Vector3i& segmentCount, uint16_t segmentSize, float valueMutliplier) :

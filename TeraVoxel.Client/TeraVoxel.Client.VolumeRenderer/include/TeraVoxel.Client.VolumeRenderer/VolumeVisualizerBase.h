@@ -22,7 +22,7 @@ protected:
 	std::shared_ptr<Camera> _camera;
 	std::shared_ptr<MeshNode> _meshNode;
 	std::shared_ptr<VolumeLoaderFactory> _volumeLoaderFactory;
-	ProjectInfo _projectInfo;
+	DatasetInfo _datasetInfo;
 
 	virtual void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) = 0;
 
@@ -37,7 +37,7 @@ inline VolumeVisualizerBase::VolumeVisualizerBase(const std::shared_ptr<Camera>&
 {
 	_camera = camera;
 	_volumeLoaderFactory = volumeLoaderFactory;
-	_projectInfo = volumeLoaderFactory->GetProjectInfo();
+	_datasetInfo = volumeLoaderFactory->GetDatasetInfo();
 }
 
 inline void VolumeVisualizerBase::ComputeFrame(std::shared_ptr<unsigned char[]>& framebuffer, int width, int height, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)

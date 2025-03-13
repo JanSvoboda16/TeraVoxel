@@ -82,6 +82,6 @@ public:
 	/// Gets project info
 	/// </summary>
 	/// <returns></returns>
-	virtual ProjectInfo GetProjectInfo() = 0;
+	virtual ProjectInfo GetDatasetInfo() = 0;
 };
 

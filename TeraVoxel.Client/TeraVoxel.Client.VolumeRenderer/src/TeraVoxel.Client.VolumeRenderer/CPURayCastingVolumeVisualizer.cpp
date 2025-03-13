@@ -1,13 +1,12 @@
 ﻿#include "TeraVoxel.Client.VolumeRenderer/CPURayCastingVolumeVisualizer.h"
 #include <future>
 
-
 CPURayCastingVolumeVisualizer::CPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings>& settings) :
 	RayCastingVolumeVisualizerBase(camera, volumeLoaderFactory)
 {
 	_settings = settings;
 
-	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetProjectInfo().dataType.c_str(), camera, volumeLoaderFactory);
+	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetDatasetInfo().dataType.c_str(), camera, volumeLoaderFactory);
 }
 
 template <typename T>
@@ -18,7 +17,7 @@ bool CPURayCastingVolumeVisualizer::DataChangedTemplated()
 
 bool CPURayCastingVolumeVisualizer::DataChanged()
 {	
-	return CALL_TEMPLATED_FUNCTION(DataChangedTemplated, _volumeLoaderFactory->GetProjectInfo().dataType.c_str());
+	return CALL_TEMPLATED_FUNCTION(DataChangedTemplated, _volumeLoaderFactory->GetDatasetInfo().dataType.c_str());
 }
 
 template<typename T>
@@ -70,7 +69,7 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(std::shared_p
 
 void CPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
-	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetProjectInfo().dataType.c_str(), framebuffer, downscale, multiLayeredFramebuffer);
+	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetDatasetInfo().dataType.c_str(), framebuffer, downscale, multiLayeredFramebuffer);
 }
 
 

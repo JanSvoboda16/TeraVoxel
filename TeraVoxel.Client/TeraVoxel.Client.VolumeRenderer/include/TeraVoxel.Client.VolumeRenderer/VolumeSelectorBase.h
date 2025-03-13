@@ -16,7 +16,7 @@ public:
 	std::shared_ptr<VolumeSegment<bool>> GetMask(){	return _mask;}
 
 protected:
-	ProjectInfo _projectInfo;
+	DatasetInfo _datasetInfo;
 	std::shared_ptr<VolumeCacheGenericBase> _volumeCache;
 	std::shared_ptr<VolumeSegment<bool>> _mask;
 };

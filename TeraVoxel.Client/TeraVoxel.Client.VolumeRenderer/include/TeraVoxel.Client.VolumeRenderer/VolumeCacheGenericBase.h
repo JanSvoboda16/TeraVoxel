@@ -12,11 +12,11 @@
 class VolumeCacheGenericBase
 {
 public:
-	VolumeCacheGenericBase(const ProjectInfo &info) : _projectInfo(info){ }
-	ProjectInfo GetProjectInfo() { return _projectInfo; }
+	VolumeCacheGenericBase(const DatasetInfo &info) : _datasetInfo(info){ }
+	DatasetInfo GetDatasetInfo() { return _datasetInfo; }
 	virtual ~VolumeCacheGenericBase() {};
 	virtual void Flush() = 0;;
 protected:
-	ProjectInfo _projectInfo;
+	DatasetInfo _datasetInfo;
 };
 

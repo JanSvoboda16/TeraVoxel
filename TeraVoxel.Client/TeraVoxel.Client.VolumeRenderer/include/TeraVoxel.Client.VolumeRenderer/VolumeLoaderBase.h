@@ -26,7 +26,7 @@ class VolumeLoaderBase : public VolumeLoaderGenericBase
 {
 
 public:
-	VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount);
+	VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo, int threadCount);
 	virtual ~VolumeLoaderBase();
 	std::shared_ptr<VolumeSegmentRequestTicket> LoadAsync(int x, int y, int z, int downscale, float priority);
 	void Preload(int downscale, int threadCount);

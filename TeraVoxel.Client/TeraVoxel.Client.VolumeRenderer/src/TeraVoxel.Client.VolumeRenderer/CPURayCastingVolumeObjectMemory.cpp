@@ -20,13 +20,13 @@ CPURayCastingVolumeObjectMemory<T>::~CPURayCastingVolumeObjectMemory()
 template <typename T>
 CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory)
 {
-	_projectInfo = volumeLoaderFactory->GetProjectInfo();
+	_datasetInfo = volumeLoaderFactory->GetDatasetInfo();
 	_camera = camera;
-	xSegmentCount = _projectInfo.sizeX / _projectInfo.segmentSize;
-	ySegmentCount = _projectInfo.sizeY / _projectInfo.segmentSize;
-	zSegmentCount = _projectInfo.sizeZ / _projectInfo.segmentSize;
-	_oneDivSegmentSize = 1.0 / _projectInfo.segmentSize;
-	_segmentSize = _projectInfo.segmentSize;
+	xSegmentCount = _datasetInfo.sizeX / _datasetInfo.segmentSize;
+	ySegmentCount = _datasetInfo.sizeY / _datasetInfo.segmentSize;
+	zSegmentCount = _datasetInfo.sizeZ / _datasetInfo.segmentSize;
+	_oneDivSegmentSize = 1.0 / _datasetInfo.segmentSize;
+	_segmentSize = _datasetInfo.segmentSize;
 	_segmentSizeShifter = (int)(log2(_segmentSize) + 0.5);
 	_volumeLoader = std::unique_ptr<VolumeLoaderBase<T>>(dynamic_cast<VolumeLoaderBase<T>*>(volumeLoaderFactory->Create(SettingsContext::GetInstance().loadingThreadCount).release()));
 
@@ -390,15 +390,15 @@ __forceinline T CPURayCastingVolumeObjectMemory<T>::GetValue(uint_fast16_t xInde
 }
 
 template <typename T>
-ProjectInfo CPURayCastingVolumeObjectMemory<T>::GetProjectInfo()
+DatasetInfo CPURayCastingVolumeObjectMemory<T>::GetDatasetInfo()
 {
-	return _projectInfo;
+	return _datasetInfo;
 }
 
 template<typename T>
 std::array<int, 3> CPURayCastingVolumeObjectMemory<T>::GetDataSizes()
 {
-	return { _projectInfo.dataSizeX, _projectInfo.dataSizeY, _projectInfo.dataSizeZ };
+	return { _datasetInfo.dataSizeX, _datasetInfo.dataSizeY, _datasetInfo.dataSizeZ };
 }
 
 template CPURayCastingVolumeObjectMemory<uint8_t>;

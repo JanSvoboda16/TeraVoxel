@@ -14,5 +14,6 @@ public:
 protected:
 	T* LoadSegmentData(int x, int y, int z, int downscale) override;
 	ProjectManager _projectManager;
+	ProjectInfo _projectInfo;
 };
 

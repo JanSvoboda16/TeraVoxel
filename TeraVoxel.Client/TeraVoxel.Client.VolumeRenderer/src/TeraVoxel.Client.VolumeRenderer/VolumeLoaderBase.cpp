@@ -1,12 +1,11 @@
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 
 template<typename T>
-VolumeLoaderBase<T>::VolumeLoaderBase(const ProjectInfo& projectInfo, int threadCount)
+VolumeLoaderBase<T>::VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo, int threadCount) : VolumeLoaderGenericBase(datasetInfo)
 {
-	_projectInfo = projectInfo;
-	_segmentCountX = projectInfo.sizeX / projectInfo.segmentSize;
-	_segmentCountY = projectInfo.sizeY / projectInfo.segmentSize;
-	_segmentCountZ = projectInfo.sizeZ / projectInfo.segmentSize;
+	_segmentCountX = datasetInfo.sizeX / datasetInfo.segmentSize;
+	_segmentCountY = datasetInfo.sizeY / datasetInfo.segmentSize;
+	_segmentCountZ = datasetInfo.sizeZ / datasetInfo.segmentSize;
 	_threadCount = threadCount;
 
 	for (size_t i = 0; i < threadCount; i++)
@@ -265,7 +264,7 @@ template<typename T>
 uint64_t VolumeLoaderBase<T>::GetBlockRequiredMemory(int downscale)
 {
 	short downscaleDividerReq = (short)pow(2, downscale);
-	return (uint64_t)pow((_projectInfo.segmentSize / downscaleDividerReq), 3) * sizeof(T);
+	return (uint64_t)pow((_datasetInfo.segmentSize / downscaleDividerReq), 3) * sizeof(T);
 }
 
 template VolumeLoaderBase<uint8_t>;

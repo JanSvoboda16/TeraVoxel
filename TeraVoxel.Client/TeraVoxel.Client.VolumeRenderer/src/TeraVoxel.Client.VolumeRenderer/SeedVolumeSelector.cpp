@@ -12,7 +12,7 @@ using Eigen::Vector3i;
 
 void SeedVolumeSelector::Select(const Vector3f &seed, float lowerBound, float upperBound, float maxDifference, bool erase)
 {
-	CALL_TEMPLATED_FUNCTION(SelectTemplated, _projectInfo.dataType.c_str(), seed, lowerBound, upperBound, maxDifference, erase);
+	CALL_TEMPLATED_FUNCTION(SelectTemplated, _datasetInfo.dataType.c_str(), seed, lowerBound, upperBound, maxDifference, erase);
 }
 
 std::vector<Vector3i> directions = {
@@ -27,7 +27,7 @@ void SeedVolumeSelector::SelectTemplated(const Vector3f seedf, float lowerBound,
 	auto cache = std::dynamic_pointer_cast<VolumeCache<T>>(_volumeCache);
 	std::queue<Vector3i> queue;
 
-	Vector3i seed = (seedf.array() / Vector3f(_projectInfo.voxelDimensions).array()).cast<int>();
+	Vector3i seed = (seedf.array() / Vector3f(_datasetInfo.voxelDimensions).array()).cast<int>();
 
 	T value = 0;
 	T nextValue = 0;
@@ -67,7 +67,7 @@ void SeedVolumeSelector::SelectTemplated(const Vector3f seedf, float lowerBound,
 template <typename T>
 __forceinline bool SeedVolumeSelector::GetData(const Vector3i &position, T &value, const std::shared_ptr<VolumeCache<T>> &cache)
 {	
-	if (position.x() < _projectInfo.dataSizeX && position.y() < _projectInfo.dataSizeY && position.z() <  _projectInfo.dataSizeZ && position.x()>=0 && position.y() >= 0 && position.z() >= 0)
+	if (position.x() < _datasetInfo.dataSizeX && position.y() < _datasetInfo.dataSizeY && position.z() <  _datasetInfo.dataSizeZ && position.x()>=0 && position.y() >= 0 && position.z() >= 0)
 	{
 		value = cache->GetValue(position.x(), position.y(), position.z());
 
