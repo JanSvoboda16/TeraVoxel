@@ -24,12 +24,12 @@ protected:
 	std::shared_ptr<VolumeLoaderFactory> _volumeLoaderFactory;
 	DatasetInfo _datasetInfo;
 
-	virtual void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) = 0;
+	virtual void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) = 0;
 
 public:
 	VolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory);
 	virtual ~VolumeVisualizerBase() {};
-	void ComputeFrame(std::shared_ptr<unsigned char[]>& _framebuffer, int width, int height, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer = nullptr);
+	void ComputeFrame(std::shared_ptr<unsigned char[]>& _framebuffer, int width, int height, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer = nullptr);
 	virtual bool DataChanged() = 0;
 };
 
@@ -40,9 +40,9 @@ inline VolumeVisualizerBase::VolumeVisualizerBase(const std::shared_ptr<Camera>&
 	_datasetInfo = volumeLoaderFactory->GetDatasetInfo();
 }
 
-inline void VolumeVisualizerBase::ComputeFrame(std::shared_ptr<unsigned char[]>& framebuffer, int width, int height, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
+inline void VolumeVisualizerBase::ComputeFrame(std::shared_ptr<unsigned char[]>& framebuffer, int width, int height, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
 	_camera->ChangeScreenSize(width, height);
 
-	ComputeFrameInternal(framebuffer, downscale, multiLayeredFramebuffer);
+	ComputeFrameInternal(framebuffer, fast, multiLayeredFramebuffer);
 }

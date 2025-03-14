@@ -33,7 +33,8 @@ public:
 
 		// Volume loader
 		ProjectManager projectManager(serverUrl);
-		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NeuroVoxelVolumeLoaderFactory>(NeuroVoxel::CompressedDataset::Open("C:\\Diplomka Experimenty\\Compressed\\chameleon"));
+		//std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NeuroVoxelVolumeLoaderFactory>(NeuroVoxel::CompressedDataset::Open("C:\\Diplomka Experimenty\\Compressed\\chameleon"));
+		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NetVolumeLoaderFactory>(projectManager, projectInfo);
 
 		auto rootMeshNode = std::make_shared<MeshNode>();
 

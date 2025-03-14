@@ -15,7 +15,7 @@ public:
 	bool DataChanged() override;
 
 private:
-	void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) override;
+	void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) override;
 	void MixColors(float& r, float& g, float& b, float& a, const float ra, const float ga, const float ba, const float ca);
 	
 	template <typename T>
@@ -25,7 +25,7 @@ private:
 	template <typename T>
 	bool DataChangedTemplated();
 	template <typename T>
-	void CoumputeFrameInternalTemplated(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer);
+	void CoumputeFrameInternalTemplated(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer);
 	template <typename T>
 	void CreateMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory);
 

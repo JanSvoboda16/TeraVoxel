@@ -8,8 +8,8 @@ template <typename VoxelT>
 class NeuroVoxelVolumeLoader : public VolumeLoaderBase<VoxelT>
 {
 public:
-	NeuroVoxelVolumeLoader(const std::shared_ptr<NeuroVoxel::CompressedDataset>& dataset, const BlockBasedDatasetInfo& datasetInfo) : 
-		VolumeLoaderBase<VoxelT>(datasetInfo, 1),
+	NeuroVoxelVolumeLoader(const std::shared_ptr<NeuroVoxel::CompressedDataset>& dataset, int threadCount, const BlockBasedDatasetInfo& datasetInfo) :
+		VolumeLoaderBase<VoxelT>(datasetInfo, threadCount),
 		_reader(NeuroVoxel::MultiHashDataReader<VoxelT>(dataset))
 	{
 
@@ -17,10 +17,12 @@ public:
 
 	VoxelT* LoadSegmentData(int x, int y, int z, int downscale) override
 	{
+		readerMutex.lock();
 		auto readedData = _reader.ReadData(
 			Eigen::Vector3i(x * this->_datasetInfo.segmentSize, y * this->_datasetInfo.segmentSize, z * this->_datasetInfo.segmentSize),
 			Eigen::Vector3i((x + 1) * this->_datasetInfo.segmentSize, (y + 1) * this->_datasetInfo.segmentSize, (z + 1) * this->_datasetInfo.segmentSize),
 			downscale);
+		readerMutex.unlock();
 
 		uint32_t segmentSize = this->_datasetInfo.segmentSize;
 
@@ -45,5 +47,6 @@ public:
 
 private:
 	NeuroVoxel::MultiHashDataReader<VoxelT> _reader;
+	std::mutex readerMutex;
 
 };

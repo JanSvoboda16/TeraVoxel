@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include "TeraVoxel.Client.Core/TypeToString.h"
-
+/*
 #define CALL_TEMPLATED_FUNCTION(functionName, typeName, ...) \
     ( \
         (!strcmp(typeName, STRING_INT8_T)) ? functionName<int8_t>(__VA_ARGS__) : \
@@ -16,4 +16,4 @@
         (!strcmp(typeName, STRING_UINT64_T)) ? functionName<uint64_t>(__VA_ARGS__) : \
         functionName<uint8_t>(__VA_ARGS__) \
     )
-
+*/

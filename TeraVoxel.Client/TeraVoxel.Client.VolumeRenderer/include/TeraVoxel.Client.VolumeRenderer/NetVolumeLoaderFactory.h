@@ -16,7 +16,7 @@ public:
 
 	std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount) override
 	{
-		return CALL_TEMPLATED_FUNCTION(CreateInternal, _datasetInfo.dataType.c_str(), threadCount);
+		return CALL_TEMPLATED_FUNCTION2(CreateInternal, _datasetInfo.dataType, threadCount);
 	}
 
 private:

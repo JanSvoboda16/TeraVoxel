@@ -8,6 +8,7 @@ public:
 	{ }
 	virtual ~VolumeLoaderGenericBase() {}
 	virtual BlockBasedDatasetInfo& GetDatasetInfo() { return _datasetInfo; };
+	virtual void BindOnSegmentLoaded(std::function<void(void)> function) = 0;
 
 protected:
 	BlockBasedDatasetInfo _datasetInfo;

@@ -6,7 +6,7 @@ CPURayCastingVolumeVisualizer::CPURayCastingVolumeVisualizer(const std::shared_p
 {
 	_settings = settings;
 
-	CALL_TEMPLATED_FUNCTION(CreateMemory, volumeLoaderFactory->GetDatasetInfo().dataType.c_str(), camera, volumeLoaderFactory);
+	CALL_TEMPLATED_FUNCTION2(CreateMemory, volumeLoaderFactory->GetDatasetInfo().dataType, camera, volumeLoaderFactory);
 }
 
 template <typename T>
@@ -17,11 +17,11 @@ bool CPURayCastingVolumeVisualizer::DataChangedTemplated()
 
 bool CPURayCastingVolumeVisualizer::DataChanged()
 {	
-	return CALL_TEMPLATED_FUNCTION(DataChangedTemplated, _volumeLoaderFactory->GetDatasetInfo().dataType.c_str());
+	return CALL_TEMPLATED_FUNCTION2(DataChangedTemplated, _volumeLoaderFactory->GetDatasetInfo().dataType);
 }
 
 template<typename T>
-void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
+void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
 	auto cpuMultiLayeredFramebuffer = std::dynamic_pointer_cast<CPUMultiLayeredFramebuffer>(multiLayeredFramebuffer);
 	auto memory = std::any_cast<std::shared_ptr<CPURayCastingVolumeObjectMemory<T>>>(this->_memory);
@@ -29,6 +29,8 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(std::shared_p
 	_settingsCopy = *_settings;
 	_settingsCopy.mappingTable.RecomputeDeltas();
 	_reneringPosition.store(0, std::memory_order_release);
+
+	int downscale = fast ? 2 : 1; // not index, multiplier
 
 	Vector2i screenSize = this->_camera->GetScreenSize();
 	this->_camera->ChangeScreenSize(std::ceil(screenSize[0] / (float)downscale), std::ceil(screenSize[1] / (float)downscale));
@@ -67,9 +69,9 @@ void CPURayCastingVolumeVisualizer::CoumputeFrameInternalTemplated(std::shared_p
 	memory->Revalidate();
 }
 
-void CPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
+void CPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 {
-	CALL_TEMPLATED_FUNCTION(CoumputeFrameInternalTemplated, this->_volumeLoaderFactory->GetDatasetInfo().dataType.c_str(), framebuffer, downscale, multiLayeredFramebuffer);
+	CALL_TEMPLATED_FUNCTION2(CoumputeFrameInternalTemplated,this->_volumeLoaderFactory->GetDatasetInfo().dataType, framebuffer, fast, multiLayeredFramebuffer);
 }
 
 

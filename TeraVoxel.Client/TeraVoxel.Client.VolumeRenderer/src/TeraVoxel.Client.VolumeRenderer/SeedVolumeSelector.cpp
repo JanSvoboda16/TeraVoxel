@@ -12,7 +12,7 @@ using Eigen::Vector3i;
 
 void SeedVolumeSelector::Select(const Vector3f &seed, float lowerBound, float upperBound, float maxDifference, bool erase)
 {
-	CALL_TEMPLATED_FUNCTION(SelectTemplated, _datasetInfo.dataType.c_str(), seed, lowerBound, upperBound, maxDifference, erase);
+	CALL_TEMPLATED_FUNCTION2(SelectTemplated, _datasetInfo.dataType, seed, lowerBound, upperBound, maxDifference, erase);
 }
 
 std::vector<Vector3i> directions = {

@@ -3,7 +3,7 @@
 #include <string>
 #include <typeinfo>
 #include <cstdint>
-constexpr auto STRING_INT8_T = "System.Sbyte";
+/*constexpr auto STRING_INT8_T = "System.Sbyte";
 constexpr auto STRING_UINT8_T = "System.Byte";
 constexpr auto STRING_INT16_T = "System.Int16";
 constexpr auto STRING_UINT16_T = "System.UInt16";
@@ -27,6 +27,7 @@ static std::unordered_map<std::size_t, const char*> typeStrings = {
 	{typeid(uint64_t).hash_code(), STRING_UINT64_T}
 };
 
+
 class TypeToString
 {
 
@@ -39,5 +40,5 @@ public:
 		return result->second;
 	}
 
-};
+};*/
 

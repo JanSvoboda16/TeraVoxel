@@ -33,7 +33,7 @@ public:
 	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
 	std::unique_ptr<VolumeSegment<T>> LoadSync(int x, int y, int z, int downscale);
 
-	void BindOnSegmentLoaded(std::function<void(void)> function) { _onSegmentLoaded = function; }
+	void BindOnSegmentLoaded(std::function<void(void)> function) override { _onSegmentLoaded = function; }
 
 	uint64_t GetBlockRequiredMemory(int downscale);
 protected:

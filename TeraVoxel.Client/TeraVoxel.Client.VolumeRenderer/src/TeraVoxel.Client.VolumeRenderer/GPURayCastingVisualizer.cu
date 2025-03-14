@@ -319,7 +319,7 @@ GPURayCastingVolumeVisualizer::~GPURayCastingVolumeVisualizer()
 
 bool GPURayCastingVolumeVisualizer::DataChanged()
 {
-    return false;
+    return _memory->MemoryChanged();
 }
 
 void GPURayCastingVolumeVisualizer::UpdateShadowTexture(Camera* camera_d) 
@@ -391,9 +391,16 @@ void GPURayCastingVolumeVisualizer::UpdateShadowTexture(Camera* camera_d)
     cudaMemcpy(_shadowTextures_d, _shadowTextures_h, sizeof(cudaTextureObject_t) * MAX_LIGHTS, cudaMemcpyHostToDevice);
 }
 
-void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d)
+void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d, bool fast)
 {
+    _memory->Update();
+
     bool recomputeShadows = false;
+    if (_memory->VersionId() != _memoryVersion && !fast)
+    {
+        _memoryVersion = _memory->VersionId();
+        recomputeShadows = true;
+    }
     if (_settings->VersionId() != _settingsDeviceVersion)
     {
         _settings->materialTable.RecomputeDeltas();
@@ -423,7 +430,7 @@ void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d)
     }
 }
 
-void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
+void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer)
 { 
     Vector2i screenSize = _camera->GetScreenSize();
 
@@ -442,7 +449,7 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
 
     // Update larger entities (textures etc.) 
     // Updates only when something has changed
-    UpdateEntities(d_camera);
+    UpdateEntities(d_camera, fast);
 
     // Blocks/Grid definition
     dim3 blockSize(16, 16);

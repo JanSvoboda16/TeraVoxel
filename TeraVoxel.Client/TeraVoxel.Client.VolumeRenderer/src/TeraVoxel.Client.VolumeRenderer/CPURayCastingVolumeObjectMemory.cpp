@@ -165,43 +165,14 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 
 						ticket->mutex.lock();
 
-						ticket->needed = _used[index].load(std::memory_order_relaxed) && ticket->downscale > requiredDownscale;
+						ticket->needed = _used[index].load(std::memory_order_relaxed) && (vol == nullptr || vol->downscale > requiredDownscale);
 						ticket->downscale = requiredDownscale;
 						ticket->priority = priority;
 
 						ticket->mutex.unlock();
 					}
 				}
-				/*
-				if (vol->used.load(std::memory_order_relaxed))
-				{
-					int requiredDownscale = GetRequiredDownscale((x << _segmentSizeShifter) + _segmentSize / 2, (y << _segmentSizeShifter) + _segmentSize / 2, (z << _segmentSizeShifter) + _segmentSize / 2);
-
-					vol->priority.store();
-
-					// Important for refresh after zooming on the loaded scene -> step depend on quality
-					if (vol->requiredDownscale != requiredDownscale)
-					{
-						vol->requiredDownscale = requiredDownscale;
-						_memoryChanged.store(true, std::memory_order_release);
-					}
-
-					if (vol->actualDownscale > requiredDownscale && !ramAlmostFull)
-					{
-						if (vol->waitsToBeReloaded.load(std::memory_order::acquire))
-						{
-							if (vol->loadingDownscale > requiredDownscale)
-							{
-								vol->loadingDownscale.store(requiredDownscale, std::memory_order::release);
-							}
-						}
-						else
-						{
-							vol->loadingDownscale.store(requiredDownscale, std::memory_order::release);
-							_volumeLoader->LoadAsync(vol);
-						}
-					}
-				}*/
+				
 			}
 		}
 	}
@@ -232,7 +203,6 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 			for (size_t x = 0; x < xSegmentCount; x++)
 			{
 				auto index = x + y * xSegmentCount + z * xSegmentCount * ySegmentCount;
-				VolumeSegment<T>* vol = _volumes[index];
 
 				_used[index].store(false, std::memory_order_release);
 			}

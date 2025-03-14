@@ -93,7 +93,7 @@ float ComputeDistance(float value1, float value2, float edgeValue) {
 
 
 Vertex MarchingCubesSurfaceExtractor::IndexToVertex(int index, const Vector4b& color, const Vector3f& position, bool interpolate, const Eigen::Vector2f& interpolationBoundary) {
-	return CALL_TEMPLATED_FUNCTION(IndexToVertexTemplated, _volumeCache->GetDatasetInfo().dataType.c_str(), index, color,  position, interpolate, interpolationBoundary);
+	return CALL_TEMPLATED_FUNCTION2(IndexToVertexTemplated, _volumeCache->GetDatasetInfo().dataType, index, color,  position, interpolate, interpolationBoundary);
 }
 
 template <typename T>

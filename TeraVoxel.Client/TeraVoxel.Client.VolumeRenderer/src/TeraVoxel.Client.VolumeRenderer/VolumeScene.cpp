@@ -128,11 +128,11 @@ DatasetInfo VolumeScene::GetDatasetInfo()
 	return _volumeLoaderFactory->GetDatasetInfo();
 }
 
-void VolumeScene::ComputeFrameTask(int width, int height, bool _fast)
+void VolumeScene::ComputeFrameTask(int width, int height, bool fast)
 {
-	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", _fast ? "fast" : "full");
+	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", fast ? "fast" : "full");
 	
-	if (_fast) 
+	if (fast) 
 	{
 		_camera->ChangeScreenSize(std::ceil(width / (float)2), std::ceil(height / (float)2));
 	}
@@ -142,9 +142,9 @@ void VolumeScene::ComputeFrameTask(int width, int height, bool _fast)
 
 	_camera->ChangeScreenSize(width, height);
 
-	_volumeVisualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, _fast ? 2 : 1, meshFrameBuffer);
+	_volumeVisualizer->ComputeFrame(_framebufferIndex ? _framebuffer1 : _framebuffer2, width, height, fast, meshFrameBuffer);
 
 	_frameReady.store(true, std::memory_order::release);
 	_renderingInProgress.store(false, std::memory_order::release);
-	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Ended", "", _fast ? "fast" : "full");
+	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Ended", "", fast ? "fast" : "full");
 }

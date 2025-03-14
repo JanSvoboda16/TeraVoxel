@@ -8,7 +8,7 @@ static BlockBasedDatasetInfo BBDFromMetadata(const NeuroVoxel::DatasetMetadata& 
 	info.dataSizeX = metadata.dataDimensions[0];
 	info.dataSizeY = metadata.dataDimensions[1];
 	info.dataSizeZ = metadata.dataDimensions[2];
-	info.dataType = TypeToString::ToString<uint16_t>();
+	info.dataType = metadata.dataType;
 	info.segmentSize = segmentSize;
 	info.sizeX = std::ceil(info.dataSizeX / (float)info.segmentSize) * info.segmentSize;
 	info.sizeY = std::ceil(info.dataSizeY / (float)info.segmentSize) * info.segmentSize;
@@ -27,7 +27,7 @@ public:
 
 	std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount) override
 	{
-		return CALL_TEMPLATED_FUNCTION(CreateInternal, _datasetInfo.dataType.c_str(), threadCount);
+		return CALL_TEMPLATED_FUNCTION2(CreateInternal, _datasetInfo.dataType, threadCount);
 	}
 
 private:
@@ -37,7 +37,7 @@ private:
 	template <typename T>
 	std::unique_ptr<VolumeLoaderGenericBase> CreateInternal(int threadCount)
 	{
-		return std::make_unique<NeuroVoxelVolumeLoader<T>>(_dataset, _datasetInfo);
+		return std::make_unique<NeuroVoxelVolumeLoader<T>>(_dataset, threadCount, _datasetInfo);
 	}
 };
 

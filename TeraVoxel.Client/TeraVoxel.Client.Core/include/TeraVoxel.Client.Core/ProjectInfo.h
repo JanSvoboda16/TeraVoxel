@@ -7,6 +7,7 @@
 #include <json.hpp>
 #include <vector>
 #include <Eigen/Dense>
+#include <NeuroVoxel/Common/DataType.h>
 
 enum ProjectState
 {
@@ -19,7 +20,7 @@ enum ProjectState
 
 struct DatasetInfo
 {
-	std::string dataType;
+	DataCommon::StorableType dataType;
 	int sizeX = 0;
 	int sizeY = 0;
 	int sizeZ = 0;
@@ -53,7 +54,7 @@ class ProjectInfo
 		BlockBasedDatasetInfo ToBlockBasedDatasetInfo() const
 		{
 			BlockBasedDatasetInfo info;
-			info.dataType = dataType;
+			info.dataType = DataCommon::StorableTypeFromDotNetString(dataType);
 			info.dataSizeX = dataSizeX;
 			info.dataSizeY = dataSizeY;
 			info.dataSizeZ = dataSizeZ;

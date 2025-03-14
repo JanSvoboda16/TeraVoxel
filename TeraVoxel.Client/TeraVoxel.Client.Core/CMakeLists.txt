@@ -21,6 +21,6 @@ target_include_directories(TeraVoxel.Client.Core PUBLIC include ${NLOHMAN_DIR})
 find_package(ZLIB CONFIG REQUIRED) # CONFIG IGNORES DEFAULT MODULES
 find_package(httplib REQUIRED)
 find_package(Eigen3 REQUIRED)
-target_link_libraries(TeraVoxel.Client.Core PUBLIC ZLIB::ZLIB httplib::httplib Eigen3::Eigen)
+target_link_libraries(TeraVoxel.Client.Core PUBLIC ZLIB::ZLIB httplib::httplib Eigen3::Eigen NeuroVoxel)
 
 

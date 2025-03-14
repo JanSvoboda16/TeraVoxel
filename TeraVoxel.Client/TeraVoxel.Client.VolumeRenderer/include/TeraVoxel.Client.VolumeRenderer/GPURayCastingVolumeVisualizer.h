@@ -25,7 +25,7 @@ private:
 	/// Updates entities in the scene if need to be updated
 	/// </summary>
 	/// <param name="camera_d"></param>
-	void UpdateEntities(Camera* camera_d);
+	void UpdateEntities(Camera* camera_d, bool fast);
 
 	/// <summary>
 	/// Remoputes shadows in the scene
@@ -39,13 +39,14 @@ private:
 	/// <param name="framebuffer"></param>
 	/// <param name="downscale"></param>
 	/// <param name="multiLayeredFramebuffer"></param>
-	void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, int downscale, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) override;
+	void ComputeFrameInternal(std::shared_ptr<unsigned char[]>& framebuffer, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer) override;
 
 	std::unique_ptr<GPURayCastingVolumeMemory> _memory;
 	std::shared_ptr<GPURCVolumeVisualizerSettings> _settings;
 
 	MaterialTableItem* _materialTable_d = nullptr;
 	int64_t _settingsDeviceVersion = -1;
+	int64_t _memoryVersion = -1;
 
 	// Shadows - Arrays are on host, objects are on GPU
 	cudaTextureObject_t* _shadowTextures_h = NULL;

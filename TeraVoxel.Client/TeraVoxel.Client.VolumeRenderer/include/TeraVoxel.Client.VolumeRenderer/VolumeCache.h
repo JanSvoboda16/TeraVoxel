@@ -10,6 +10,7 @@
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
+#include <NeuroVoxel/Common/DataType.h>
 
 template <typename T>
 class VolumeCache : public VolumeCacheGenericBase
@@ -85,7 +86,7 @@ public:
 	VolumeCacheFactory() = delete;
 
 	static std::unique_ptr<VolumeCacheGenericBase> VolumeCacheCreate(const std::shared_ptr<VolumeLoaderFactory>& loaderFac) {
-		return CALL_TEMPLATED_FUNCTION(VolumeCacheCreateTemplated, loaderFac->GetDatasetInfo().dataType.c_str(), loaderFac);
+		return CALL_TEMPLATED_FUNCTION2(VolumeCacheCreateTemplated, loaderFac->GetDatasetInfo().dataType, loaderFac);
 	}
 private:
 	template <typename T>
