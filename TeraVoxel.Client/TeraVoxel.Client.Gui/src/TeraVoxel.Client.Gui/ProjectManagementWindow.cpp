@@ -104,7 +104,6 @@ void ProjectManagementWindow::Update()
 						// LOAD/UNLOAD project - only when converted
 						if (project.name != _selectedProjectName)
 						{
-
 							if (project.state == ProjectConverted && ImGui::Button(loadLable.c_str()))
 							{
 								_selectedProjectIndex = row;

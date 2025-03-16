@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 //#include "TeraVoxel.Client.Core/TypeToString.h"
 #include <NeuroVoxel/CompressedDataset.h>
@@ -15,8 +15,17 @@ public:
 
 	}
 
+	~NeuroVoxelVolumeLoader()
+	{
+		this->_endLoopingThreads = true;
+		this->_loadingTreads.clear();
+	}
+
 	VoxelT* LoadSegmentData(int x, int y, int z, int downscale) override
 	{
+		// Zkontroluje lokálně, jestli tu ty data jsou. 
+		// Jinak načte ze sítě. Více požadavků na jeden segment by chodit nemělo, takže OK.
+
 		readerMutex.lock();
 		auto readedData = _reader.ReadData(
 			Eigen::Vector3i(x * this->_datasetInfo.segmentSize, y * this->_datasetInfo.segmentSize, z * this->_datasetInfo.segmentSize),
@@ -38,9 +47,7 @@ public:
 
 			auto index = Serialization::GetZCurveIndex(xpos, ypos, zpos);
 			data[index] = readedData[i];
-
 		}
-
 
 		return data;
 	}

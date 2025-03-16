@@ -12,7 +12,7 @@ enum RequestState
 	WaitingToBeLoaded,
 	BeingLoaded,
 	Loaded,
-	UnableToLoad
+	UnableToLoadOrSkipped
 };
 
 struct VolumeSegmentRequestTicket

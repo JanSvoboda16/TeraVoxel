@@ -9,6 +9,7 @@ namespace TeraVoxel.Server.API
     public class SettingsOptions
     {
         public const string SectionKey = "Settings";
-        public StorageOptions Storage { get; set; } = null!;       
+        public StorageOptions Storage { get; set; } = null!;
+        public NeuroVoxelStorageOptions NeuroVoxelStorage { get; set; } = null!;
     }
 }

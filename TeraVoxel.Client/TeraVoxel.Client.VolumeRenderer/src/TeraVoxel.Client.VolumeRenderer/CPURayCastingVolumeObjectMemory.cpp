@@ -140,8 +140,13 @@ void CPURayCastingVolumeObjectMemory<T>::Revalidate()
 
 				auto ticket = _tickets[index];
 
+				// Volume not updated yet
+				if (ticket != nullptr && ticket->state == RequestState::Loaded)
+				{
+					continue;
+				}
 
-				if (ticket != nullptr && (ticket->state == RequestState::Loaded || _tickets[index]->state == RequestState::UnableToLoad))
+				if (ticket != nullptr && (_tickets[index]->state == RequestState::UnableToLoadOrSkipped))
 				{
 					_tickets[index] = nullptr;
 					ticket = nullptr;
@@ -230,6 +235,7 @@ void CPURayCastingVolumeObjectMemory<T>::Prepare()
 			_volumesToDelete.push_back(_volumes[segmentIndex]);
 		}
 		_volumes[segmentIndex] = volume.release();
+		_tickets[segmentIndex] = nullptr;
 	}
 }
 
@@ -376,7 +382,6 @@ template CPURayCastingVolumeObjectMemory<uint16_t>;
 template CPURayCastingVolumeObjectMemory<uint32_t>;
 template CPURayCastingVolumeObjectMemory<uint64_t>;
 template CPURayCastingVolumeObjectMemory<float>;
-template CPURayCastingVolumeObjectMemory<double>;
 template CPURayCastingVolumeObjectMemory<int8_t>;
 template CPURayCastingVolumeObjectMemory<int16_t>;
 template CPURayCastingVolumeObjectMemory<int32_t>;

@@ -12,7 +12,9 @@ NetVolumeLoader<T>::NetVolumeLoader(const ProjectInfo& projectInfo, int threadCo
 template <typename T>
 NetVolumeLoader<T>::~NetVolumeLoader()
 {
-
+	// Must be called also here, because _project mnager would be destroyed before ending threads.
+	this->_endLoopingThreads = true;
+	this->_loadingTreads.clear();
 }
 
 template <typename T>
@@ -114,7 +116,6 @@ template NetVolumeLoader<uint16_t>;
 template NetVolumeLoader<uint32_t>;
 template NetVolumeLoader<uint64_t>;
 template NetVolumeLoader<float>;
-template NetVolumeLoader<double>;
 template NetVolumeLoader<int8_t>;
 template NetVolumeLoader<int16_t>;
 template NetVolumeLoader<int32_t>;

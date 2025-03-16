@@ -142,7 +142,7 @@ void VolumeViewWindow::Update()
 		if (!scene->RenderingInProgress())
 		{
 			_volumeViewContext->sceneEditable.Notify();
-			if (_volumeViewContext->scene->DataChanged() || _rerender)
+			if (_volumeViewContext->scene != nullptr && (_volumeViewContext->scene->DataChanged() || _rerender))
 			{
 				scene->GetCamera()->ChangeObserverAxis(_observerAxis, _axisRotate);
 
@@ -186,6 +186,10 @@ void VolumeViewWindow::Update()
 		// FPS AND SCREEN SIZE
 		//std::string fpsLabel = "FPS:" + std::to_string(fps);
 		//ImGui::Text(fpsLabel.c_str());
+	}
+	else
+	{
+		_volumeViewContext->sceneEditable.Notify();
 	}
 
 	// FRAME-COUNTER

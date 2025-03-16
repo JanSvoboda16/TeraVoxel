@@ -125,7 +125,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 			else
 			{
 				loadingTicket->mutex.lock();
-				loadingTicket->state = RequestState::UnableToLoad;
+				loadingTicket->state = RequestState::UnableToLoadOrSkipped;
 				loadingTicket->mutex.unlock();
 				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 			}
@@ -272,7 +272,6 @@ template VolumeLoaderBase<uint16_t>;
 template VolumeLoaderBase<uint32_t>;
 template VolumeLoaderBase<uint64_t>;
 template VolumeLoaderBase<float>;
-template VolumeLoaderBase<double>;
 template VolumeLoaderBase<int8_t>;
 template VolumeLoaderBase<int16_t>;
 template VolumeLoaderBase<int32_t>;

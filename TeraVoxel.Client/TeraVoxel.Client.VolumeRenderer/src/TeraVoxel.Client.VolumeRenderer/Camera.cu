@@ -181,3 +181,4 @@ __host__ void Camera::BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>
 {
 	_observerCenterMeshNode = meshNode;
 }
+

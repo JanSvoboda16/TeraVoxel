@@ -6,7 +6,7 @@
 
 void SceneObjectsWindow::UpdateScene()
 {
-	if (_sceneUpdateNeeded)
+	if (_sceneUpdateNeeded && _volumeViewContext->scene != nullptr)
 	{
 		auto meshNode = _volumeViewContext->scene->GetMeshNode();
 		auto projectInfo = _volumeViewContext->scene->GetDatasetInfo();

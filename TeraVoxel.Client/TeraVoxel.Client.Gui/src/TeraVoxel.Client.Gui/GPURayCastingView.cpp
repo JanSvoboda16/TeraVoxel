@@ -111,6 +111,7 @@ void GPURayCastingView::Update()
                 if (ImGui::Button(deleteLabel.c_str())) {
                     _visualizerSettingsPrivate.materialTable.table.erase(_visualizerSettingsPrivate.materialTable.table.begin() + row);
                     _visualizerSettingsPrivate.IncrementVersionId();
+                    break;
                 }
 
                 auto colorFromLabel = "##ColorFrom" + std::to_string(row);

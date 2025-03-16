@@ -32,8 +32,10 @@ public class Program
         services
             .AddSingleton<IProjectManager, ProjectManager>()
             .AddSingleton(settingsSection.Storage)
+            .AddSingleton(settingsSection.NeuroVoxelStorage)
             .AddSingleton<IConvertingPipeline, ConvertingPipeline>()
             .AddSingleton<IVolumeDataRepository, VolumeDataRepository>()
+            .AddSingleton<INeuroVoxelDataRepository, NeuroVoxelDataRepository>()
             .AddSingleton<IEventLogger, EmptyEventLogger>()//((provider) => new FileEventLogger("log.csv"))
             .AddSingleton<IProjectInfoProvider, ProjectInfoProvider>()            
             .AddHostedService<AppRecoveryService>();

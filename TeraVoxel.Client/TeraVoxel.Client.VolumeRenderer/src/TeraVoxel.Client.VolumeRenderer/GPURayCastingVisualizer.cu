@@ -17,6 +17,9 @@
 
 #define MAX_LIGHTS 5
 
+
+// Vyrobí se fresh list textur. K němu bude zámek. Tam se nahází všechny naloadované a vytvořené textury včetně indexu. Pak se jen Při update Smažou starné a přepnou nové. 
+
 /// <summary>
 /// Computes shadows on the given position for the given lightsource.
 /// </summary>
@@ -393,8 +396,6 @@ void GPURayCastingVolumeVisualizer::UpdateShadowTexture(Camera* camera_d)
 
 void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d, bool fast)
 {
-    _memory->Update();
-
     bool recomputeShadows = false;
     if (_memory->VersionId() != _memoryVersion && !fast)
     {
@@ -423,6 +424,9 @@ void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d, bool fast)
 
         recomputeShadows = true;
     }
+    
+    _memory->Prepare();
+    _memory->CleanUsage();
 
     if (recomputeShadows)
     {
@@ -461,6 +465,8 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
 
     // Copy framebuffer back to CPU (not great, but needed for CPU renderer compatibility)
     cudaMemcpy(framebuffer.get(), d_image, width * height * 4 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+
+    _memory->Revalidate();
 
     // Delete framebufer
     cudaFree(d_image);
