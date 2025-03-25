@@ -19,24 +19,11 @@ public:
 	void Update();
 
 private:
+
+	void SetDatasetSourceView(int id);
+
+	std::unique_ptr<IView> _view;
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
-
-	// Variables of the textboxes
-	std::string _serverUrl = "localhost:5000";
-	std::string _createProjectName;
-	std::string _fileToUploadPath;
-
-	std::string _errorMessage;			// Error message
-	std::string _showedErrorMessage;	// Error message in the error textbox
-
-	std::vector<ProjectInfo> _projects;	// All project's metadata
-	std::string _connectedServerUrl;	// Url of the current server
-	int _selectedProjectIndex = -1;		// Index of the selected project
-	std::string _selectedProjectName;	// Name of the selected project
-
-	bool _refreshContext = false;		// Data should be reloaded from the server
-	clock_t _lastRefresth = 0;			// Last refresh timestamp
-	int _errorMessageDurationCounter = 0;
-
+	int _selectedDataSourceId = 0;
 };
 

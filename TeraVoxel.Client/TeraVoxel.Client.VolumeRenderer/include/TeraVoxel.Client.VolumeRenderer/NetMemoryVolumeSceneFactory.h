@@ -15,10 +15,38 @@
 #include "TeraVoxel.Client.VolumeRenderer/CPURCVolumeVisualizerFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/EmptyVolumeVisualizerFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/NeuroVoxelVolumeLoaderFactory.h"
+#include "TeraVoxel.Client.VolumeRenderer/NeuroVoxelServerDataset.h"
 
  /// <summary>
  /// Used for creating a typed instance of the VolumeScene class. 
  /// </summary>
+
+
+class NeuroVoxelSceneFactory
+{
+
+public:
+	static std::unique_ptr<VolumeScene> Create(const std::string& name, const std::string& serverUrl)
+	{
+		auto serverDataset = std::make_shared<NeuroVoxelServerDataset>(name, NeuroVoxelServerService(serverUrl));
+		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NeuroVoxelVolumeLoaderFactory>(serverDataset);
+		auto rootMeshNode = std::make_shared<MeshNode>();
+
+		auto metadata = serverDataset->GetMetadata();
+
+		Vector3f voxelDimensions = Vector3f(1,1,1);
+		Vector3f size = metadata.dataDimensions.cast<float>().array() * voxelDimensions.array();
+		Vector3f initialPosition = size / 2;
+
+		std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2, 20.f, size.maxCoeff() * 5);
+
+		// Scene
+		auto emptyVisualizerFactory = std::make_shared<EmptyVolumeVisualizerFactory>(std::make_shared<EmptyVolumeVisualizerSettings>());
+		return std::make_unique<VolumeScene>(camera, loaderFactory, emptyVisualizerFactory, rootMeshNode);
+	}
+};
+
+
 class NetMemoryVolumeSceneFactory
 {
 
@@ -33,8 +61,7 @@ public:
 
 		// Volume loader
 		ProjectManager projectManager(serverUrl);
-		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NeuroVoxelVolumeLoaderFactory>(NeuroVoxel::CompressedDataset::Open("C:\\Diplomka Experimenty\\Compressed\\chameleon"));
-		//std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NetVolumeLoaderFactory>(projectManager, projectInfo);
+		std::shared_ptr<VolumeLoaderFactory> loaderFactory = std::make_shared<NetVolumeLoaderFactory>(projectManager, projectInfo);
 
 		auto rootMeshNode = std::make_shared<MeshNode>();
 

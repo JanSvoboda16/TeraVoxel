@@ -1,0 +1,36 @@
+#pragma once
+#pragma once
+#include <string>
+#include <time.h>
+#include "TeraVoxel.Client.Gui/VolumeViewContext.h"
+#include <thread>
+#include <vector>
+#include "TeraVoxel.Client.Gui/IView.h"
+
+#define CONTEXT_REFRESH_RATE 10000
+
+class NeuroVoxelView : public IView
+{
+public:
+	NeuroVoxelView(const std::shared_ptr<VolumeViewContext>& volumeViewContext);
+	void Update();
+
+private:
+	std::shared_ptr<VolumeViewContext> _volumeViewContext;
+
+	std::string _serverUrl = "localhost:5000";
+
+
+	std::string _errorMessage;			// Error message
+	std::string _showedErrorMessage;	// Error message in the error textbox
+
+	std::vector<std::string> _projects;	// All project's metadata
+	std::string _connectedServerUrl;	// Url of the current server
+	int _selectedProjectIndex = -1;		// Index of the selected project
+	std::string _selectedProjectName;	// Name of the selected project
+
+	bool _refreshContext = false;		// Data should be reloaded from the server
+	clock_t _lastRefresth = 0;			// Last refresh timestamp
+	int _errorMessageDurationCounter = 0;
+
+};

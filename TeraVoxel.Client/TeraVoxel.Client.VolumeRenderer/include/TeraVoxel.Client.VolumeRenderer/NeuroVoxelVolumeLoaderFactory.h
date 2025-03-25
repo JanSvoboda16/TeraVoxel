@@ -20,7 +20,7 @@ class NeuroVoxelVolumeLoaderFactory : public VolumeLoaderFactory
 {
 public:
 
-	NeuroVoxelVolumeLoaderFactory(const std::shared_ptr<NeuroVoxel::CompressedDataset>& dataset) :
+	NeuroVoxelVolumeLoaderFactory(const std::shared_ptr<NeuroVoxel::IReadableCompressedDataset>& dataset) :
 		_dataset(dataset),
 		VolumeLoaderFactory(BBDFromMetadata(dataset->GetMetadata(), 256))
 	{ }
@@ -32,8 +32,7 @@ public:
 
 private:
 
-	std::shared_ptr<NeuroVoxel::CompressedDataset> _dataset;
-
+	std::shared_ptr<NeuroVoxel::IReadableCompressedDataset> _dataset;
 	template <typename T>
 	std::unique_ptr<VolumeLoaderGenericBase> CreateInternal(int threadCount)
 	{

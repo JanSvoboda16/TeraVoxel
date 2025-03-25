@@ -120,6 +120,11 @@ void VolumeViewWindow::Update()
 		int frameWidth = ImGui::GetWindowContentRegionWidth();
 		int frameHeight = ImGui::GetWindowHeight() - 100;
 
+		if (frameHeight < 0 || frameHeight < 0) 
+		{
+			return;
+		}
+
 		// SCREEN SIZE HAS CHANGED 
 		if ((frameWidth != _lastFrameWidth) || (frameHeight != _lastFrameHeight))
 		{

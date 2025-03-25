@@ -7,7 +7,7 @@
 #include <memory>
 #include <format>
 #include <json.hpp>
-#include "TeraVoxel.Client.Core/HttpManagerBase.h"
+#include "TeraVoxel.Client.Core/HttpServerService.h"
 #include "TeraVoxel.Client.Core/Logger.h"
 #include "TeraVoxel.Client.Core/ServerException.h"
 #include "TeraVoxel.Client.Core/ProjectInfo.h"
@@ -15,11 +15,11 @@
 /// <summary>
 /// Comunicates with the server
 /// </summary>
-class ProjectManager : HttpManagerBase
+class ProjectManager : HttpServerService
 {
 public:
-	ProjectManager(const std::string& url) : HttpManagerBase(url) { }
-	ProjectManager() : HttpManagerBase("") { }
+	ProjectManager(const std::string& url) : HttpServerService(url) { }
+	ProjectManager() : HttpServerService("") { }
 	std::vector<ProjectInfo> GetAllProjectsInfo();
 	std::vector<unsigned char> GetSegment(const std::string& projectName, int x, int y, int z, int downscale, int bytesToRead, bool compressed);
 	void CreateProject(const std::string &projectName);

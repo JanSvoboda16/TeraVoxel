@@ -239,7 +239,7 @@ private:
 	int GetRequiredDownscale(int xIndex, int yIndex, int zIndex);
 	// Preloads data 
 	template<typename T>
-	void Preload();
+	void Preload(int threadCount);
 
 
 	template<typename T>
@@ -347,10 +347,9 @@ float GPURayCastingVolumeMemory::GetValueMultiplicator()
 }
 
 template<typename T>
-void GPURayCastingVolumeMemory::Preload()
+void GPURayCastingVolumeMemory::Preload(int threadCount)
 {
 	auto loader = dynamic_cast<VolumeLoaderBase<T>*>(_volumeLoader);
-
 	const auto sizeX = _datasetInfo.sizeX;
 	const auto sizeY = _datasetInfo.sizeY;
 	const auto sizeZ = _datasetInfo.sizeZ;
@@ -360,41 +359,40 @@ void GPURayCastingVolumeMemory::Preload()
 	const auto sCountZ = sizeZ / _segmentSize;
 
 	int segmentSize = _segmentSize >> _preloadLevel;
+	uint32_t voxelsInSegment = segmentSize * segmentSize * segmentSize;
 
-	uint32_t voxelsInSegment =  segmentSize *  segmentSize * segmentSize;
+	loader->Preload(_preloadLevel, threadCount);
 
 	std::vector<T> h_array;
 	h_array.resize(voxelsInSegment);
 
-	for (size_t bz = 0; bz < sCountZ; bz++)
+	int count;
+	while (true)
 	{
-		for (size_t by = 0; by < sCountY; by++)
+		auto data = loader->TakeFirstLoaded(count);
+		if (count == 0)
 		{
-			for (size_t bx = 0; bx < sCountX; bx++)
-			{
-
-				auto data = loader->LoadSync(bx, by, bz, _preloadLevel);
-
-				for (size_t i = 0; i < voxelsInSegment; ++i)
-				{
-					uint16_t z = i / (segmentSize * segmentSize);
-					uint16_t y = (i % (segmentSize * segmentSize)) / segmentSize;
-					uint16_t x = (i % (segmentSize * segmentSize)) % segmentSize;
-					uint32_t mortonIndex = Serialization::GetZCurveIndex(x, y, z);
-					h_array[i] = data->data[mortonIndex];
-				}
-
-				MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
-				MemoryContext::GetInstance().usedMemory -= loader->GetBlockRequiredMemory(_preloadLevel);
-				MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
-
-				auto blockCoords = Vector3i(bx, by, bz);
-				auto textureHandler = CreateTexture<T>(blockCoords, h_array.data(), _preloadLevel);
-
-				auto index = DataCommon::Indexing::XYZToIdx(blockCoords, Vector3i(sCountX, sCountY, sCountZ));
-				_textures_h[index] = textureHandler;
-			}
+			break;
 		}
+
+		for (size_t i = 0; i < voxelsInSegment; ++i)
+		{
+			uint16_t z = i / (segmentSize * segmentSize);
+			uint16_t y = (i % (segmentSize * segmentSize)) / segmentSize;
+			uint16_t x = (i % (segmentSize * segmentSize)) % segmentSize;
+			uint32_t mortonIndex = Serialization::GetZCurveIndex(x, y, z);
+			h_array[i] = data->data[mortonIndex];
+		}
+
+		MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
+		MemoryContext::GetInstance().usedMemory -= loader->GetBlockRequiredMemory(_preloadLevel);
+		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
+
+		auto blockCoords = Vector3i(data->x, data->y, data->z);
+		auto textureHandler = CreateTexture<T>(blockCoords, h_array.data(), _preloadLevel);
+
+		auto index = DataCommon::Indexing::XYZToIdx(blockCoords, Vector3i(sCountX, sCountY, sCountZ));
+		_textures_h[index] = textureHandler;
 	}
 
 	cudaMemcpy(_textures_d, _textures_h.data(), sizeof(TextureBlockHandler) * sCountX * sCountY * sCountZ, cudaMemcpyHostToDevice);
@@ -686,7 +684,7 @@ inline GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_pt
 	cudaMalloc(&_composedTexture_d, sizeof(GPURayCastingVolumeTexture));
 	cudaMemcpy(_composedTexture_d, &composedTexture, sizeof(GPURayCastingVolumeTexture), cudaMemcpyHostToDevice);
 
-	CALL_TEMPLATED_FUNCTION2(Preload, _datasetInfo.dataType);
+	CALL_TEMPLATED_FUNCTION2(Preload, _datasetInfo.dataType, SettingsContext::GetInstance().preloadingThreadCount.load());
 	_volumeLoader->BindOnSegmentLoaded(
 		[this]() 
 		{ 

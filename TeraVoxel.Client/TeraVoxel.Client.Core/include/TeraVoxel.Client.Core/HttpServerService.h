@@ -4,10 +4,10 @@
  */
 #pragma once
 #include <string>
-class HttpManagerBase {
+class HttpServerService {
 public:
 	std::string Url;
-	HttpManagerBase(const std::string& url) {
+	HttpServerService(const std::string& url) {
 		Url = url;
 	}
 };
