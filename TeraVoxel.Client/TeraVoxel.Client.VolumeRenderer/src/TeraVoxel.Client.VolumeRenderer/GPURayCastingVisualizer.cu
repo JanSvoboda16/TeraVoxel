@@ -51,7 +51,8 @@ __inline__ __device__ Vector3f ComputeShadowRay(Camera* camera, Vector3f positio
         // Sampling
         for (uint32_t i = 0; i < stepCount; i++)
         {
-            float value = texture->GetTextureValue(position);
+            int downscale;
+            float value = texture->GetTextureValue(position, downscale);
 
             bool itemFound = false;
             uint16_t index = 0;
@@ -162,7 +163,8 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
 
     position = start;
 
-    uint32_t stepCount = (start - end).norm() / stepSize; // Count of steps to be sampled
+    float rayDistance = (start - end).norm(); // Count of steps to be sampled
+    float samplingProgress = 0;
 
     float stepWordSpaceLength = aplhaCoeficient * stepSize;
 
@@ -172,9 +174,12 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
     if (intersected)
     {
         // Sampling
-        for (uint32_t i = 0; i < stepCount; i++)
+        while (samplingProgress < rayDistance)
         {
-            float value = texture->GetTextureValue(position);
+            int downscale;
+            float value = texture->GetTextureValue(position, downscale);
+
+            int stepMultiplier = 1 << downscale;
 
             bool itemFound = false;
             uint16_t index = 0;
@@ -205,9 +210,17 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
                     Light& light = lightSettings->lights[l];
                     Vector3f lightPos(light.position[0], light.position[1], light.position[2]);
                     Vector3f lightDirection = (lightPos - position).normalized();
+                    
+                    Vector3f shadow;
+                    if (lightSettings->shadows)
+                    {
+                        float4 shTex = tex3D<float4>(shaddowTextures[l], position.x() / shadowSubsampling + 0.5f, position.y() / shadowSubsampling + 0.5f, position.z() / shadowSubsampling + 0.5f);
+                        shadow = Vector3f(shTex.x, shTex.y, shTex.z);
+                    }
+                    else {
+                        shadow = Vector3f(1, 1, 1);
+                    }
 
-                    float4 shTex = tex3D<float4>(shaddowTextures[l], position.x() / shadowSubsampling + 0.5f, position.y() / shadowSubsampling + 0.5f, position.z() / shadowSubsampling + 0.5f);
-                    Vector3f shadow(shTex.x, shTex.y, shTex.z);
                     Vector3f lightIntensity = shadow * light.intensity; // Light intensity will be parameter
 
                     float specularCoeficient = (item.SpecularReflectionDivRange() * valminran0 + item.specularReflectionFrom);
@@ -234,6 +247,10 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
                 float tg = (item.GreenTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[1]);
                 float tb = (item.BlueTranslucencyDivRange() * valminran0 + item.translucencyColorFrom[2]);
 
+                tr = powf(tr, stepWordSpaceLength * stepMultiplier);
+                tg = powf(tg, stepWordSpaceLength * stepMultiplier);
+                tb = powf(tb, stepWordSpaceLength * stepMultiplier);
+
                 // Apply material
                 float reflectness = 1.f - max(max(tr, tg), tb); // if material is transparent, light interact less with it
                 float r = (item.RedReflectionDivRange() * valminran0 + item.reflectionColorFrom[0]) * totalReflectedIntensity[0];
@@ -249,9 +266,9 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
                 colorAcumulator[1] = colorAcumulator[1] + g * translucency[1];
                 colorAcumulator[2] = colorAcumulator[2] + b * translucency[2];
 
-                translucency[0] = translucency[0] * powf(tr, stepWordSpaceLength);
-                translucency[1] = translucency[1] * powf(tg, stepWordSpaceLength);
-                translucency[2] = translucency[2] * powf(tb, stepWordSpaceLength);
+                translucency[0] = translucency[0] * tr;
+                translucency[1] = translucency[1] * tg;
+                translucency[2] = translucency[2] * tb;
 
                 if ((translucency.array() < 0.02f).all())
                 {
@@ -259,7 +276,8 @@ __global__ void ComputeFrameKernel(unsigned char* image, int width, int height, 
                 }
             }
 
-            position += step;
+            position += step * stepMultiplier;
+            samplingProgress += stepSize * stepMultiplier;
         }
     }
 
@@ -426,9 +444,9 @@ void GPURayCastingVolumeVisualizer::UpdateEntities(Camera* camera_d, bool fast)
     }
     
     _memory->Prepare();
-    _memory->CleanUsage();
+   
 
-    if (recomputeShadows)
+    if (recomputeShadows  && _settings->lightSettings.shadows)
     {
         UpdateShadowTexture(camera_d);
     }
@@ -459,6 +477,7 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
     dim3 blockSize(16, 16);
     dim3 gridSize((width + blockSize.x - 1) / blockSize.x, (height + blockSize.y - 1) / blockSize.y);
     
+    _memory->CleanUsage();
     // Computation
     ComputeFrameKernel<<<gridSize, blockSize>>>(d_image, width, height, d_camera, _memory->GetTextureDevicePtr(), Vector3f(_datasetInfo.dataSizeX, _datasetInfo.dataSizeY, _datasetInfo.dataSizeZ), _materialTable_d, _settings->materialTable.table.size(), _shadowTextures_d, _shadowSubsampling, _lightSettings_d);
     cudaDeviceSynchronize();
@@ -466,7 +485,7 @@ void GPURayCastingVolumeVisualizer::ComputeFrameInternal(std::shared_ptr<unsigne
     // Copy framebuffer back to CPU (not great, but needed for CPU renderer compatibility)
     cudaMemcpy(framebuffer.get(), d_image, width * height * 4 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
-    _memory->Revalidate();
+    _memory->Revalidate(_settings->objectQuality);
 
     // Delete framebufer
     cudaFree(d_image);

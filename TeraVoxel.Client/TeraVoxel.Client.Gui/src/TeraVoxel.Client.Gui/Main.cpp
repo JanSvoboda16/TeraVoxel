@@ -102,7 +102,7 @@ int main(int, char**){
 	ToolWindow ToolWindow(volumeViewContext);
 
 	MemoryContext::GetInstance().maxMemory = 6000000000;
-	SettingsContext::GetInstance().loadingThreadCount = 5;
+	SettingsContext::GetInstance().loadingThreadCount = 10;
 	SettingsContext::GetInstance().preloadingThreadCount = 16;
 	SettingsContext::GetInstance().renderingThreadCount = 13;
 

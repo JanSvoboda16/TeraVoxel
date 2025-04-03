@@ -28,6 +28,13 @@ void GPURayCastingView::Update()
 {
     // TODO FIX, DONT EDIT SETTINGS WHEN RENDERING
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+   
+    if (ImGui::InputFloat("Object Quality", &_visualizerSettingsPrivate.objectQuality, 0.2f))
+    {
+        CLAMP_FLOAT(_visualizerSettingsPrivate.objectQuality, 0.f, 10.f);
+        _visualizerSettingsPrivate.IncrementVersionId();
+    }
+    
     if (ImGui::CollapsingHeader("Material Tables")) 
     {
         ImGui::Text("Existing tables");
@@ -67,6 +74,7 @@ void GPURayCastingView::Update()
 
             ImGui::EndTable();
         }
+
 
         ImGui::Text("Color Mapping Editor");
         static std::string fileName;
@@ -306,6 +314,10 @@ void GPURayCastingView::Update()
             CLAMP_FLOAT(_visualizerSettingsPrivate.lightSettings.ambientIntensity, 0.f, 1.f);
             _visualizerSettingsPrivate.IncrementVersionId();
         }
+
+        if (ImGui::Checkbox("Compute shadows", &_visualizerSettingsPrivate.lightSettings.shadows)) {
+            _visualizerSettingsPrivate.IncrementVersionId();
+        }
     }
 }
 
@@ -343,7 +355,7 @@ void GPURayCastingView::LoadTable(std::string fileName)
 void GPURayCastingView::SaveLighting(std::string fileName)
 {
     std::ofstream file;
-    file.open("Lightings/ " + fileName);
+    file.open("Lightings/" + fileName);
     json data = _visualizerSettingsPrivate.lightSettings;
     file << data;
     file.close();

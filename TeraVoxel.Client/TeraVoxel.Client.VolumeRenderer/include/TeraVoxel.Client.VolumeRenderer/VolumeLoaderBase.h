@@ -33,7 +33,7 @@ public:
 	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
 	std::unique_ptr<VolumeSegment<T>> LoadSync(int x, int y, int z, int downscale);
 
-	void BindOnSegmentLoaded(std::function<void(void)> function) override { _onSegmentLoaded = function; }
+	void BindOnSegmentLoaded(std::function<bool(void)> function) override { _onSegmentLoaded = function; }
 
 	uint64_t GetBlockRequiredMemory(int downscale);
 protected:
@@ -46,7 +46,7 @@ protected:
 
 	std::list<std::future<void>> _loadingTreads;
 	bool _endLoopingThreads = false;
-	std::function<void(void)> _onSegmentLoaded = [=]() {};
+	std::function<bool(void)> _onSegmentLoaded = [=]() { return true; };
 
 	void PreloadTask(short threadIndex, short threadCount, int downscale);
 	

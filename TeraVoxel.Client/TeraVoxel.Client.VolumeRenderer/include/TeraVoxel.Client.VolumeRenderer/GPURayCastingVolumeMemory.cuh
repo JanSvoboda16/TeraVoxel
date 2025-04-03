@@ -51,7 +51,7 @@ public:
 	/// </summary>
 	/// <param name="position">coordinates</param>
 	/// <returns>value</returns>
-	__device__ float GetTextureValue(const Vector3f& position);
+	__device__ float GetTextureValue(const Vector3f& position, int& downscale);
 
 	/// <summary>
 	/// Computes gradient on the given position.
@@ -111,13 +111,13 @@ __device__ __inline__ cudaTextureObject_t GPURayCastingVolumeTexture::GetTexture
 	return _textures_d[index].texture;
 }
 
-__device__ __inline__ float GPURayCastingVolumeTexture::GetTextureValue(const Vector3f& position)
+__device__ __inline__ float GPURayCastingVolumeTexture::GetTextureValue(const Vector3f& position, int& downscale)
 {
 	float texPosX = fmodf(position[0], _segmentSize);
 	float texPosY = fmodf(position[1], _segmentSize);
 	float texPosZ = fmodf(position[2], _segmentSize);
 
-	auto downscale = GetSegmentDownscale(position.cast<int>() / _segmentSize);
+	downscale = GetSegmentDownscale(position.cast<int>() / _segmentSize);
 	auto downscaleVoxels = (1 << downscale);
 	if (texPosX > (_segmentSize - downscaleVoxels) || texPosY > (_segmentSize - downscaleVoxels) || texPosZ > (_segmentSize - downscaleVoxels))
 	{
@@ -140,10 +140,11 @@ __device__ __inline__ float GPURayCastingVolumeTexture::GetTextureValue(const Ve
 
 __device__ __inline__ Vector3f GPURayCastingVolumeTexture::GetTextureGrad(const Vector3f& position)
 {
-	float center = GetTextureValue(position);
-	float cx = GetTextureValue(position + Vector3f(1.f, 0.f, 0.f));
-	float cy = GetTextureValue(position + Vector3f(0.f, 1.f, 0.f));
-	float cz = GetTextureValue(position + Vector3f(0.f, 0.f, 1.f));
+	int downscale;
+	float center = GetTextureValue(position, downscale);
+	float cx = GetTextureValue(position + Vector3f(1.f, 0.f, 0.f), downscale);
+	float cy = GetTextureValue(position + Vector3f(0.f, 1.f, 0.f), downscale);
+	float cz = GetTextureValue(position + Vector3f(0.f, 0.f, 1.f), downscale);
 
 	return Vector3f(cx - center, cy - center, cz - center);
 }
@@ -224,32 +225,32 @@ public:
 	bool MemoryChanged() { bool val = _memoryChanged.load(); _memoryChanged.store(false); return val; };
 
 	void Prepare();
-	void Revalidate();
+	void Revalidate(float objectQuality);
 	void CleanUsage();
 
 
 private:
 	template<typename T>
-	TextureBlockHandler CreateTexture(const Eigen::Vector3i& segment, T* data, uint8_t downscale);
+	TextureBlockHandler CreateTexture(const Eigen::Vector3i& segment, T* data, uint8_t downscale, bool& success);
 
 	template<typename T>
 	float GetValueMultiplicator();
 	void DeleteTexture(TextureBlockHandler texture);
 	float GetPriority(int xIndex, int yIndex, int zIndex);
-	int GetRequiredDownscale(int xIndex, int yIndex, int zIndex);
+	int GetRequiredDownscale(int xIndex, int yIndex, int zIndex, float qualityDivider);
 	// Preloads data 
 	template<typename T>
 	void Preload(int threadCount);
 
 
 	template<typename T>
-	void OnDataLoaded();
+	bool OnDataLoaded();
 
 	template<typename T>
-	void RevalidateTemplated();
+	void RevalidateTemplated(float objectQquality);
 
 	template<typename T>
-	void DownscaleWithHigherQuality(int maxCount);
+	void DownscaleWithHigherQuality(int maxCount, float objectQuality);
 
 	template <typename T>
 	TextureBlockHandler CreateDownscaledTexture(TextureBlockHandler texture_d_orig);
@@ -275,6 +276,8 @@ private:
 
 	uint8_t _preloadLevel = 3;
 
+	std::mutex _gpuMemoryLock;
+
 	GPURayCastingVolumeTexture* _composedTexture_d;
 	VolumeLoaderGenericBase* _volumeLoader; // unique_ptr sets nullptr and then call destuctor
 	std::shared_ptr<Camera> _camera;
@@ -283,7 +286,7 @@ private:
 };
 
 template<typename T>
-TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector3i& segment, T* data, uint8_t downscale)
+TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector3i& segment, T* data, uint8_t downscale, bool& success)
 {
 	int index = segment[0] + segment[1] * _segmentCount[0] + segment[2] * _segmentCount[0] * _segmentCount[1];
 
@@ -294,7 +297,27 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector
 
 	cudaExtent extent = make_cudaExtent(_segmentSize >> downscale, _segmentSize >> downscale, _segmentSize >> downscale);
 	cudaChannelFormatDesc channelDesc = cudaCreateChannelDesc<T>();
-	cudaMalloc3DArray(&handler.array, &channelDesc, extent);
+
+	success = false;
+
+	_gpuMemoryLock.lock();
+	size_t freeMemory, totalMemory;
+	cudaMemGetInfo(&freeMemory, &totalMemory);
+	
+	if (freeMemory > 2000000000) 
+	{		
+		cudaMalloc3DArray(&handler.array, &channelDesc, extent);
+		success = true;
+	}
+
+	_gpuMemoryLock.unlock();
+
+	if (!success) {
+		
+		cudaStreamSynchronize(stream);
+		cudaStreamDestroy(stream);
+		return handler;
+	}
 
 	cudaMemcpy3DParms copyParams = { 0 };
 	copyParams.srcPtr = make_cudaPitchedPtr(data, (_segmentSize >> downscale) * sizeof(T), _segmentSize >> downscale, _segmentSize >> downscale);
@@ -388,8 +411,9 @@ void GPURayCastingVolumeMemory::Preload(int threadCount)
 		MemoryContext::GetInstance().usedMemory -= loader->GetBlockRequiredMemory(_preloadLevel);
 		MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
 
+		bool success;
 		auto blockCoords = Vector3i(data->x, data->y, data->z);
-		auto textureHandler = CreateTexture<T>(blockCoords, h_array.data(), _preloadLevel);
+		auto textureHandler = CreateTexture<T>(blockCoords, h_array.data(), _preloadLevel, success);
 
 		auto index = DataCommon::Indexing::XYZToIdx(blockCoords, Vector3i(sCountX, sCountY, sCountZ));
 		_textures_h[index] = textureHandler;
@@ -401,7 +425,7 @@ void GPURayCastingVolumeMemory::Preload(int threadCount)
 }
 
 template<typename T>
-void GPURayCastingVolumeMemory::OnDataLoaded()
+bool GPURayCastingVolumeMemory::OnDataLoaded()
 {
 	auto loader = dynamic_cast<VolumeLoaderBase<T>*>(_volumeLoader);
 
@@ -431,11 +455,11 @@ void GPURayCastingVolumeMemory::OnDataLoaded()
 		h_array[i] = volume->data[mortonIndex];
 	}
 
-	size_t freeMemory, totalMemory;
-	cudaMemGetInfo(&freeMemory, &totalMemory);
-
-	if (freeMemory >= 500000000) {
-		auto texture = CreateTexture<T>(Eigen::Vector3i(volume->x, volume->y, volume->z), h_array.data(), volume->downscale);
+	bool success;
+	auto texture = CreateTexture<T>(Eigen::Vector3i(volume->x, volume->y, volume->z), h_array.data(), volume->downscale, success);
+	
+	if (success) 
+	{
 		_loadedTexturesMutex.lock();
 		_loadedTextures.push(texture);
 		_loadedTexturesMutex.unlock();
@@ -444,6 +468,8 @@ void GPURayCastingVolumeMemory::OnDataLoaded()
 	MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
 	MemoryContext::GetInstance().usedMemory -= loader->GetBlockRequiredMemory(volume->downscale);
 	MemoryContext::GetInstance().memoryInfoWriteMutex.unlock();
+
+	return success;
 }
 
 inline GPURayCastingVolumeMemory::~GPURayCastingVolumeMemory()
@@ -467,11 +493,11 @@ __forceinline float GPURayCastingVolumeMemory::GetPriority(int xIndex, int yInde
 	return (vecPos - _camera->GetShrankPosition()).norm();
 }
 
-__forceinline int GPURayCastingVolumeMemory::GetRequiredDownscale(int xIndex, int yIndex, int zIndex)
+__forceinline int GPURayCastingVolumeMemory::GetRequiredDownscale(int xIndex, int yIndex, int zIndex, float qualityDivider)
 {
 	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex));
 	auto dist = (vecPos - _camera->GetPosition()).norm();
-	float quality = _camera->GetScreenSize().x() / (2 * tanf(_camera->GetViewAngle() * 0.5) * dist) * _camera->GetVoxelSizeMean();
+	float quality = _camera->GetScreenSize().x() / (2 * tanf(_camera->GetViewAngle() * 0.5) * dist) * _camera->GetVoxelSizeMean() / qualityDivider;
 	auto actualDownscale = 0;
 
 	if (quality <= 0.125)
@@ -490,7 +516,7 @@ __forceinline int GPURayCastingVolumeMemory::GetRequiredDownscale(int xIndex, in
 }
 
 template <typename T>
-void GPURayCastingVolumeMemory::RevalidateTemplated()
+void GPURayCastingVolumeMemory::RevalidateTemplated(float objectQuality)
 {
 	auto loader = dynamic_cast<VolumeLoaderBase<T>*>(_volumeLoader);
 	int segmentSizeShifter = (int)(log2(_segmentSize) + 0.5);
@@ -510,7 +536,7 @@ void GPURayCastingVolumeMemory::RevalidateTemplated()
 	size_t freeMemory, totalMemory;
 	cudaMemGetInfo(&freeMemory, &totalMemory);
 
-	bool vramFull = freeMemory < 500000000; //500MB difference
+	bool vramFull = freeMemory < 2000000000; // 2GB difference Another check in texture creating
 
 	for (size_t z = 0; z < sCountZ; z++)
 	{
@@ -519,7 +545,7 @@ void GPURayCastingVolumeMemory::RevalidateTemplated()
 			for (size_t x = 0; x < sCountX; x++)
 			{
 				uint64_t index = DataCommon::Indexing::XYZToIdx(Eigen::Vector3i(x,y,z), { sCountX, sCountY, sCountZ });
-				int requiredDownscale = GetRequiredDownscale((x << segmentSizeShifter) + _segmentSize / 2, (y << segmentSizeShifter) + _segmentSize / 2, (z << segmentSizeShifter) + _segmentSize / 2);
+				int requiredDownscale = GetRequiredDownscale((x << segmentSizeShifter) + _segmentSize / 2, (y << segmentSizeShifter) + _segmentSize / 2, (z << segmentSizeShifter) + _segmentSize / 2, objectQuality);
 
 				auto ticket = _tickets[index];
 
@@ -535,9 +561,10 @@ void GPURayCastingVolumeMemory::RevalidateTemplated()
 					ticket = nullptr;
 				}
 
-				if (!vramFull)
+				
+				if (ticket == nullptr)
 				{
-					if (ticket == nullptr)
+					if (!vramFull)
 					{
 						if (_textures_h[index].used && _textures_h[index].downscale > requiredDownscale)
 						{
@@ -546,18 +573,19 @@ void GPURayCastingVolumeMemory::RevalidateTemplated()
 							_tickets[index] = loader->LoadAsync(x, y, z, requiredDownscale, priority);
 						}
 					}
-					else
-					{
-						float priority = GetPriority((x << segmentSizeShifter) + _segmentSize / 2, (y << segmentSizeShifter) + _segmentSize / 2, (z << segmentSizeShifter) + _segmentSize / 2);
+				}
+				else
+				{
+					float priority = GetPriority((x << segmentSizeShifter) + _segmentSize / 2, (y << segmentSizeShifter) + _segmentSize / 2, (z << segmentSizeShifter) + _segmentSize / 2);
 
-						ticket->mutex.lock();
+					ticket->mutex.lock();
 
-						ticket->needed = _textures_h[index].used && _textures_h[index].downscale > requiredDownscale;
-						ticket->downscale = requiredDownscale;
-						ticket->priority = priority;
+					ticket->needed = _textures_h[index].used && _textures_h[index].downscale > requiredDownscale;
+					
+					ticket->downscale = requiredDownscale;
+					ticket->priority = priority;
 
-						ticket->mutex.unlock();
-					}
+					ticket->mutex.unlock();					
 				}
 
 			}
@@ -567,14 +595,14 @@ void GPURayCastingVolumeMemory::RevalidateTemplated()
 	// Downscale N of segments with higher quality
 	if (vramFull)
 	{
-		DownscaleWithHigherQuality<T>(3);
+		DownscaleWithHigherQuality<T>(5, objectQuality);
 	}
 
 	cudaMemcpy(_textures_d, _textures_h.data(), sizeof(TextureBlockHandler) * segmentCount, cudaMemcpyHostToDevice);
 }
 
 template <typename T>
-void GPURayCastingVolumeMemory::DownscaleWithHigherQuality(int maxCount)
+void GPURayCastingVolumeMemory::DownscaleWithHigherQuality(int maxCount, float objectQuality)
 {	
 	const auto sizeX = _datasetInfo.sizeX;
 	const auto sizeY = _datasetInfo.sizeY;
@@ -591,7 +619,7 @@ void GPURayCastingVolumeMemory::DownscaleWithHigherQuality(int maxCount)
 	for (size_t i = 0; i < segmentCount; i++)
 	{
 		Eigen::Vector3i XYZ = DataCommon::Indexing::IdxToXYZ(i, Eigen::Vector3i(sCountX, sCountY, sCountZ));
-		auto requiredDownscale = GetRequiredDownscale((XYZ.x() << segmentSizeShifter) + _segmentSize / 2, (XYZ.y() << segmentSizeShifter) + _segmentSize / 2, (XYZ.z() << segmentSizeShifter) + _segmentSize / 2);
+		auto requiredDownscale = GetRequiredDownscale((XYZ.x() << segmentSizeShifter) + _segmentSize / 2, (XYZ.y() << segmentSizeShifter) + _segmentSize / 2, (XYZ.z() << segmentSizeShifter) + _segmentSize / 2, objectQuality);
 
 		if (_textures_h[i].downscale < requiredDownscale || (_textures_h[i].used == false && _textures_h[i].downscale < _preloadLevel))
 		{			
@@ -637,9 +665,9 @@ inline void GPURayCastingVolumeMemory::Prepare()
 	_loadedTexturesMutex.unlock();
 }
 
-inline void GPURayCastingVolumeMemory::Revalidate()
+inline void GPURayCastingVolumeMemory::Revalidate(float objectQuality)
 {
-	CALL_TEMPLATED_FUNCTION2(RevalidateTemplated, _datasetInfo.dataType);
+	CALL_TEMPLATED_FUNCTION2(RevalidateTemplated, _datasetInfo.dataType, objectQuality);
 }
 
 inline void GPURayCastingVolumeMemory::CleanUsage()
@@ -688,9 +716,10 @@ inline GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_pt
 	_volumeLoader->BindOnSegmentLoaded(
 		[this]() 
 		{ 
-			CALL_TEMPLATED_FUNCTION2(OnDataLoaded, _datasetInfo.dataType);
+			bool success = CALL_TEMPLATED_FUNCTION2(OnDataLoaded, _datasetInfo.dataType);
 			_memoryChanged.store(true); 
 			IncrementVersionId();
+			return success;
 		});
 }
 

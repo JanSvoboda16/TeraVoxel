@@ -25,11 +25,14 @@ public:
 
 	VoxelT* LoadSegmentData(int x, int y, int z, int downscale) override
 	{
+		int downscaleLevels = 4;
+
+		float levelsPerModel = float(downscaleLevels) / _dataset->GetMetadata().levels;
 
 		auto readedData = _reader->ReadData(
 			Eigen::Vector3i(x * this->_datasetInfo.segmentSize, y * this->_datasetInfo.segmentSize, z * this->_datasetInfo.segmentSize),
 			Eigen::Vector3i((x + 1) * this->_datasetInfo.segmentSize, (y + 1) * this->_datasetInfo.segmentSize, (z + 1) * this->_datasetInfo.segmentSize),
-			downscale);
+			downscale, int(downscale / levelsPerModel));
 
 		uint32_t segmentSize = this->_datasetInfo.segmentSize;
 

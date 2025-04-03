@@ -116,10 +116,10 @@ void VolumeLoaderBase<T>::LoadingTask()
 				_loadedSegments.push(std::unique_ptr<VolumeSegment<T>>(newVolume));
 				_loadedSegmentsMutex.unlock();
 
-				_onSegmentLoaded();
+				bool success = _onSegmentLoaded();
 
 				loadingTicket->mutex.lock();
-				loadingTicket->state = RequestState::Loaded;
+				loadingTicket->state = success ? RequestState::Loaded : RequestState::UnableToLoadOrSkipped;
 				loadingTicket->mutex.unlock();
 			}
 			else

@@ -40,7 +40,7 @@ CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::s
 
 	// Preload low quality segments
 	Preload(SettingsContext::GetInstance().preloadingThreadCount.load(std::memory_order::acquire));
-	_volumeLoader->BindOnSegmentLoaded([this]() { _memoryChanged.store(true); });
+	_volumeLoader->BindOnSegmentLoaded([this]() { _memoryChanged.store(true); return true; });
 }
 
 template <typename T>

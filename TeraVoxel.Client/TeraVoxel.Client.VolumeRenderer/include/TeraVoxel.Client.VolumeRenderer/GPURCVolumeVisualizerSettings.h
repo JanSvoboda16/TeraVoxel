@@ -19,8 +19,9 @@ struct LightSettings
 	float ambientIntensity = 0.02f;
 	Light lights[5];
 	uint8_t numLights = 0;
+	bool shadows = true;
 
-	NLOHMANN_DEFINE_TYPE_INTRUSIVE(LightSettings, ambientIntensity, lights, numLights);
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(LightSettings, ambientIntensity, lights, numLights, shadows);
 };
 
 class GPURCVolumeVisualizerSettings: public GPUEntity, public VolumeVisualizerSettingsBase
@@ -28,5 +29,7 @@ class GPURCVolumeVisualizerSettings: public GPUEntity, public VolumeVisualizerSe
 public:
 	MaterialTable materialTable;
 	LightSettings lightSettings;
+
+	float objectQuality = 1;
 };
 
