@@ -52,7 +52,13 @@ namespace TeraVoxel.Server.Data
 
         public FileStream GetNodeStream(string dataset, int index, int level)
         {
-            return new FileStream($"{_storageOptions.StoragePath}/{dataset}/l{level}/{index}.json", FileMode.Open, FileAccess.Read, FileShare.Read);
+            string path = $"{_storageOptions.StoragePath}/{dataset}/l{level}/{index}.json";
+            if (!File.Exists(path)) 
+            {
+                path = $"{_storageOptions.StoragePath}/{dataset}/l{level}/{index}.bson.zlib";
+            }
+
+            return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public bool DatasetExists(string dataset)

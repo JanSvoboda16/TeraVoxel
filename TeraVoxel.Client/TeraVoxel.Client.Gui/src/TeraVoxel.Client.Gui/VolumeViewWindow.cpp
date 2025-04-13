@@ -188,6 +188,17 @@ void VolumeViewWindow::Update()
 			ImGui::Image((void*)_view, ImVec2(frameWidth, frameHeight));
 		}
 
+		static Camera cameraCpy = *scene->GetCamera();
+		if (ImGui::Button("Save transformation"))
+		{
+			cameraCpy = *scene->GetCamera();
+		}			
+
+		if (ImGui::Button("Load transformation"))
+		{
+			*scene->GetCamera() = cameraCpy;
+		}
+
 		// FPS AND SCREEN SIZE
 		//std::string fpsLabel = "FPS:" + std::to_string(fps);
 		//ImGui::Text(fpsLabel.c_str());

@@ -13,6 +13,7 @@ static BlockBasedDatasetInfo BBDFromMetadata(const NeuroVoxel::DatasetMetadata& 
 	info.sizeX = std::ceil(info.dataSizeX / (float)info.segmentSize) * info.segmentSize;
 	info.sizeY = std::ceil(info.dataSizeY / (float)info.segmentSize) * info.segmentSize;
 	info.sizeZ = std::ceil(info.dataSizeZ / (float)info.segmentSize) * info.segmentSize;
+	info.voxelDimensions = metadata.voxelSize;
 	return info;
 }
 

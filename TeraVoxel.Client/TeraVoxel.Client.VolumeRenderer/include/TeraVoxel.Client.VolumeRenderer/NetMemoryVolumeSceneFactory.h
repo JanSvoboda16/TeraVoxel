@@ -34,7 +34,7 @@ public:
 
 		auto metadata = serverDataset->GetMetadata();
 
-		Vector3f voxelDimensions = Vector3f(1,1,1);
+		Vector3f voxelDimensions = metadata.voxelSize;
 		Vector3f size = metadata.dataDimensions.cast<float>().array() * voxelDimensions.array();
 		Vector3f initialPosition = size / 2;
 

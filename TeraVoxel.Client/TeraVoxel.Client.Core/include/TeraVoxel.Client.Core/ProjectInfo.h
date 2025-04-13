@@ -25,7 +25,7 @@ struct DatasetInfo
 	int sizeY = 0;
 	int sizeZ = 0;
 	int dataSizeX = 0, dataSizeY = 0, dataSizeZ = 0;
-	Eigen::Vector3f voxelDimensions = { 0, 0, 0 };
+	Eigen::Vector3f voxelDimensions = { 1.f, 1.f, 1.f };
 };
 
 struct BlockBasedDatasetInfo : public DatasetInfo
@@ -43,7 +43,7 @@ class ProjectInfo
 		int sizeZ = 0;
 		std::string dataType;
 		int segmentSize = 0;
-		float voxelDimensions[3] = {0, 0, 0};
+		float voxelDimensions[3] = {1.f, 1.f, 1.f};
 		int dataSizeX= 0, dataSizeY = 0 , dataSizeZ = 0;
 		bool isLittleEndian = false;
 		bool zTransformed = false;

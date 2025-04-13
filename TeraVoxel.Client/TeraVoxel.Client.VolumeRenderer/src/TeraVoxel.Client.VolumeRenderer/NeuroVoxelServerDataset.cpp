@@ -8,7 +8,7 @@ NeuroVoxelServerDataset::NeuroVoxelServerDataset(const std::string& name, const 
 {
     auto totalNodes = _metadata.getGridDimensions().prod() * _metadata.levels;
     _nodeMutexes = std::vector<std::mutex>(totalNodes);
-    _localDataset = NeuroVoxel::CompressedDataset::Create("dataset.temp", _metadata.dataDimensions, _metadata.blockDimensions, _metadata.getGridDimensions(), _metadata.dataType, _metadata.minmax, true, _metadata.levels);
+    _localDataset = NeuroVoxel::CompressedDataset::Create("dataset.temp", _metadata.dataDimensions, _metadata.blockDimensions, _metadata.dataType, _metadata.minmax, _metadata.voxelSize, true, _metadata.levels);
 }
 
 std::shared_ptr<NeuroVoxel::CompressionModel> NeuroVoxelServerDataset::GetNode(const Eigen::Vector3i& coordinates, int level)

@@ -199,6 +199,8 @@ public:
 
 	__host__ __device__ Vector3f GetObserverCenter() { return _observerCenter; }
 
+	__host__ void SetObserverCenter(const Vector3f& center) { _observerCenter = center; RecomputeParams(); }
+
 protected:
 	int _screenWidth, _screenHeight;	// screen sizes
 	float _totalObsXAngle = 0, _totalObsYAngle = 0;			// Observer angles
