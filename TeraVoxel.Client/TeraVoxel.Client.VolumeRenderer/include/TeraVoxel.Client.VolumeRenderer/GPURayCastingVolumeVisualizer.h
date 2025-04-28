@@ -17,8 +17,8 @@ public:
 
 	GPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<GPURCVolumeVisualizerSettings>& settings);
 	~GPURayCastingVolumeVisualizer();
-
-	bool DataChanged() override;
+	bool DataChanged() override;	
+	bool SupportComposite() override { return false; }
 
 private:
 	/// <summary>

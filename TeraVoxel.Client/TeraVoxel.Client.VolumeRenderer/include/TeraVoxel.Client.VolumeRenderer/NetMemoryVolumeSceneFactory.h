@@ -16,6 +16,7 @@
 #include "TeraVoxel.Client.VolumeRenderer/EmptyVolumeVisualizerFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/NeuroVoxelVolumeLoaderFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/NeuroVoxelServerDataset.h"
+#include <TeraVoxel.Client.VolumeRenderer/TrackableCamera.h>
 
  /// <summary>
  /// Used for creating a typed instance of the VolumeScene class. 
@@ -38,7 +39,7 @@ public:
 		Vector3f size = metadata.dataDimensions.cast<float>().array() * voxelDimensions.array();
 		Vector3f initialPosition = size / 2;
 
-		std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2, 20.f, size.maxCoeff() * 5);
+		std::shared_ptr<Camera> camera = std::shared_ptr<Camera>(new Camera(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2, 20.f, size.maxCoeff() * 5));
 
 		// Scene
 		auto emptyVisualizerFactory = std::make_shared<EmptyVolumeVisualizerFactory>(std::make_shared<EmptyVolumeVisualizerSettings>());
@@ -57,7 +58,7 @@ public:
 		Vector3f size = Vector3f(projectInfo.dataSizeX, projectInfo.dataSizeY, projectInfo.dataSizeZ).array() * voxelDimensions.array();
 		Vector3f initialPosition = size / 2;
 
-		std::shared_ptr<Camera> camera = std::make_shared<Camera>(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2, 20.f, size.maxCoeff() * 5);
+		std::shared_ptr<Camera> camera = std::shared_ptr<Camera>(new Camera(initialPosition, initialPosition[2] * 4, voxelDimensions, 0, 0, 1.2, 20.f, size.maxCoeff() * 5));
 
 		// Volume loader
 		ProjectManager projectManager(serverUrl);

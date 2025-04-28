@@ -4,7 +4,7 @@
  */
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/Camera.cuh"
-#include "TeraVoxel.Client.VolumeRenderer/VolumeSegment.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeBlock.h"
 #include <TeraVoxel.Client.Core/ProjectManager.h>
 #include <TeraVoxel.Client.Core/ProjectInfo.h>
 #include <TeraVoxel.Client.Core/SettingsContext.h>
@@ -18,6 +18,7 @@
 #include <chrono>
 #include <queue>
 #include <bit>
+#include "TrackableCamera.h"
 	
 template <typename T>
 class CPURayCastingVolumeObjectMemory
@@ -62,14 +63,14 @@ public:
 	
 	void FlushCachedData();
 private:
-	std::vector<VolumeSegment<T>*> _volumesToDelete;		// Volume segments that will bee deleted
+	std::vector<VolumeBlock<T>*> _volumesToDelete;		// Volume segments that will bee deleted
 	std::mutex _reloadStackMutex, _volumesToDeleteMutex;	// Mutexes
-	std::vector<VolumeSegment<T>*> _lowResolutionVolumes;	// Low resolution volume segments
+	std::vector<VolumeBlock<T>*> _lowResolutionVolumes;	// Low resolution volume segments
 		
 	// For other architectures std::atomic should be used
-	std::vector<VolumeSegment<T>*> _volumes;								// Volume segments
+	std::vector<VolumeBlock<T>*> _volumes;								// Volume segments
 	std::vector<std::atomic<bool>> _used;
-	std::vector<std::shared_ptr<VolumeSegmentRequestTicket>> _tickets;
+	std::vector<std::shared_ptr<VolumeBlockRequestTicket>> _tickets;
 		
 	std::shared_ptr<Camera> _camera;	// Scene camera	
 	BlockBasedDatasetInfo _datasetInfo;					// Informations about the curent project
@@ -108,7 +109,7 @@ private:
 	/// Deletes all segments in array
 	/// </summary>
 	/// <param name="volumes">Array of segments</param>
-	void ProcessDelete(std::vector<VolumeSegment<T>*> &volumes);
+	void ProcessDelete(std::vector<VolumeBlock<T>*> &volumes);
 
 	/// <summary>
 	/// Preloads data from server
@@ -127,4 +128,6 @@ private:
 	/// </summary>
 	/// /// <param name="maxCount">Maximal count</param>
 	void DownscaleWithHigherQuality(int maxCount);
+
+	friend TrackableCamera;
 };

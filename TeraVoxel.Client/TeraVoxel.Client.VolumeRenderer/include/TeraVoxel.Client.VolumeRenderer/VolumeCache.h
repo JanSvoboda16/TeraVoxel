@@ -6,19 +6,19 @@
 #pragma once
 #include <memory>
 #include <map>
-#include "TeraVoxel.Client.VolumeRenderer/VolumeCacheGenericBase.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeCacheBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
 #include <NeuroVoxel/Common/DataType.h>
 
 template <typename T>
-class VolumeCache : public VolumeCacheGenericBase
+class VolumeCache : public VolumeCacheBase
 {
 public:
 	VolumeCache(const std::shared_ptr<VolumeLoaderFactory> &loaderFac) : 
 		_volumeLoader(std::dynamic_pointer_cast<VolumeLoaderBase<T>>(std::shared_ptr<VolumeLoaderGenericBase>(loaderFac->Create(1)))), 
-		VolumeCacheGenericBase(loaderFac->GetDatasetInfo()) { }
+		VolumeCacheBase(loaderFac->GetDatasetInfo()) { }
 
 	~VolumeCache() {
 		Flush();
@@ -38,7 +38,7 @@ public:
 
 		int key = blockIdX + blockIdY * datasetInfo.segmentSize + blockIdZ * datasetInfo.segmentSize * datasetInfo.segmentSize;
 
-		std::shared_ptr<VolumeSegment<T>> block = nullptr;
+		std::shared_ptr<VolumeBlock<T>> block = nullptr;
 		if (_lastSegmentId == key) 
 		{
 			block = _lastSegment;
@@ -51,7 +51,7 @@ public:
 		}
 		else
 		{
-			block = std::shared_ptr<VolumeSegment<T>>(_volumeLoader->LoadSync(blockIdX, blockIdY, blockIdZ, 0));
+			block = std::shared_ptr<VolumeBlock<T>>(_volumeLoader->LoadSync(blockIdX, blockIdY, blockIdZ, 0));
 			_cache.emplace(key, block);
 			_lastSegment = block;
 			_lastSegmentId = key;
@@ -73,10 +73,10 @@ public:
 
 private:
 	std::shared_ptr<VolumeLoaderBase<T>> _volumeLoader;
-	std::map<int, std::shared_ptr<VolumeSegment<T>>> _cache;
+	std::map<int, std::shared_ptr<VolumeBlock<T>>> _cache;
 
 	int _lastSegmentId = -1;
-	std::shared_ptr<VolumeSegment<T>> _lastSegment = nullptr;
+	std::shared_ptr<VolumeBlock<T>> _lastSegment = nullptr;
 
 };
 
@@ -85,12 +85,12 @@ class VolumeCacheFactory {
 public:
 	VolumeCacheFactory() = delete;
 
-	static std::unique_ptr<VolumeCacheGenericBase> VolumeCacheCreate(const std::shared_ptr<VolumeLoaderFactory>& loaderFac) {
+	static std::unique_ptr<VolumeCacheBase> VolumeCacheCreate(const std::shared_ptr<VolumeLoaderFactory>& loaderFac) {
 		return CALL_TEMPLATED_FUNCTION2(VolumeCacheCreateTemplated, loaderFac->GetDatasetInfo().dataType, loaderFac);
 	}
 private:
 	template <typename T>
-	static std::unique_ptr<VolumeCacheGenericBase> VolumeCacheCreateTemplated(const std::shared_ptr<VolumeLoaderFactory>& loaderFac) {
+	static std::unique_ptr<VolumeCacheBase> VolumeCacheCreateTemplated(const std::shared_ptr<VolumeLoaderFactory>& loaderFac) {
 		return std::make_unique<VolumeCache<T>>(loaderFac);
 	}
 };

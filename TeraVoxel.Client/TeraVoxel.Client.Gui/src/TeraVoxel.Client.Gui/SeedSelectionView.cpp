@@ -10,7 +10,7 @@
 #include <TeraVoxel.Client.VolumeRenderer/MeshGenerator.h>
 #include <TeraVoxel.Client.VolumeRenderer/VolumeCache.h>
 
-SeedSelectionView::SeedSelectionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext, const std::shared_ptr<VolumeCacheGenericBase> &cache) :
+SeedSelectionView::SeedSelectionView(const std::shared_ptr<VolumeViewContext>& volumeViewContext, const std::shared_ptr<VolumeCacheBase> &cache) :
 	ISelectionView(std::make_shared<SeedVolumeSelector>(cache)),
 	_volumeViewContext(volumeViewContext)
 {
@@ -22,7 +22,7 @@ SeedSelectionView::~SeedSelectionView()
 	_volumeViewContext->sceneEditable.Unregister(this, "Repaint");
 }
 
-std::shared_ptr<VolumeSegment<bool>> SeedSelectionView::GetSelection()
+std::shared_ptr<VolumeBlock<bool>> SeedSelectionView::GetSelection()
 {
 	auto selector = dynamic_pointer_cast<SeedVolumeSelector>(_volumeSelector);
 	selector->Reset();

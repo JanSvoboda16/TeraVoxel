@@ -18,14 +18,12 @@ struct CameraPosition
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(CameraPosition, milisFromStart, x, y, z, rotation)
 };
 
-class TrackableCamera : public Camera
+class TrackableCamera
 {
 	
 public:
-	TrackableCamera(const std::string &fileName, const Vector3f& observerCenter, int observerDistance, const Vector3f& voxelDimensions, int width, int height, float viewAngle, float nearPlaneDistance = 100, float farPlaneDiscance = 10000) : Camera(observerCenter, observerDistance, voxelDimensions, width, height, viewAngle, nearPlaneDistance, farPlaneDiscance), _fileName(fileName)
+	TrackableCamera(const std::string& fileName, const std::shared_ptr<Camera>& camera) : _fileName(fileName), _camera(camera), _timeStart(std::chrono::high_resolution_clock::now())
 	{
-		_fileName = fileName;
-		_timeStart = std::chrono::high_resolution_clock::now();	
 	}
 
 	void ReadFile()
@@ -77,8 +75,8 @@ public:
 		{
 			Matrix4f rotation;
 			std::memcpy(rotation.data(), pos.rotation.data(), sizeof(float) * 16);
-			this->ChangePosition(Vector3f(pos.x, pos.y,pos.z));
-			this->SetRotationMatrix(rotation);
+			_camera->ChangePosition(Vector3f(pos.x, pos.y,pos.z));
+			_camera->SetRotationMatrix(rotation);
 		}
 		return any;
 	}
@@ -94,8 +92,8 @@ public:
 		long long miliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
 			elapsed).count();
 
-		auto position = this->GetPosition();
-		auto rotation = this->GetRotationMatrix().data();
+		auto position = _camera->GetPosition();
+		auto rotation = _camera->GetRotationMatrix().data();
 		auto rotationSerialized = std::vector<float>(&rotation[0], &rotation[16]);
 
 
@@ -114,5 +112,6 @@ private:
 	std::ifstream _fileReader;
 	bool _removePrevious = true;
 	std::chrono::steady_clock::time_point _timeStart;
+	std::shared_ptr<Camera> _camera;
 };
 

@@ -5,12 +5,12 @@
 
 #include "TeraVoxel.Client.VolumeRenderer/VolumeSelectorBase.h"
 
-VolumeSelectorBase::VolumeSelectorBase(const std::shared_ptr<VolumeCacheGenericBase>& volumeCache) :
+VolumeSelectorBase::VolumeSelectorBase(const std::shared_ptr<VolumeCacheBase>& volumeCache) :
 	_volumeCache(volumeCache),
 	_datasetInfo(volumeCache->GetDatasetInfo())
 {
 	auto countOfItems = _datasetInfo.dataSizeX * _datasetInfo.dataSizeY * _datasetInfo.dataSizeZ;
-	_mask = std::make_shared<VolumeSegment<bool>>(_datasetInfo.dataSizeX, _datasetInfo.dataSizeY, _datasetInfo.dataSizeZ, new bool[countOfItems]);
+	_mask = std::make_shared<VolumeBlock<bool>>(_datasetInfo.dataSizeX, _datasetInfo.dataSizeY, _datasetInfo.dataSizeZ, new bool[countOfItems]);
 
 	std::fill(_mask->data, _mask->data + countOfItems, false);
 }

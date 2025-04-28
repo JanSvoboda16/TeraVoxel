@@ -24,7 +24,13 @@ public:
 
 		// if the scene has changed, the view must be rerendered
 		_volumeViewContext->sceneUpdated.Register([this]() { _rerender = true; });
-		_volumeViewContext->sceneReplaced.Register([this]() { _rerender = true; });
+		_volumeViewContext->sceneReplaced.Register([this]() 
+			{
+				_rerender = true;
+				if (_volumeViewContext->scene != nullptr) {
+					_cameraTracker = std::make_shared<TrackableCamera>("CameraLog", _volumeViewContext->scene->GetCamera());
+				}
+			});
 
 	}
 	void RGBAToTexture(const unsigned char* _renderingFramebuffer, ID3D11ShaderResourceView** out_srv, int width, int height);
@@ -42,6 +48,8 @@ private:
 	std::future<void> _renderingAwaiter; // Awaiter for rendering thread
 	std::atomic<bool> _frameGenerated = false;
 	std::shared_ptr<unsigned char[]> _framebuffer = nullptr; // Constains a pointer to the showed image
+
+	std::shared_ptr<TrackableCamera> _cameraTracker;
 
 	// State variables
 	int _lastFrameWidth = 0;
@@ -62,5 +70,10 @@ private:
 	clock_t _fps_start = 0;
 	int _framesCount = 0;
 	float _fps = 0;
+
+	bool _playRecord = false;
+	bool _recordPlaying = false;
+	bool _recording = false;
+	bool _startRecord = false;
 };
 

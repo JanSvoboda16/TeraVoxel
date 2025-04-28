@@ -36,10 +36,21 @@ namespace TeraVoxel.Server.Data.DataReaders.Tiff
             FrameHeight = decoder.Height;
             FrameWidth = decoder.Width;
             CountOfFrames = _imagePaths.Count();
-            DataType = typeof(UInt16);
             VoxelDimensions = new float[]{ 1f, 1f, 1f};
             _directoryPath = directoryPath;
             _readIndex = 0;
+
+            TiffFieldReader fieldReader = tiff.CreateFieldReader();
+            TiffTagReader tagReader = new TiffTagReader(fieldReader, ifd);
+   
+            if (tagReader.ReadBitsPerSample().GetFirstOrDefault() == 8)
+            {
+                DataType = typeof(byte);
+            }
+            else
+            {
+                DataType = typeof(UInt16);
+            }
         }
 
         public void ReadFrame<T>(Frame<T> frame) where T : unmanaged
@@ -49,19 +60,38 @@ namespace TeraVoxel.Server.Data.DataReaders.Tiff
             // Create the decoder for the specified IFD.
             TiffImageDecoder decoder = tiff.CreateImageDecoder(ifd);
 
-            var data = ArrayPool<TiffGray16>.Shared.Rent(FrameWidth * FrameHeight);
-            
-            TiffMemoryPixelBuffer<TiffGray16> pixelBuffer = new TiffMemoryPixelBuffer<TiffGray16>(data, FrameWidth, FrameHeight, writable: true);
-            decoder.Decode<TiffGray16>(pixelBuffer);
-
-            frame.Data = new T[FrameWidth * FrameHeight];
-            
-            for (int i = 0; i < FrameWidth * FrameHeight; i++)
+            if (typeof(T) == typeof(byte))
             {
-                frame.Data[i] = (T)Convert.ChangeType(data[i].Intensity, typeof(T));
-            }
+                var data = ArrayPool<TiffGray8>.Shared.Rent(FrameWidth * FrameHeight);
 
-            ArrayPool<TiffGray16>.Shared.Return(data);
+                TiffMemoryPixelBuffer<TiffGray8> pixelBuffer = new TiffMemoryPixelBuffer<TiffGray8>(data, FrameWidth, FrameHeight, writable: true);
+                decoder.Decode<TiffGray8>(pixelBuffer);
+
+                frame.Data = new T[FrameWidth * FrameHeight];
+
+                for (int i = 0; i < FrameWidth * FrameHeight; i++)
+                {
+                    frame.Data[i] = (T)Convert.ChangeType(data[i].Intensity, typeof(T));
+                }
+
+                ArrayPool<TiffGray8>.Shared.Return(data);
+            }
+            else
+            {
+                var data = ArrayPool<TiffGray16>.Shared.Rent(FrameWidth * FrameHeight);
+
+                TiffMemoryPixelBuffer<TiffGray16> pixelBuffer = new TiffMemoryPixelBuffer<TiffGray16>(data, FrameWidth, FrameHeight, writable: true);
+                decoder.Decode<TiffGray16>(pixelBuffer);
+
+                frame.Data = new T[FrameWidth * FrameHeight];
+
+                for (int i = 0; i < FrameWidth * FrameHeight; i++)
+                {
+                    frame.Data[i] = (T)Convert.ChangeType(data[i].Intensity, typeof(T));
+                }
+
+                ArrayPool<TiffGray16>.Shared.Return(data);
+            }
         }
 
         public void Dispose()

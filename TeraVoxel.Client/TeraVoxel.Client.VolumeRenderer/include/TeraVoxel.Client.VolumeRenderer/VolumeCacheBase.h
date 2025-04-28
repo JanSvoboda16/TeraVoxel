@@ -9,12 +9,12 @@
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 
-class VolumeCacheGenericBase
+class VolumeCacheBase
 {
 public:
-	VolumeCacheGenericBase(const DatasetInfo &info) : _datasetInfo(info){ }
+	VolumeCacheBase(const DatasetInfo &info) : _datasetInfo(info){ }
 	DatasetInfo GetDatasetInfo() { return _datasetInfo; }
-	virtual ~VolumeCacheGenericBase() {};
+	virtual ~VolumeCacheBase() {};
 	virtual void Flush() = 0;;
 protected:
 	DatasetInfo _datasetInfo;

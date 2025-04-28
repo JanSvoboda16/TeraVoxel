@@ -37,15 +37,15 @@ VolumeLoaderBase<T>::~VolumeLoaderBase()
 template <typename T>
 void VolumeLoaderBase<T>::LoadingTask()
 {
-	std::shared_ptr<VolumeSegmentRequestTicket> loadingTicket;
+	std::shared_ptr<VolumeBlockRequestTicket> loadingTicket;
 
 	while (!_endLoopingThreads)
 	{
 		_ticketsMutex.lock();
 		if (_tickets.size() > 0)
 		{			
-			std::shared_ptr<VolumeSegmentRequestTicket> minPriorityTicket = _tickets.front();
-			for (std::shared_ptr<VolumeSegmentRequestTicket>& ticket : _tickets)
+			std::shared_ptr<VolumeBlockRequestTicket> minPriorityTicket = _tickets.front();
+			for (std::shared_ptr<VolumeBlockRequestTicket>& ticket : _tickets)
 			{
 				ticket->mutex.lock();
 
@@ -94,7 +94,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 				{
 					try
 					{
-						data = LoadSegmentData(coords.x(), coords.y(), coords.z(), loadingDownscale);
+						data = LoadBlockData(coords.x(), coords.y(), coords.z(), loadingDownscale);
 						break;
 					}
 					catch (const std::exception& ex)
@@ -107,13 +107,13 @@ void VolumeLoaderBase<T>::LoadingTask()
 					}
 				}
 
-				VolumeSegment<T>* newVolume = new VolumeSegment<T>(coords.x(), coords.y(), coords.z());
+				VolumeBlock<T>* newVolume = new VolumeBlock<T>(coords.x(), coords.y(), coords.z());
 				// New segment inicialization
 				newVolume->data = data;
 				newVolume->downscale = loadingDownscale;
 
 				_loadedSegmentsMutex.lock();
-				_loadedSegments.push(std::unique_ptr<VolumeSegment<T>>(newVolume));
+				_loadedSegments.push(std::unique_ptr<VolumeBlock<T>>(newVolume));
 				_loadedSegmentsMutex.unlock();
 
 				bool success = _onSegmentLoaded();
@@ -134,11 +134,11 @@ void VolumeLoaderBase<T>::LoadingTask()
 }
 
 template<typename T>
-std::shared_ptr<VolumeSegmentRequestTicket> VolumeLoaderBase<T>::LoadAsync(int x, int y, int z, int downscale, float priority)
+std::shared_ptr<VolumeBlockRequestTicket> VolumeLoaderBase<T>::LoadAsync(int x, int y, int z, int downscale, float priority)
 {
 	_ticketsMutex.lock();
 
-	auto ticket = std::make_shared<VolumeSegmentRequestTicket>();
+	auto ticket = std::make_shared<VolumeBlockRequestTicket>();
 	ticket->coordinates = Eigen::Vector3i(x, y, z);
 	ticket->downscale = downscale;
 	ticket->needed = true;
@@ -166,12 +166,12 @@ void VolumeLoaderBase<T>::Preload(int downscale, int threadCount)
 }
 
 template<typename T>
-std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& count)
+std::unique_ptr<VolumeBlock<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& count)
 {
 	_loadedSegmentsMutex.lock();
 
 	count = _loadedSegments.size();
-	std::unique_ptr<VolumeSegment<T>> value(nullptr);
+	std::unique_ptr<VolumeBlock<T>> value(nullptr);
 
 	if (count > 0)
 	{
@@ -184,16 +184,16 @@ std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& coun
 }
 
 template<typename T>
-std::unique_ptr<VolumeSegment<T>> VolumeLoaderBase<T>::LoadSync(int x, int y, int z, int downscale)
+std::unique_ptr<VolumeBlock<T>> VolumeLoaderBase<T>::LoadSync(int x, int y, int z, int downscale)
 {
-	auto volume = std::make_unique<VolumeSegment<T>>(x, y, z);
+	auto volume = std::make_unique<VolumeBlock<T>>(x, y, z);
 	volume->downscale = downscale;
 
 	for (size_t i = 0; i < 100; i++)
 	{
 		try
 		{
-			volume->data = LoadSegmentData(x, y, z, downscale);			
+			volume->data = LoadBlockData(x, y, z, downscale);			
 
 			uint64_t requiredMemory = GetBlockRequiredMemory(downscale);
 			MemoryContext::GetInstance().memoryInfoWriteMutex.lock();
@@ -231,14 +231,14 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		auto mod = i % (_segmentCountX * _segmentCountY);
 		auto y = mod / _segmentCountX;
 		auto x = mod % _segmentCountX;
-		auto volume = new VolumeSegment<T>(x, y, z);
+		auto volume = new VolumeBlock<T>(x, y, z);
 
 
 		for (size_t i = 0; i < 100; i++)
 		{
 			try
 			{
-				volume->data = LoadSegmentData(x, y, z, downscale);
+				volume->data = LoadBlockData(x, y, z, downscale);
 				break;
 			}
 			catch (const std::exception& ex)
@@ -255,7 +255,7 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 		volume->downscale = downscale;
 
 		_loadedSegmentsMutex.lock();
-		_loadedSegments.push(std::unique_ptr<VolumeSegment<T>>(volume));
+		_loadedSegments.push(std::unique_ptr<VolumeBlock<T>>(volume));
 		_loadedSegmentsMutex.unlock();
 	}
 }

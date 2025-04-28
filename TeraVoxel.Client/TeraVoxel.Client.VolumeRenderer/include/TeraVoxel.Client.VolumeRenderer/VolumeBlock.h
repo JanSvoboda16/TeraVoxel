@@ -15,7 +15,7 @@ enum RequestState
 	UnableToLoadOrSkipped
 };
 
-struct VolumeSegmentRequestTicket
+struct VolumeBlockRequestTicket
 {
 	std::mutex mutex;
 
@@ -28,19 +28,19 @@ struct VolumeSegmentRequestTicket
 };
 
 template <typename T>
-struct VolumeSegment
+struct VolumeBlock
 {	
 	short downscale = 500;					    // High value -> will be always reloaded first
 	short x, y, z;	//READONLY					// Indexes of this segment
 
 	T* data;								// DATA
 
-	VolumeSegment(short x, short y, short z, T* data = nullptr) :
+	VolumeBlock(short x, short y, short z, T* data = nullptr) :
 		x(x), y(y), z(z), data(data)
 	{
 	}
 
-	~VolumeSegment() 
+	~VolumeBlock() 
 	{
 		delete[] data;
 	}

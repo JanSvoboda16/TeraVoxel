@@ -14,7 +14,7 @@ using Eigen::Vector3i;
 class SeedVolumeSelector : public VolumeSelectorBase
 {
 public:
-	SeedVolumeSelector(const std::shared_ptr<VolumeCacheGenericBase>& volumeCache) : VolumeSelectorBase(volumeCache) { }
+	SeedVolumeSelector(const std::shared_ptr<VolumeCacheBase>& volumeCache) : VolumeSelectorBase(volumeCache) { }
 	void Select(const Vector3f &seed, float lowerBound, float upperBound, float maxDifference, bool erase = false);
 
 private:	

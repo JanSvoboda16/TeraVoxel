@@ -29,7 +29,7 @@ void GPURayCastingView::Update()
     // TODO FIX, DONT EDIT SETTINGS WHEN RENDERING
     static ImGuiTableFlags flags = ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
    
-    if (ImGui::InputFloat("Object Quality", &_visualizerSettingsPrivate.objectQuality, 0.2f))
+    if (ImGui::InputFloat("Quality downgrade", &_visualizerSettingsPrivate.objectQuality, 0.2f))
     {
         CLAMP_FLOAT(_visualizerSettingsPrivate.objectQuality, 0.f, 10.f);
         _visualizerSettingsPrivate.IncrementVersionId();
@@ -37,8 +37,10 @@ void GPURayCastingView::Update()
     
     if (ImGui::CollapsingHeader("Material Tables")) 
     {
+        ImGui::SetWindowFontScale(1.2f);
         ImGui::Text("Existing tables");
-        if (ImGui::BeginTable("MaterialSelect", 3, flags, ImVec2(0, 200)))
+        ImGui::SetWindowFontScale(1.f);
+        if (ImGui::BeginTable("MaterialSelect", 3, flags, ImVec2(0, 300)))
         {
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_None);
@@ -75,8 +77,10 @@ void GPURayCastingView::Update()
             ImGui::EndTable();
         }
 
-
+        ImGui::SetWindowFontScale(1.2f);
         ImGui::Text("Color Mapping Editor");
+        ImGui::SetWindowFontScale(1.f);
+
         static std::string fileName;
         ImGui::Text("Save this table");
         ImGui::InputText("File name", &fileName);
@@ -94,7 +98,7 @@ void GPURayCastingView::Update()
         }
 
         ImGui::Text("MaterialTable");
-        if (ImGui::BeginTable("MappingTable", 4, flags, ImVec2(0, 200)))
+        if (ImGui::BeginTable("MappingTable", 4, flags, ImVec2(0, 300)))
         {
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn("Range", ImGuiTableColumnFlags_None);
@@ -200,7 +204,9 @@ void GPURayCastingView::Update()
     }
     if (ImGui::CollapsingHeader("Lightings")) 
     {
+        ImGui::SetWindowFontScale(1.2f);
         ImGui::Text("Existing lightings");
+        ImGui::SetWindowFontScale(1.0f);
         if (ImGui::BeginTable("LightingSellect", 3, flags, ImVec2(0, 200)))
         {
             ImGui::TableSetupScrollFreeze(0, 1);
@@ -240,7 +246,7 @@ void GPURayCastingView::Update()
 
         static std::string fileNameLighting;
         ImGui::Text("Save this lighting");
-        ImGui::InputText("File name#Lighting", &fileNameLighting);
+        ImGui::InputText("File name##Lighting", &fileNameLighting);
 
         if (ImGui::Button("Save Lighting"))
         {
@@ -276,14 +282,14 @@ void GPURayCastingView::Update()
 
                     ImGui::TableSetColumnIndex(0);
                     ImGui::PushItemWidth(-1);
-                    auto posLabel = "##LightPosition" + std::to_string(row);
+                    auto posLabel = "LightPosition##" + std::to_string(row);
                     if (ImGui::InputFloat3(posLabel.c_str(), _visualizerSettingsPrivate.lightSettings.lights[row].position))
                         _visualizerSettingsPrivate.IncrementVersionId();
                     ImGui::PopItemWidth();
 
                     ImGui::TableSetColumnIndex(1);
                     ImGui::PushItemWidth(-1);
-                    auto intensityLabel = "##LightIntensity" + std::to_string(row);
+                    auto intensityLabel = "LightIntensity##" + std::to_string(row);
                     if (ImGui::InputFloat(intensityLabel.c_str(), &_visualizerSettingsPrivate.lightSettings.lights[row].intensity, 0.1f))
                     {
                         CLAMP_FLOAT(_visualizerSettingsPrivate.lightSettings.lights[row].intensity, 0.f, 299792458.f);

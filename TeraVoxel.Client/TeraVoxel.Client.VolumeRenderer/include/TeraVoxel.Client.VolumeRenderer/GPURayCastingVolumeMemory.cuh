@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <concepts>
 #include "TeraVoxel.Client.VolumeRenderer/Camera.cuh"
-#include "TeraVoxel.Client.VolumeRenderer/VolumeSegment.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeBlock.h"
 #include <TeraVoxel.Client.Core/ProjectManager.h>
 #include <TeraVoxel.Client.Core/ProjectInfo.h>
 #include <TeraVoxel.Client.Core/SettingsContext.h>
@@ -38,13 +38,6 @@ class GPURayCastingVolumeTexture
 {
 public:
 	__host__ GPURayCastingVolumeTexture(TextureBlockHandler* textures_d, const Eigen::Vector3i& segmentCount, uint16_t segmentSize, float valueMultiplier);
-	__device__ __inline__ uint8_t GetSegmentDownscale(const Eigen::Vector3i& segment);
-	/// <summary>
-	/// Gets block (texture) on coordinates.
-	/// </summary>
-	/// <param name="segment">coordinates</param>
-	/// <returns></returns>
-	__device__ cudaTextureObject_t GetTextureSegment(const Eigen::Vector3i& segment);
 
 	/// <summary>
 	/// Gets value on the given position.
@@ -66,6 +59,16 @@ public:
 	/// <returns>max value</returns>
 	__device__ float GetMaxValue() { return _valueMultiplier; }
 
+
+protected: 
+
+	__device__ __inline__ uint8_t GetSegmentDownscale(const Eigen::Vector3i& segment);
+	/// <summary>
+	/// Gets block (texture) on coordinates.
+	/// </summary>
+	/// <param name="segment">coordinates</param>
+	/// <returns></returns>
+	__device__ cudaTextureObject_t GetTextureSegment(const Eigen::Vector3i& segment);
 
 private:
 
@@ -216,7 +219,7 @@ class GPURayCastingVolumeMemory : public GPUEntity
 {
 public:
 
-	GPURayCastingVolumeMemory(const std::shared_ptr<Camera>&camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, uint64_t vramLimit = 4000000000);
+	GPURayCastingVolumeMemory(const std::shared_ptr<Camera>&camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory);
 	
 	~GPURayCastingVolumeMemory();
 
@@ -227,7 +230,6 @@ public:
 	void Prepare();
 	void Revalidate(float objectQuality);
 	void CleanUsage();
-
 
 private:
 	template<typename T>
@@ -261,7 +263,7 @@ private:
 	Eigen::Vector3i _segmentCount;
 	uint16_t _segmentSize;
 
-	std::vector<std::shared_ptr<VolumeSegmentRequestTicket>> _tickets;
+	std::vector<std::shared_ptr<VolumeBlockRequestTicket>> _tickets;
 
 	std::stack<TextureBlockHandler> _loadedTextures;
 
@@ -270,9 +272,6 @@ private:
 	std::vector<TextureBlockHandler> _textures_h;
 
 	TextureBlockHandler* _textures_d;
-	
-	uint64_t _vramLimit;
-	uint64_t _vramUsed = 0;
 
 	uint8_t _preloadLevel = 3;
 
@@ -288,6 +287,19 @@ private:
 template<typename T>
 TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector3i& segment, T* data, uint8_t downscale, bool& success)
 {
+	if ((!DataCommon::SupportNormalizedFloat<T>()) && (!std::is_floating_point<T>::value))
+	{
+		uint64_t voxelCount = uint64_t(_segmentSize >> downscale) * uint64_t(_segmentSize >> downscale) * uint64_t(_segmentSize >> downscale);
+		std::vector<float> floatData;
+		floatData.reserve(voxelCount);
+		for (size_t i = 0; i < voxelCount; i++)
+		{
+			floatData.push_back(float(data[i]) / std::numeric_limits<T>::max());
+		}
+
+		return CreateTexture<float>(segment, floatData.data(), downscale, success);
+	}
+
 	int index = segment[0] + segment[1] * _segmentCount[0] + segment[2] * _segmentCount[0] * _segmentCount[1];
 
 	TextureBlockHandler handler;
@@ -336,15 +348,13 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector
 	texDesc.addressMode[1] = cudaAddressModeClamp;
 	texDesc.addressMode[2] = cudaAddressModeClamp;
 	texDesc.filterMode = cudaFilterModeLinear;      // Linear nebo Point
-	texDesc.readMode = std::is_floating_point<T>::value ? cudaReadModeElementType : cudaReadModeNormalizedFloat;
+	texDesc.readMode = DataCommon::SupportNormalizedFloat<T>() ? cudaReadModeNormalizedFloat : cudaReadModeElementType;
 	texDesc.normalizedCoords = 0;                   // Set corrds to <0, 1>.
 
 	cudaCreateTextureObject(&handler.texture, &resDesc, &texDesc, nullptr);
 
 	cudaStreamSynchronize(stream);
 	cudaStreamDestroy(stream);
-
-	uint32_t totalSegments = _segmentCount[0] * _segmentCount[1] * _segmentCount[2];
 
 	handler.downscale = downscale;
 	handler.coordinates = segment;
@@ -489,13 +499,13 @@ inline GPURayCastingVolumeMemory::~GPURayCastingVolumeMemory()
 
 __forceinline float GPURayCastingVolumeMemory::GetPriority(int xIndex, int yIndex, int zIndex)
 {
-	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex));
+	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex) + Vector3f(0.5f, 0.5f, 0.5f));
 	return (vecPos - _camera->GetShrankPosition()).norm();
 }
 
 __forceinline int GPURayCastingVolumeMemory::GetRequiredDownscale(int xIndex, int yIndex, int zIndex, float qualityDivider)
 {
-	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex));
+	auto vecPos = _camera->DeshrinkVector(Vector3f(xIndex, yIndex, zIndex) + Vector3f(0.5f, 0.5f, 0.5f));
 	auto dist = (vecPos - _camera->GetPosition()).norm();
 	float quality = _camera->GetScreenSize().x() / (2 * tanf(_camera->GetViewAngle() * 0.5) * dist) * _camera->GetVoxelSizeMean() / qualityDivider;
 	auto actualDownscale = 0;
@@ -688,10 +698,9 @@ inline void GPURayCastingVolumeMemory::CleanUsage()
 	cudaMemcpy(_textures_d, _textures_h.data(), sizeof(TextureBlockHandler) * sCountX * sCountY * sCountZ, cudaMemcpyHostToDevice);
 }
 
-inline GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, uint64_t vramLimit):
+inline GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory):
 	_datasetInfo(volumeLoaderFactory->GetDatasetInfo()),
 	_volumeLoader(volumeLoaderFactory->Create().release()),
-	_vramLimit(vramLimit),
 	_camera(camera),
 	_valueMultiplier(CALL_TEMPLATED_FUNCTION2(GetValueMultiplicator, _datasetInfo.dataType))
 {	
@@ -713,7 +722,7 @@ inline GPURayCastingVolumeMemory::GPURayCastingVolumeMemory(const std::shared_pt
 	cudaMemcpy(_composedTexture_d, &composedTexture, sizeof(GPURayCastingVolumeTexture), cudaMemcpyHostToDevice);
 
 	CALL_TEMPLATED_FUNCTION2(Preload, _datasetInfo.dataType, SettingsContext::GetInstance().preloadingThreadCount.load());
-	_volumeLoader->BindOnSegmentLoaded(
+	_volumeLoader->BindOnBlockLoaded(
 		[this]() 
 		{ 
 			bool success = CALL_TEMPLATED_FUNCTION2(OnDataLoaded, _datasetInfo.dataType);

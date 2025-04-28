@@ -6,7 +6,7 @@
 #include "TeraVoxel.Client.VolumeRenderer/MarchingCubesSurfaceExtractor.h"
 #include "TeraVoxel.Client.VolumeRenderer/Transformations.cuh"
 
-__forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z)
+__forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr<VolumeBlock<bool>>& binMap, int x, int y, int z)
 {
 	bool* data = binMap->data;
 	if (x >= 0 && x < _datasetInfo.dataSizeX && y >= 0 && y < _datasetInfo.dataSizeY && z >= 0 && z < _datasetInfo.dataSizeZ)
@@ -19,7 +19,7 @@ __forceinline bool MarchingCubesSurfaceExtractor::GetValue(const std::shared_ptr
 	}
 }
 
-std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, bool interpolate, const Eigen::Vector2f &interpolationBoundary)
+std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const std::shared_ptr<VolumeBlock<bool>>& binMap, bool interpolate, const Eigen::Vector2f &interpolationBoundary)
 {
 	Mesh mesh;
 	mesh.SetMode(MeshMode::List);

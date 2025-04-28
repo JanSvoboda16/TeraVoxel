@@ -6,7 +6,7 @@
 #include <future>
 #include <functional>
 #include <list>
-#include "TeraVoxel.Client.VolumeRenderer/VolumeSegment.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeBlock.h"
 #include <TeraVoxel.Client.Core/MemoryContext.h>
 #include "TeraVoxel.Client.VolumeRenderer/Serialization.h"
 #include <TeraVoxel.Client.Core/Logger.h>
@@ -15,7 +15,7 @@
 template <typename T>
 struct ComparePriority
 {
-	bool operator()(VolumeSegment<T>* lhs, VolumeSegment<T>* rhs)
+	bool operator()(VolumeBlock<T>* lhs, VolumeBlock<T>* rhs)
 	{
 		return lhs->priority.load(std::memory_order_acquire) > rhs->priority.load(std::memory_order_acquire);
 	}
@@ -28,17 +28,17 @@ class VolumeLoaderBase : public VolumeLoaderGenericBase
 public:
 	VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo, int threadCount);
 	virtual ~VolumeLoaderBase();
-	std::shared_ptr<VolumeSegmentRequestTicket> LoadAsync(int x, int y, int z, int downscale, float priority);
+	std::shared_ptr<VolumeBlockRequestTicket> LoadAsync(int x, int y, int z, int downscale, float priority);
 	void Preload(int downscale, int threadCount);
-	std::unique_ptr<VolumeSegment<T>> TakeFirstLoaded(int& count);
-	std::unique_ptr<VolumeSegment<T>> LoadSync(int x, int y, int z, int downscale);
+	std::unique_ptr<VolumeBlock<T>> TakeFirstLoaded(int& count);
+	std::unique_ptr<VolumeBlock<T>> LoadSync(int x, int y, int z, int downscale);
 
-	void BindOnSegmentLoaded(std::function<bool(void)> function) override { _onSegmentLoaded = function; }
+	void BindOnBlockLoaded(std::function<bool(void)> function) override { _onSegmentLoaded = function; }
 
 	uint64_t GetBlockRequiredMemory(int downscale);
 protected:
-	std::list<std::shared_ptr<VolumeSegmentRequestTicket>> _tickets;
-	std::queue<std::unique_ptr<VolumeSegment<T>>> _loadedSegments;
+	std::list<std::shared_ptr<VolumeBlockRequestTicket>> _tickets; // TODO WRONG ACCESS ERRORS
+	std::queue<std::unique_ptr<VolumeBlock<T>>> _loadedSegments;
 	std::mutex _ticketsMutex;
 	std::mutex _loadedSegmentsMutex;
 	
@@ -50,7 +50,7 @@ protected:
 
 	void PreloadTask(short threadIndex, short threadCount, int downscale);
 	
-	virtual T* LoadSegmentData(int x, int y, int z, int downscale) = 0;
+	virtual T* LoadBlockData(int x, int y, int z, int downscale) = 0;
 
 	void LoadingTask();
 };

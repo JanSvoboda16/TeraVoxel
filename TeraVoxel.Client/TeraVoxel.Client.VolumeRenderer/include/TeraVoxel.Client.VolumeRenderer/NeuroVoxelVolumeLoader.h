@@ -23,7 +23,7 @@ public:
 		this->_loadingTreads.clear();
 	}
 
-	VoxelT* LoadSegmentData(int x, int y, int z, int downscale) override
+	VoxelT* LoadBlockData(int x, int y, int z, int downscale) override
 	{
 		int downscaleLevels = 4;
 

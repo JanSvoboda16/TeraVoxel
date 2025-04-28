@@ -131,14 +131,18 @@ DatasetInfo VolumeScene::GetDatasetInfo()
 void VolumeScene::ComputeFrameTask(int width, int height, bool fast)
 {
 	Logger::GetInstance()->LogEvent("VolumeScene", "Rendering:Started", "", fast ? "fast" : "full");
-	
-	if (fast) 
+
+	if (fast)
 	{
 		_camera->ChangeScreenSize(std::ceil(width / (float)2), std::ceil(height / (float)2));
 	}
 
-	_meshVisualizer->ComputeFrame();
-	auto meshFrameBuffer = _meshVisualizer->GetFrameBuffer();
+	std::shared_ptr<CPUMultiLayeredFramebuffer> meshFrameBuffer;
+	if (_volumeVisualizer->SupportComposite())
+	{
+		_meshVisualizer->ComputeFrame();
+		meshFrameBuffer = _meshVisualizer->GetFrameBuffer();
+	}
 
 	_camera->ChangeScreenSize(width, height);
 

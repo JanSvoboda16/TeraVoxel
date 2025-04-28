@@ -11,19 +11,19 @@
 class MarchingCubesSurfaceExtractor : public SurfaceExtractorBase
 {
 public:	
-	MarchingCubesSurfaceExtractor(const std::shared_ptr<VolumeCacheGenericBase> &volumeCache) : _volumeCache(volumeCache), _datasetInfo(volumeCache->GetDatasetInfo()){ }
-	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeSegment<bool>>& binMap, bool interpolate, const Eigen::Vector2f &interpolationBoundary) override;
+	MarchingCubesSurfaceExtractor(const std::shared_ptr<VolumeCacheBase> &volumeCache) : _volumeCache(volumeCache), _datasetInfo(volumeCache->GetDatasetInfo()){ }
+	std::shared_ptr<MeshNode> ExtractSurface(const std::shared_ptr<VolumeBlock<bool>>& binMap, bool interpolate, const Eigen::Vector2f &interpolationBoundary) override;
 	
 private:
 	Vertex IndexToVertex(int index, const Vector4b& color, const Vector3f &position, bool interpolate, const Eigen::Vector2f& interpolationBoundary);
-	bool GetValue(const std::shared_ptr<VolumeSegment<bool>>& binMap, int x, int y, int z);
+	bool GetValue(const std::shared_ptr<VolumeBlock<bool>>& binMap, int x, int y, int z);
 
 	template <typename T>
 	Vector3f InterpolateVectorTemplated(Vector3f vector, Vector3f position, const Eigen::Vector2f& interpolationBoundary);
 	template <typename T>
 	Vertex IndexToVertexTemplated(int index, const Vector4b& color, const Vector3f& position, bool interpolate, const Eigen::Vector2f& interpolationBoundary);
 
-	std::shared_ptr<VolumeCacheGenericBase> _volumeCache;
+	std::shared_ptr<VolumeCacheBase> _volumeCache;
 	DatasetInfo _datasetInfo;
 };
 

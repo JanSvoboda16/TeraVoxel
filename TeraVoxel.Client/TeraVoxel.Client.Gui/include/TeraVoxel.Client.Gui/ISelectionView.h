@@ -15,7 +15,7 @@ public:
 		_volumeSelector = volumeSelector;
 	}
 
-	virtual std::shared_ptr<VolumeSegment<bool>> GetSelection()
+	virtual std::shared_ptr<VolumeBlock<bool>> GetSelection()
 	{
 		return _volumeSelector->GetMask();
 	}

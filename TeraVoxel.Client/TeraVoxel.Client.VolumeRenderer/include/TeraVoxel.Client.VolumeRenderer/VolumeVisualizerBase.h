@@ -31,6 +31,7 @@ public:
 	virtual ~VolumeVisualizerBase() {};
 	void ComputeFrame(std::shared_ptr<unsigned char[]>& _framebuffer, int width, int height, bool fast, const std::shared_ptr<MultiLayeredFramebufferBase>& multiLayeredFramebuffer = nullptr);
 	virtual bool DataChanged() = 0;
+	virtual bool SupportComposite() { return true; };
 };
 
 inline VolumeVisualizerBase::VolumeVisualizerBase(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory)

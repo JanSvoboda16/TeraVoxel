@@ -28,6 +28,11 @@ __global__ void downsampleTexture3D(cudaTextureObject_t inputTex, cudaSurfaceObj
 template <typename T>
 TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBlockHandler texture_h_orig)
 {
+    if (!DataCommon::SupportNormalizedFloat<T>() && (!std::is_floating_point<T>::value))
+    {
+        return CreateDownscaledTexture<float>(texture_h_orig);
+    }
+
     TextureBlockHandler outputTexture;
 
     cudaArray_t originalArray = texture_h_orig.array;
@@ -50,7 +55,7 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBl
     texDesc.addressMode[1] = cudaAddressModeClamp;
     texDesc.addressMode[2] = cudaAddressModeClamp;
     texDesc.filterMode = cudaFilterModeLinear;
-    texDesc.readMode = std::is_floating_point<T>::value ? cudaReadModeElementType : cudaReadModeNormalizedFloat;
+    texDesc.readMode = !DataCommon::SupportNormalizedFloat<T>() ? cudaReadModeElementType : cudaReadModeNormalizedFloat;
     texDesc.normalizedCoords = 0;
 
     cudaTextureObject_t newTexture;

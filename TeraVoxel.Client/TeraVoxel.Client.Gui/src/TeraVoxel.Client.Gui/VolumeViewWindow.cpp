@@ -47,7 +47,29 @@ void VolumeViewWindow::RGBAToTexture(const unsigned char* data, ID3D11ShaderReso
 void VolumeViewWindow::Update()
 {
 	ImGui::Begin("Scene");
-
+	/*if (ImGui::Button("Play record"))
+	{
+		_playRecord = true;
+		_recordPlaying = true;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop playing"))
+	{
+		_recordPlaying = false;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Record"))
+	{
+		_startRecord = true;
+		_recording = true;
+		_recordPlaying = false;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop Record"))
+	{
+		_recording = false;
+	}
+	*/
 	if (_volumeViewContext->scene != nullptr)
 	{
 		// MOUSE MOVEMENTS
@@ -146,12 +168,54 @@ void VolumeViewWindow::Update()
 
 		if (!scene->RenderingInProgress())
 		{
+			if (_cameraTracker != nullptr)
+			{
+				if (_playRecord)
+				{
+					_cameraTracker->ResetTimer();
+					_cameraTracker->ReadFile();
+					_playRecord = false;
+				}
+
+				if (_recordPlaying)
+				{
+					bool positionUpdated = _cameraTracker->ReadPosition();
+					_rerender |= positionUpdated;
+					_fast |= positionUpdated;
+				}
+				else
+				{
+					scene->GetCamera()->ChangeObserverAxis(_observerAxis, _axisRotate);
+					scene->GetCamera()->Observe(-_xAngleDelta / 100, -_yAngleDelta / 100, -_wheelDelta * 100, -_xCenterDelta, -_yCenterDelta, -_zCenterDelta);
+				}
+			}
+			
+
 			_volumeViewContext->sceneEditable.Notify();
 			if (_volumeViewContext->scene != nullptr && (_volumeViewContext->scene->DataChanged() || _rerender))
 			{
-				scene->GetCamera()->ChangeObserverAxis(_observerAxis, _axisRotate);
 
-				scene->GetCamera()->Observe(-_xAngleDelta / 100, -_yAngleDelta / 100, -_wheelDelta * 100, -_xCenterDelta, -_yCenterDelta, -_zCenterDelta);
+				if (_cameraTracker != nullptr)
+				{
+
+					if (_startRecord)
+					{
+						_cameraTracker->CleanRecord();
+						_cameraTracker->ResetTimer();
+						_startRecord = false;
+					}
+
+					if (_recording && _rerender)
+					{
+						_cameraTracker->RecordPostition();
+					}
+				}
+				else
+				{
+					scene->GetCamera()->ChangeObserverAxis(_observerAxis, _axisRotate);
+					scene->GetCamera()->Observe(-_xAngleDelta / 100, -_yAngleDelta / 100, -_wheelDelta * 100, -_xCenterDelta, -_yCenterDelta, -_zCenterDelta);
+				}
+
 				_yAngleDelta = 0;
 				_xAngleDelta = 0;
 				_wheelDelta = 0;
@@ -187,21 +251,9 @@ void VolumeViewWindow::Update()
 
 			ImGui::Image((void*)_view, ImVec2(frameWidth, frameHeight));
 		}
-
-		static Camera cameraCpy = *scene->GetCamera();
-		if (ImGui::Button("Save transformation"))
-		{
-			cameraCpy = *scene->GetCamera();
-		}			
-
-		if (ImGui::Button("Load transformation"))
-		{
-			*scene->GetCamera() = cameraCpy;
-		}
-
 		// FPS AND SCREEN SIZE
-		//std::string fpsLabel = "FPS:" + std::to_string(fps);
-		//ImGui::Text(fpsLabel.c_str());
+		/*std::string fpsLabel = "FPS:" + std::to_string(_fps);
+		ImGui::Text(fpsLabel.c_str());*/
 	}
 	else
 	{
@@ -209,12 +261,14 @@ void VolumeViewWindow::Update()
 	}
 
 	// FRAME-COUNTER
-	if (clock() - _fps_start > 45000)
+	/*if (clock() - _fps_start > 2000)
 	{
 		_fps = _framesCount / ((clock() - _fps_start) / 1000.0);
 		_fps_start = clock();
 		_framesCount = 0;
 	}
+
+	_rerender = true;*/
 
 	ImGui::End();
 }

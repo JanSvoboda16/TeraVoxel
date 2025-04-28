@@ -16,7 +16,6 @@ private:
 	NeuroVoxelServerService _service;
 	std::vector<std::mutex> _nodeMutexes;
 	NeuroVoxel::DatasetMetadata _metadata;
-
 	std::unique_ptr<NeuroVoxel::CompressedDataset> _localDataset;
 	
 };
