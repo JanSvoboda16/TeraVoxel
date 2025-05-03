@@ -4,7 +4,6 @@
  */
 #include "TeraVoxel.Client.VolumeRenderer/pch.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeScene.h"
-#include <TeraVoxel.Client.Core/TypeToString.h>
 
 VolumeScene::VolumeScene(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<IVolumeVisualizerFactory>& visualizerFactory, const std::shared_ptr<MeshNode>& meshNode) //TODO new constructor
 {

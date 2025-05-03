@@ -4,7 +4,6 @@
  */
 
 #include "TeraVoxel.Client.VolumeRenderer/SeedVolumeSelector.h"
-#include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
 #include "TeraVoxel.Client.VolumeRenderer/Serialization.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 
@@ -62,7 +61,6 @@ void SeedVolumeSelector::SelectTemplated(const Vector3f seedf, float lowerBound,
 		}
 	}
 }
-
 
 template <typename T>
 __forceinline bool SeedVolumeSelector::GetData(const Vector3i &position, T &value, const std::shared_ptr<VolumeCache<T>> &cache)

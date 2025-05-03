@@ -7,11 +7,12 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <NeuroVoxel/Common/FileSystem.h>
 
 void CPURayCastingView::SaveToFile(std::string fileName)
 {
     std::ofstream file;
-    file.open("ColorMappingTables/" + fileName);
+    file.open(Common::FileSystem::PathFromUTF8String("ColorMappingTables/" + fileName));
     json data = _visualizerSettings->mappingTable;
     file << data;
     file.close();
@@ -24,13 +25,13 @@ void CPURayCastingView::LoadTables()
     _mappingTables.clear();
 
     for (const auto& entry : fs::directory_iterator(path))
-        _mappingTables.push_back(entry.path().filename().string());
+        _mappingTables.push_back(Common::FileSystem::PathToUTF8String(entry.path().filename()));
 }
 
 void CPURayCastingView::LoadTable(std::string fileName)
 {
     std::fstream file;
-    file.open("ColorMappingTables/" + fileName);
+    file.open(Common::FileSystem::PathFromUTF8String("ColorMappingTables/" + fileName));
     std::stringstream strStream;
     strStream << file.rdbuf();
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/NeuroVoxelVolumeLoader.h"
-#include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
 
 static BlockBasedDatasetInfo BBDFromMetadata(const NeuroVoxel::DatasetMetadata& metadata, int segmentSize) {
 	BlockBasedDatasetInfo info;

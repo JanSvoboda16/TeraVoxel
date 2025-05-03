@@ -16,7 +16,6 @@
 #include <TeraVoxel.Client.Core/SettingsContext.h>
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
-#include "TeraVoxel.Client.Core/TemplatedFunctionCaller.h"
 #include "TeraVoxel.Client.VolumeRenderer/GPUEntity.h"
 #include <NeuroVoxel/Common/Indexing.h>
 
@@ -287,7 +286,7 @@ private:
 template<typename T>
 TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector3i& segment, T* data, uint8_t downscale, bool& success)
 {
-	if ((!DataCommon::SupportNormalizedFloat<T>()) && (!std::is_floating_point<T>::value))
+	if ((!Common::Data::SupportNormalizedFloat<T>()) && (!std::is_floating_point<T>::value))
 	{
 		uint64_t voxelCount = uint64_t(_segmentSize >> downscale) * uint64_t(_segmentSize >> downscale) * uint64_t(_segmentSize >> downscale);
 		std::vector<float> floatData;
@@ -348,7 +347,7 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateTexture(const Eigen::Vector
 	texDesc.addressMode[1] = cudaAddressModeClamp;
 	texDesc.addressMode[2] = cudaAddressModeClamp;
 	texDesc.filterMode = cudaFilterModeLinear;      // Linear nebo Point
-	texDesc.readMode = DataCommon::SupportNormalizedFloat<T>() ? cudaReadModeNormalizedFloat : cudaReadModeElementType;
+	texDesc.readMode = Common::Data::SupportNormalizedFloat<T>() ? cudaReadModeNormalizedFloat : cudaReadModeElementType;
 	texDesc.normalizedCoords = 0;                   // Set corrds to <0, 1>.
 
 	cudaCreateTextureObject(&handler.texture, &resDesc, &texDesc, nullptr);
@@ -425,7 +424,7 @@ void GPURayCastingVolumeMemory::Preload(int threadCount)
 		auto blockCoords = Vector3i(data->x, data->y, data->z);
 		auto textureHandler = CreateTexture<T>(blockCoords, h_array.data(), _preloadLevel, success);
 
-		auto index = DataCommon::Indexing::XYZToIdx(blockCoords, Vector3i(sCountX, sCountY, sCountZ));
+		auto index = Common::Data::Indexing::XYZToIdx(blockCoords, Vector3i(sCountX, sCountY, sCountZ));
 		_textures_h[index] = textureHandler;
 	}
 
@@ -450,7 +449,7 @@ bool GPURayCastingVolumeMemory::OnDataLoaded()
 	int count;
 	auto volume = loader->TakeFirstLoaded(count);
 
-	auto index = DataCommon::Indexing::XYZToIdx(Eigen::Vector3i(volume->x, volume->y, volume->z ), Eigen::Vector3i(sCountX, sCountY, sCountZ));
+	auto index = Common::Data::Indexing::XYZToIdx(Eigen::Vector3i(volume->x, volume->y, volume->z ), Eigen::Vector3i(sCountX, sCountY, sCountZ));
 
 	uint32_t segmentSize = _segmentSize >> volume->downscale;
 	uint32_t voxelsInSegment = segmentSize * segmentSize * segmentSize;
@@ -554,7 +553,7 @@ void GPURayCastingVolumeMemory::RevalidateTemplated(float objectQuality)
 		{
 			for (size_t x = 0; x < sCountX; x++)
 			{
-				uint64_t index = DataCommon::Indexing::XYZToIdx(Eigen::Vector3i(x,y,z), { sCountX, sCountY, sCountZ });
+				uint64_t index = Common::Data::Indexing::XYZToIdx(Eigen::Vector3i(x,y,z), { sCountX, sCountY, sCountZ });
 				int requiredDownscale = GetRequiredDownscale((x << segmentSizeShifter) + _segmentSize / 2, (y << segmentSizeShifter) + _segmentSize / 2, (z << segmentSizeShifter) + _segmentSize / 2, objectQuality);
 
 				auto ticket = _tickets[index];
@@ -628,7 +627,7 @@ void GPURayCastingVolumeMemory::DownscaleWithHigherQuality(int maxCount, float o
 	int count = 0;
 	for (size_t i = 0; i < segmentCount; i++)
 	{
-		Eigen::Vector3i XYZ = DataCommon::Indexing::IdxToXYZ(i, Eigen::Vector3i(sCountX, sCountY, sCountZ));
+		Eigen::Vector3i XYZ = Common::Data::Indexing::IdxToXYZ(i, Eigen::Vector3i(sCountX, sCountY, sCountZ));
 		auto requiredDownscale = GetRequiredDownscale((XYZ.x() << segmentSizeShifter) + _segmentSize / 2, (XYZ.y() << segmentSizeShifter) + _segmentSize / 2, (XYZ.z() << segmentSizeShifter) + _segmentSize / 2, objectQuality);
 
 		if (_textures_h[i].downscale < requiredDownscale || (_textures_h[i].used == false && _textures_h[i].downscale < _preloadLevel))
@@ -664,7 +663,7 @@ inline void GPURayCastingVolumeMemory::Prepare()
 	while (!_loadedTextures.empty())
 	{
 		auto& texture = _loadedTextures.top(); _loadedTextures.pop();
-		auto index = DataCommon::Indexing::XYZToIdx(texture.coordinates, { sCountX, sCountY, sCountZ });
+		auto index = Common::Data::Indexing::XYZToIdx(texture.coordinates, { sCountX, sCountY, sCountZ });
 
 		DeleteTexture(_textures_h[index]);
 		_textures_h[index] = texture;

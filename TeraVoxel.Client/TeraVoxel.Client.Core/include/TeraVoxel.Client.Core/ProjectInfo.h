@@ -20,7 +20,7 @@ enum ProjectState
 
 struct DatasetInfo
 {
-	DataCommon::StorableType dataType;
+	Common::Data::StorableType dataType;
 	int sizeX = 0;
 	int sizeY = 0;
 	int sizeZ = 0;
@@ -54,7 +54,7 @@ class ProjectInfo
 		BlockBasedDatasetInfo ToBlockBasedDatasetInfo() const
 		{
 			BlockBasedDatasetInfo info;
-			info.dataType = DataCommon::StorableTypeFromDotNetString(dataType);
+			info.dataType = Common::Data::StorableTypeFromDotNetString(dataType);
 			info.dataSizeX = dataSizeX;
 			info.dataSizeY = dataSizeY;
 			info.dataSizeZ = dataSizeZ;

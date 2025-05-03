@@ -5,6 +5,7 @@
 #include "TeraVoxel.Client.Core/pch.h"
 #include "TeraVoxel.Client.Core/ProjectManager.h"
 #include <httplib/httplib.h>
+#include <NeuroVoxel/Common/FileSystem.h>
 
  // fix byte colision in ZLIB
 typedef unsigned char byteRedefiner;
@@ -160,8 +161,8 @@ void ProjectManager::DecompressData(const unsigned char* abSrc, unsigned char* a
 
 void ProjectManager::UploadFile(const std::string& projectName, const std::string& filePath)
 {
-
-	std::ifstream file(filePath, std::ios::in | std::ios::binary);
+	auto path = Common::FileSystem::PathFromUTF8String(filePath);
+	std::ifstream file(path, std::ios::in | std::ios::binary);
 	if (!file.is_open())
 	{
 		throw exception("Bad file");

@@ -1,7 +1,6 @@
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/VolumeVisualizerBase.h"
 #include <any>
-#include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
 #include "TeraVoxel.Client.VolumeRenderer/RayCastingUtilities.cuh"
 
 class RayCastingVolumeVisualizerBase : public VolumeVisualizerBase

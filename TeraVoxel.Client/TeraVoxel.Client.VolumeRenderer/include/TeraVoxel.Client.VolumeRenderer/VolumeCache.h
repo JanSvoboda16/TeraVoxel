@@ -9,7 +9,6 @@
 #include "TeraVoxel.Client.VolumeRenderer/VolumeCacheBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
-#include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
 #include <NeuroVoxel/Common/DataType.h>
 
 template <typename T>

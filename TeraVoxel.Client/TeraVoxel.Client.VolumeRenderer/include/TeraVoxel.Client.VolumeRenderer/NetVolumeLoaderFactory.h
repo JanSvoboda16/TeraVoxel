@@ -1,8 +1,6 @@
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/NetVolumeLoader.h"
-#include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
-
 
 class NetVolumeLoaderFactory : public VolumeLoaderFactory
 {

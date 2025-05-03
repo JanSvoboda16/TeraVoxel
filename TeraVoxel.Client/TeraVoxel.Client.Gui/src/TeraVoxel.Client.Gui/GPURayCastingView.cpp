@@ -5,6 +5,7 @@
 
 #include "TeraVoxel.Client.Gui/GPURayCastingView.h"
 #include "imgui_stdlib.h"
+#include <NeuroVoxel/Common/FileSystem.h>
 
 #define CLAMP_FLOAT(x, mn, mx) ((x) = fmaxf(fminf((x), (mx)), (mn)))
 #define CLAMP_FLOAT_MIN(x, mn) ((x) = fmaxf((x), (mn)))
@@ -200,8 +201,8 @@ void GPURayCastingView::Update()
 
             ImGui::EndTable();
         }
-
     }
+
     if (ImGui::CollapsingHeader("Lightings")) 
     {
         ImGui::SetWindowFontScale(1.2f);
@@ -330,7 +331,7 @@ void GPURayCastingView::Update()
 void GPURayCastingView::SaveTable(std::string fileName)
 {
     std::ofstream file;
-    file.open("MaterialTables/" + fileName);
+    file.open(Common::FileSystem::PathFromUTF8String("MaterialTables/" + fileName));
     json data = _visualizerSettingsPrivate.materialTable;
     file << data;
     file.close();
@@ -343,13 +344,13 @@ void GPURayCastingView::LoadTables()
     _materialTables.clear();
 
     for (const auto& entry : fs::directory_iterator(path))
-        _materialTables.push_back(entry.path().filename().string());
+        _materialTables.push_back(Common::FileSystem::PathToUTF8String(entry.path().filename()));
 }
 
 void GPURayCastingView::LoadTable(std::string fileName)
 {
     std::fstream file;
-    file.open("MaterialTables/" + fileName);
+    file.open(Common::FileSystem::PathFromUTF8String("MaterialTables/" + fileName));
     std::stringstream strStream;
     strStream << file.rdbuf();
 
@@ -361,7 +362,7 @@ void GPURayCastingView::LoadTable(std::string fileName)
 void GPURayCastingView::SaveLighting(std::string fileName)
 {
     std::ofstream file;
-    file.open("Lightings/" + fileName);
+    file.open(Common::FileSystem::PathFromUTF8String("Lightings/" + fileName));
     json data = _visualizerSettingsPrivate.lightSettings;
     file << data;
     file.close();
@@ -374,13 +375,13 @@ void GPURayCastingView::LoadLightings()
     _lightings.clear();
 
     for (const auto& entry : fs::directory_iterator(path))
-        _lightings.push_back(entry.path().filename().string());
+        _lightings.push_back(Common::FileSystem::PathToUTF8String(entry.path().filename()));
 }
 
 void GPURayCastingView::LoadLighting(std::string fileName)
 {
     std::fstream file;
-    file.open("Lightings/" + fileName);
+    file.open(Common::FileSystem::PathFromUTF8String("Lightings/" + fileName));
     std::stringstream strStream;
     strStream << file.rdbuf();
 

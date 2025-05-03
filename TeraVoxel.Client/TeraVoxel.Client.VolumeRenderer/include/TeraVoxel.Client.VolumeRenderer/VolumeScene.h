@@ -11,7 +11,6 @@
 #include "TeraVoxel.Client.VolumeRenderer/ColorMappingTable.h"
 #include "TeraVoxel.Client.VolumeRenderer/IVolumeScene.h"
 #include "TeraVoxel.Client.VolumeRenderer/IVolumeVisualizerFactory.h"
-#include <TeraVoxel.Client.Core/TypeToString.h>
 #include "TeraVoxel.Client.VolumeRenderer/CPUMeshVisualizer.h"
 
 using Eigen::Vector3d;

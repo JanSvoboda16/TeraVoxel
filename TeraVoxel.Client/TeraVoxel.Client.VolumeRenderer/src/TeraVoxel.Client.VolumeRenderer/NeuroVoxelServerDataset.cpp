@@ -13,7 +13,7 @@ NeuroVoxelServerDataset::NeuroVoxelServerDataset(const std::string& name, const 
 
 std::shared_ptr<NeuroVoxel::CompressionModel> NeuroVoxelServerDataset::GetNode(const Eigen::Vector3i& coordinates, int level)
 {
-    auto localIndex = DataCommon::Indexing::XYZToIdx(coordinates, _metadata.getGridDimensions());
+    auto localIndex = Common::Data::Indexing::XYZToIdx(coordinates, _metadata.getGridDimensions());
     auto globalIndex = localIndex + _metadata.getGridDimensions().prod() * level;
     _nodeMutexes[globalIndex].lock();
     try {

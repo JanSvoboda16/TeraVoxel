@@ -8,7 +8,6 @@
 #include <device_launch_parameters.h>
 #include <cuda_fp16.h>
 #include <iostream>
-#include <TeraVoxel.Client.Core/TemplatedFunctionCaller.h>
 #include "TeraVoxel.Client.VolumeRenderer/GPURayCastingVolumeVisualizer.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
 #include <TeraVoxel.Client.Core/ProjectManager.h>
