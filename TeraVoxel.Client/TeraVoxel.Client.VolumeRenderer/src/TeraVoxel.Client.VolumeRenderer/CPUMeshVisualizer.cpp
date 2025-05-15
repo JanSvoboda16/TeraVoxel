@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #include "TeraVoxel.Client.VolumeRenderer/CPUMeshVisualizer.h"
 #include <future>
 #include <TeraVoxel.Client.Core/SettingsContext.h>

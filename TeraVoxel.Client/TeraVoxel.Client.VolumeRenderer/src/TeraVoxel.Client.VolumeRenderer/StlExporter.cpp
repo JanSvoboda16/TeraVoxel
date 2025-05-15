@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #include "TeraVoxel.Client.VolumeRenderer/StlExporter.h"
 
 void StlExporter::Export(std::shared_ptr<MeshNode> mesh, std::string path)
