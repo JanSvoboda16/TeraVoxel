@@ -18,6 +18,9 @@ enum ProjectState
 	ProjectConverted
 };
 
+/// <summary>
+/// Information about volumetric dataset
+/// </summary>
 struct DatasetInfo
 {
 	Common::Data::StorableType dataType;
@@ -28,12 +31,17 @@ struct DatasetInfo
 	Eigen::Vector3f voxelDimensions = { 1.f, 1.f, 1.f };
 };
 
+/// <summary>
+/// Information about volumetric dataset splited into blocks.
+/// </summary>
 struct BlockBasedDatasetInfo : public DatasetInfo
 {
 	int segmentSize = 0;
 };
 
-// TODO rozdělit na project info a DatasetInfo
+/// <summary>
+/// Information about TeraVoxel project
+/// </summary>
 class ProjectInfo
 {
 	public:

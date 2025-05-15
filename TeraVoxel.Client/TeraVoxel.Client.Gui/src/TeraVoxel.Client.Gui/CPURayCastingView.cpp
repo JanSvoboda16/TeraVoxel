@@ -9,7 +9,7 @@
 #include <fstream>
 #include <NeuroVoxel/Common/FileSystem.h>
 
-void CPURayCastingView::SaveToFile(std::string fileName)
+void CPURayCastingView::SaveTable(std::string fileName)
 {
     std::ofstream file;
     file.open(Common::FileSystem::PathFromUTF8String("ColorMappingTables/" + fileName));
@@ -92,7 +92,7 @@ void CPURayCastingView::Update()
     ImGui::InputText("File name", &fileName);
     if (ImGui::Button("Save"))
     {
-        SaveToFile(fileName);
+        SaveTable(fileName);
         LoadTables();
     }
 

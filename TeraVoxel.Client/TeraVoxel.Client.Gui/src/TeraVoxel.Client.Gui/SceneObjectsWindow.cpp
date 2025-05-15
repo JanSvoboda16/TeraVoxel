@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #include "TeraVoxel.Client.Gui/SceneObjectsWindow.h"
 #include "imgui.h"
 #include <TeraVoxel.Client.VolumeRenderer/MeshGenerator.h>

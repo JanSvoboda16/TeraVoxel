@@ -3,7 +3,6 @@
  * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
  */
 #pragma once
-#pragma once
 #include "TeraVoxel.Client.Gui/IView.h"
 #include "imgui.h"
 #include <TeraVoxel.Client.VolumeRenderer/ColorMappingTable.h>

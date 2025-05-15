@@ -1,17 +1,19 @@
 ﻿#pragma once
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
-//#include "TeraVoxel.Client.Core/TypeToString.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 #include <NeuroVoxel/CompressedDataset.h>
 #include <NeuroVoxel/MultiHashDataReader.h>
 #include <TeraVoxel.Client.Core/NeuroVoxelServerService.h>
 #include <filesystem>
 
+/// <summary>
+/// Loads volumetric data from the NeuroVoxel compressed dataset.
+/// </summary>
 template <typename VoxelT>
-class NeuroVoxelVolumeLoader : public VolumeLoaderBase<VoxelT>
+class NeuroVoxelVolumeLoader : public VolumeLoaderBaseGenericBase<VoxelT>
 {
 public:
 	NeuroVoxelVolumeLoader(const std::shared_ptr<NeuroVoxel::IReadableCompressedDataset>& dataset, int threadCount, const BlockBasedDatasetInfo& datasetInfo) :
-		VolumeLoaderBase<VoxelT>(datasetInfo, threadCount),
+		VolumeLoaderBaseGenericBase<VoxelT>(datasetInfo, threadCount),
 		_dataset(dataset)
 	{
 		_reader = std::make_shared<NeuroVoxel::MultiHashDataReader<VoxelT>>(_dataset);

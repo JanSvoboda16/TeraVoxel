@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/VolumeVisualizerBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeVisualizerSettingsBase.h"

@@ -5,8 +5,9 @@
 #pragma once
 #include <TeraVoxel.Client.Core/ProjectInfo.h>
 
-class ViewContext
+// TODO DELETE
+/*class ViewContext
 {
 	ProjectInfo projectInfo;
-};
+};*/
 

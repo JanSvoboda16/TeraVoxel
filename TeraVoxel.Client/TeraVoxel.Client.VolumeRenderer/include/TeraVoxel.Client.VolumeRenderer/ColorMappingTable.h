@@ -14,7 +14,7 @@ public:
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(ColorMappingItem, range, colorFrom, colorTo)
 
-		// Recomputes all precomputed values
+	// Recomputes all precomputed values
 	void RecomputeDeltas() {
 		_deltaRange = range[1] - range[0];
 		_dreDivDra = (colorTo[0] - colorFrom[0]) / _deltaRange;

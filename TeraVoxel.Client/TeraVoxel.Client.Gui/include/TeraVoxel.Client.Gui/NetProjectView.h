@@ -33,5 +33,4 @@ private:
 	bool _refreshContext = false;		// Data should be reloaded from the server
 	clock_t _lastRefresth = 0;			// Last refresh timestamp
 	int _errorMessageDurationCounter = 0;
-
 };

@@ -68,8 +68,8 @@ void VolumeViewWindow::Update()
 	if (ImGui::Button("Stop Record"))
 	{
 		_recording = false;
-	}
-	*/
+	}*/
+	
 	if (_volumeViewContext->scene != nullptr)
 	{
 		// MOUSE MOVEMENTS

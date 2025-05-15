@@ -1,4 +1,8 @@
-﻿#include "TeraVoxel.Client.VolumeRenderer/CPURayCastingVolumeVisualizer.h"
+﻿/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+#include "TeraVoxel.Client.VolumeRenderer/CPURayCastingVolumeVisualizer.h"
 #include <future>
 
 CPURayCastingVolumeVisualizer::CPURayCastingVolumeVisualizer(const std::shared_ptr<Camera>& camera, const std::shared_ptr<VolumeLoaderFactory>& volumeLoaderFactory, const std::shared_ptr<CPURCVolumeVisualizerSettings>& settings) :

@@ -25,7 +25,7 @@ public:
 		VolumeLoaderFactory(BBDFromMetadata(dataset->GetMetadata(), 256))
 	{ }
 
-	std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount) override
+	std::unique_ptr<VolumeLoaderBase> Create(int threadCount) override
 	{
 		return CALL_TEMPLATED_FUNCTION2(CreateInternal, _datasetInfo.dataType, threadCount);
 	}
@@ -34,7 +34,7 @@ private:
 
 	std::shared_ptr<NeuroVoxel::IReadableCompressedDataset> _dataset;
 	template <typename T>
-	std::unique_ptr<VolumeLoaderGenericBase> CreateInternal(int threadCount)
+	std::unique_ptr<VolumeLoaderBase> CreateInternal(int threadCount)
 	{
 		return std::make_unique<NeuroVoxelVolumeLoader<T>>(_dataset, threadCount, _datasetInfo);
 	}

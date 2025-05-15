@@ -1,7 +1,11 @@
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 
 template<typename T>
-VolumeLoaderBase<T>::VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo, int threadCount) : VolumeLoaderGenericBase(datasetInfo)
+VolumeLoaderBaseGenericBase<T>::VolumeLoaderBaseGenericBase(const BlockBasedDatasetInfo& datasetInfo, int threadCount) : VolumeLoaderBase(datasetInfo)
 {
 	_segmentCountX = datasetInfo.sizeX / datasetInfo.segmentSize;
 	_segmentCountY = datasetInfo.sizeY / datasetInfo.segmentSize;
@@ -10,12 +14,12 @@ VolumeLoaderBase<T>::VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo, 
 
 	for (size_t i = 0; i < threadCount; i++)
 	{
-		_loadingTreads.push_back(std::async(std::launch::async, &VolumeLoaderBase::LoadingTask, this));
+		_loadingTreads.push_back(std::async(std::launch::async, &VolumeLoaderBaseGenericBase::LoadingTask, this));
 	}
 }
 
 template<typename T>
-VolumeLoaderBase<T>::~VolumeLoaderBase()
+VolumeLoaderBaseGenericBase<T>::~VolumeLoaderBaseGenericBase()
 {
 	// end loading threads and wait until ended
 	_endLoopingThreads = true;
@@ -35,7 +39,7 @@ VolumeLoaderBase<T>::~VolumeLoaderBase()
 }
 
 template <typename T>
-void VolumeLoaderBase<T>::LoadingTask()
+void VolumeLoaderBaseGenericBase<T>::LoadingTask()
 {
 	std::shared_ptr<VolumeBlockRequestTicket> loadingTicket;
 
@@ -134,7 +138,7 @@ void VolumeLoaderBase<T>::LoadingTask()
 }
 
 template<typename T>
-std::shared_ptr<VolumeBlockRequestTicket> VolumeLoaderBase<T>::LoadAsync(int x, int y, int z, int downscale, float priority)
+std::shared_ptr<VolumeBlockRequestTicket> VolumeLoaderBaseGenericBase<T>::LoadAsync(int x, int y, int z, int downscale, float priority)
 {
 	_ticketsMutex.lock();
 
@@ -152,12 +156,12 @@ std::shared_ptr<VolumeBlockRequestTicket> VolumeLoaderBase<T>::LoadAsync(int x, 
 }
 
 template<typename T>
-void VolumeLoaderBase<T>::Preload(int downscale, int threadCount)
+void VolumeLoaderBaseGenericBase<T>::Preload(int downscale, int threadCount)
 {
 	std::vector<std::future<void>> threads;
 	for (size_t i = 0; i < threadCount; i++)
 	{
-		threads.push_back(std::async(std::launch::async, &VolumeLoaderBase::PreloadTask, this, i, threadCount, downscale));
+		threads.push_back(std::async(std::launch::async, &VolumeLoaderBaseGenericBase::PreloadTask, this, i, threadCount, downscale));
 	}
 	for (size_t i = 0; i < threadCount; i++)
 	{
@@ -166,7 +170,7 @@ void VolumeLoaderBase<T>::Preload(int downscale, int threadCount)
 }
 
 template<typename T>
-std::unique_ptr<VolumeBlock<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& count)
+std::unique_ptr<VolumeBlock<T>> VolumeLoaderBaseGenericBase<T>::TakeFirstLoaded(int& count)
 {
 	_loadedSegmentsMutex.lock();
 
@@ -184,7 +188,7 @@ std::unique_ptr<VolumeBlock<T>> VolumeLoaderBase<T>::TakeFirstLoaded(int& count)
 }
 
 template<typename T>
-std::unique_ptr<VolumeBlock<T>> VolumeLoaderBase<T>::LoadSync(int x, int y, int z, int downscale)
+std::unique_ptr<VolumeBlock<T>> VolumeLoaderBaseGenericBase<T>::LoadSync(int x, int y, int z, int downscale)
 {
 	auto volume = std::make_unique<VolumeBlock<T>>(x, y, z);
 	volume->downscale = downscale;
@@ -217,7 +221,7 @@ std::unique_ptr<VolumeBlock<T>> VolumeLoaderBase<T>::LoadSync(int x, int y, int 
 }
 
 template<typename T>
-void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int downscale)
+void VolumeLoaderBaseGenericBase<T>::PreloadTask(short threadIndex, short threadCount, int downscale)
 {
 	int segmentCount = _segmentCountX * _segmentCountY * _segmentCountZ;
 	for (size_t i = threadIndex; i < segmentCount; i += threadCount)
@@ -261,18 +265,18 @@ void VolumeLoaderBase<T>::PreloadTask(short threadIndex, short threadCount, int 
 }
 
 template<typename T>
-uint64_t VolumeLoaderBase<T>::GetBlockRequiredMemory(int downscale)
+uint64_t VolumeLoaderBaseGenericBase<T>::GetBlockRequiredMemory(int downscale)
 {
 	short downscaleDividerReq = (short)pow(2, downscale);
 	return (uint64_t)pow((_datasetInfo.segmentSize / downscaleDividerReq), 3) * sizeof(T);
 }
 
-template VolumeLoaderBase<uint8_t>;
-template VolumeLoaderBase<uint16_t>;
-template VolumeLoaderBase<uint32_t>;
-template VolumeLoaderBase<uint64_t>;
-template VolumeLoaderBase<float>;
-template VolumeLoaderBase<int8_t>;
-template VolumeLoaderBase<int16_t>;
-template VolumeLoaderBase<int32_t>;
-template VolumeLoaderBase<int64_t>;
+template VolumeLoaderBaseGenericBase<uint8_t>;
+template VolumeLoaderBaseGenericBase<uint16_t>;
+template VolumeLoaderBaseGenericBase<uint32_t>;
+template VolumeLoaderBaseGenericBase<uint64_t>;
+template VolumeLoaderBaseGenericBase<float>;
+template VolumeLoaderBaseGenericBase<int8_t>;
+template VolumeLoaderBaseGenericBase<int16_t>;
+template VolumeLoaderBaseGenericBase<int32_t>;
+template VolumeLoaderBaseGenericBase<int64_t>;

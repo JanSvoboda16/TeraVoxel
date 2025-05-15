@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/MaterialTable.cuh"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeVisualizerSettingsBase.h"
@@ -14,6 +18,9 @@ struct Light
 	Light() : position{ 0, 0, 0 }, intensity(0) { }
 };
 
+/// <summary>
+/// Contains information about lights in the scene. 
+/// </summary>
 struct LightSettings 
 {
 	float ambientIntensity = 0.02f;
@@ -24,6 +31,9 @@ struct LightSettings
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(LightSettings, ambientIntensity, lights, numLights, shadows);
 };
 
+/// <summary>
+/// Holds setting for GPU visualization.
+/// </summary>
 class GPURCVolumeVisualizerSettings: public GPUEntity, public VolumeVisualizerSettingsBase
 {
 public:

@@ -9,7 +9,7 @@
 #include <TeraVoxel.Client.Core/ProjectInfo.h>
 #include <TeraVoxel.Client.Core/SettingsContext.h>
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 #include <mutex>
 #include <future>
 #include <stack>
@@ -51,7 +51,7 @@ public:
 	void Revalidate();
 	
 	/// <summary>
-	/// Prepares data for loading
+	/// Prepares data for visualization
 	/// </summary>
 	void Prepare();
 
@@ -74,7 +74,7 @@ private:
 		
 	std::shared_ptr<Camera> _camera;	// Scene camera	
 	BlockBasedDatasetInfo _datasetInfo;					// Informations about the curent project
-	std::unique_ptr<VolumeLoaderBase<T>> _volumeLoader;
+	std::unique_ptr<VolumeLoaderBaseGenericBase<T>> _volumeLoader;
 
 	uint_fast16_t xSegmentCount, ySegmentCount, zSegmentCount; // Count of volume segments in each axis
 	uint_fast32_t maxSegmentIndex;									// Max index of the volume segment

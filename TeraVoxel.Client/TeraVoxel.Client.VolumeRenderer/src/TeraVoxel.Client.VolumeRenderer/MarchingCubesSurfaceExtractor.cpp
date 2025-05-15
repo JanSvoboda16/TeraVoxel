@@ -24,7 +24,6 @@ std::shared_ptr<MeshNode> MarchingCubesSurfaceExtractor::ExtractSurface(const st
 	Mesh mesh;
 	mesh.SetMode(MeshMode::List);
 
-	//Data True = inside False = outside. Aligned as sequence of x rows firstly in y and then z
 	bool* data = binMap->data;
 	char colorer = 0;
 	
@@ -195,5 +194,4 @@ Vertex MarchingCubesSurfaceExtractor::IndexToVertexTemplated(int index, const Ve
 		vector = InterpolateVectorTemplated<T>(vector, position, interpolationBoundary);
 	}
 	return Vertex{ vector + position, color };
-
 }

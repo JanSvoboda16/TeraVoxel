@@ -28,7 +28,7 @@ CPURayCastingVolumeObjectMemory<T>::CPURayCastingVolumeObjectMemory(const std::s
 	_oneDivSegmentSize = 1.0 / _datasetInfo.segmentSize;
 	_segmentSize = _datasetInfo.segmentSize;
 	_segmentSizeShifter = (int)(log2(_segmentSize) + 0.5);
-	_volumeLoader = std::unique_ptr<VolumeLoaderBase<T>>(dynamic_cast<VolumeLoaderBase<T>*>(volumeLoaderFactory->Create(SettingsContext::GetInstance().loadingThreadCount).release()));
+	_volumeLoader = std::unique_ptr<VolumeLoaderBaseGenericBase<T>>(dynamic_cast<VolumeLoaderBaseGenericBase<T>*>(volumeLoaderFactory->Create(SettingsContext::GetInstance().loadingThreadCount).release()));
 
 	_segmentCount = (uint64_t)xSegmentCount * (uint64_t)ySegmentCount * (uint64_t)zSegmentCount;
 	_volumes.resize(_segmentCount);

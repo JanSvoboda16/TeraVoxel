@@ -1,7 +1,14 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #pragma once
 #include "TeraVoxel.Client.Gui/VolumeViewContext.h"
 #include "TeraVoxel.Client.Gui/IView.h"
 
+/// <summary>
+/// This windows enables to turn on and off rasterized objects in the scene.
+/// </summary>
 class SceneObjectsWindow : public IView
 {
 public:

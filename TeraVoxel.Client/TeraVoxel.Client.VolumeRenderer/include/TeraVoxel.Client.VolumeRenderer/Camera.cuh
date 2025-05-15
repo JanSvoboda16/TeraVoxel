@@ -58,8 +58,17 @@ public:
 	/// <param name="rotation">rotation matrix</param>
 	__host__ __device__ void Rotate(const Vector3f& rotation);
 
+	/// <summary>
+	/// Gets camera toratioon matrix
+	/// </summary>
+	/// <returns></returns>
 	__host__ __device__ Matrix4f GetRotationMatrix();
 
+	/// <summary>
+	/// Enables to set a rotation matrix.
+	/// </summary>
+	/// <param name="matrix"></param>
+	/// <returns></returns>
 	__host__ void SetRotationMatrix(const Matrix4f& matrix);
 
 	/// <summary>
@@ -197,8 +206,17 @@ public:
 	/// <param name="meshNode"></param>
 	__host__ void BindObserverCenterMeshNode(const std::shared_ptr<MeshNode>& meshNode);
 
+	/// <summary>
+	/// Returns center of the observer.
+	/// </summary>
+	/// <returns></returns>
 	__host__ __device__ Vector3f GetObserverCenter() { return _observerCenter; }
 
+	/// <summary>
+	/// Sets the observer center.
+	/// </summary>
+	/// <param name="center"></param>
+	/// <returns></returns>
 	__host__ void SetObserverCenter(const Vector3f& center) { _observerCenter = center; RecomputeParams(); }
 
 protected:

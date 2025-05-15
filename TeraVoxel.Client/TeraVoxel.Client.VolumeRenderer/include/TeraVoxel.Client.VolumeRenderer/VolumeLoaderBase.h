@@ -1,57 +1,20 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #pragma once
-#include <memory>
-#include <stack>
-#include <queue>
-#include <thread>
-#include <future>
-#include <functional>
-#include <list>
-#include "TeraVoxel.Client.VolumeRenderer/VolumeBlock.h"
-#include <TeraVoxel.Client.Core/MemoryContext.h>
-#include "TeraVoxel.Client.VolumeRenderer/Serialization.h"
-#include <TeraVoxel.Client.Core/Logger.h>
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
+#include <TeraVoxel.Client.Core/ProjectInfo.h>
 
-template <typename T>
-struct ComparePriority
+class VolumeLoaderBase
 {
-	bool operator()(VolumeBlock<T>* lhs, VolumeBlock<T>* rhs)
-	{
-		return lhs->priority.load(std::memory_order_acquire) > rhs->priority.load(std::memory_order_acquire);
-	}
-};
-
-template <typename T>
-class VolumeLoaderBase : public VolumeLoaderGenericBase
-{
-
 public:
-	VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo, int threadCount);
-	virtual ~VolumeLoaderBase();
-	std::shared_ptr<VolumeBlockRequestTicket> LoadAsync(int x, int y, int z, int downscale, float priority);
-	void Preload(int downscale, int threadCount);
-	std::unique_ptr<VolumeBlock<T>> TakeFirstLoaded(int& count);
-	std::unique_ptr<VolumeBlock<T>> LoadSync(int x, int y, int z, int downscale);
+	VolumeLoaderBase(const BlockBasedDatasetInfo& datasetInfo) : _datasetInfo(datasetInfo)
+	{ }
+	virtual ~VolumeLoaderBase() {}
+	virtual BlockBasedDatasetInfo& GetDatasetInfo() { return _datasetInfo; };
+	virtual void BindOnBlockLoaded(std::function<bool(void)> function) = 0;
 
-	void BindOnBlockLoaded(std::function<bool(void)> function) override { _onSegmentLoaded = function; }
-
-	uint64_t GetBlockRequiredMemory(int downscale);
 protected:
-	std::list<std::shared_ptr<VolumeBlockRequestTicket>> _tickets; // TODO WRONG ACCESS ERRORS
-	std::queue<std::unique_ptr<VolumeBlock<T>>> _loadedSegments;
-	std::mutex _ticketsMutex;
-	std::mutex _loadedSegmentsMutex;
-	
-	int _segmentCountX, _segmentCountY, _segmentCountZ, _threadCount;
-
-	std::list<std::future<void>> _loadingTreads;
-	bool _endLoopingThreads = false;
-	std::function<bool(void)> _onSegmentLoaded = [=]() { return true; };
-
-	void PreloadTask(short threadIndex, short threadCount, int downscale);
-	
-	virtual T* LoadBlockData(int x, int y, int z, int downscale) = 0;
-
-	void LoadingTask();
+	BlockBasedDatasetInfo _datasetInfo;
 };
 

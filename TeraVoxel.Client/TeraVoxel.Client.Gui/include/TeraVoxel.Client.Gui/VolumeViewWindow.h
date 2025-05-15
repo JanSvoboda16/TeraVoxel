@@ -14,6 +14,9 @@
 #include "TeraVoxel.Client.Gui/IView.h"
 #include <future>
 
+/// <summary>
+/// Main window with 3D scene.
+/// </summary>
 class VolumeViewWindow : public IView
 {
 public:
@@ -22,7 +25,7 @@ public:
 		this->g_pd3dDevice = g_pd3dDevice;
 		_volumeViewContext = volumeViewContext;
 
-		// if the scene has changed, the view must be rerendered
+		// if the scene has changed, the view must be rendered
 		_volumeViewContext->sceneUpdated.Register([this]() { _rerender = true; });
 		_volumeViewContext->sceneReplaced.Register([this]() 
 			{
@@ -32,11 +35,12 @@ public:
 				}
 			});
 
-	}
-	void RGBAToTexture(const unsigned char* _renderingFramebuffer, ID3D11ShaderResourceView** out_srv, int width, int height);
+	}	
 	void Update();
 
 private:
+	void RGBAToTexture(const unsigned char* _renderingFramebuffer, ID3D11ShaderResourceView** out_srv, int width, int height);
+
 	ID3D11Device* g_pd3dDevice;
 	ID3D11ShaderResourceView* _view = NULL;
 

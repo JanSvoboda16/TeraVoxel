@@ -4,7 +4,3 @@
 #include "TeraVoxel.Client.Core/pch.h"
 #include "TeraVoxel.Client.Core/framework.h"
 
-// TODO: This is an example of a library function
-void fnTeraVoxelClientCore()
-{
-}

@@ -5,7 +5,7 @@
 
 #include "TeraVoxel.Client.VolumeRenderer/SeedVolumeSelector.h"
 #include "TeraVoxel.Client.VolumeRenderer/Serialization.h"
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 
 using Eigen::Vector3i;
 

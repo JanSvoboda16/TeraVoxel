@@ -7,7 +7,7 @@ class VolumeLoaderFactory
 {
 public:
 	virtual ~VolumeLoaderFactory() {}
-	virtual std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount = SettingsContext::GetInstance().loadingThreadCount) = 0;
+	virtual std::unique_ptr<VolumeLoaderBase> Create(int threadCount = SettingsContext::GetInstance().loadingThreadCount) = 0;
 	BlockBasedDatasetInfo GetDatasetInfo() { return _datasetInfo; }
 	VolumeLoaderFactory(const BlockBasedDatasetInfo& datasetInfo) : _datasetInfo(datasetInfo) { }
 

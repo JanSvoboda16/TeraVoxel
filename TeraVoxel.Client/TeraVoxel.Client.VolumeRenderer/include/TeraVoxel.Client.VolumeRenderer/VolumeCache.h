@@ -7,7 +7,7 @@
 #include <memory>
 #include <map>
 #include "TeraVoxel.Client.VolumeRenderer/VolumeCacheBase.h"
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include <NeuroVoxel/Common/DataType.h>
 
@@ -16,7 +16,7 @@ class VolumeCache : public VolumeCacheBase
 {
 public:
 	VolumeCache(const std::shared_ptr<VolumeLoaderFactory> &loaderFac) : 
-		_volumeLoader(std::dynamic_pointer_cast<VolumeLoaderBase<T>>(std::shared_ptr<VolumeLoaderGenericBase>(loaderFac->Create(1)))), 
+		_volumeLoader(std::dynamic_pointer_cast<VolumeLoaderBaseGenericBase<T>>(std::shared_ptr<VolumeLoaderBase>(loaderFac->Create(1)))), 
 		VolumeCacheBase(loaderFac->GetDatasetInfo()) { }
 
 	~VolumeCache() {
@@ -71,7 +71,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<VolumeLoaderBase<T>> _volumeLoader;
+	std::shared_ptr<VolumeLoaderBaseGenericBase<T>> _volumeLoader;
 	std::map<int, std::shared_ptr<VolumeBlock<T>>> _cache;
 
 	int _lastSegmentId = -1;

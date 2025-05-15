@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #include "TeraVoxel.Client.VolumeRenderer/Mesh.h"
 
 std::array<Vertex, 3> Mesh::GetTriangle(uint32_t position)

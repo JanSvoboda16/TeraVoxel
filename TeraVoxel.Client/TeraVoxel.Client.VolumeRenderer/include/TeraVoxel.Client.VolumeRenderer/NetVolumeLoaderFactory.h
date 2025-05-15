@@ -1,3 +1,7 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #pragma once
 #include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderFactory.h"
 #include "TeraVoxel.Client.VolumeRenderer/NetVolumeLoader.h"
@@ -12,7 +16,7 @@ public:
 		_projectManager(projectManager)
 	{ }
 
-	std::unique_ptr<VolumeLoaderGenericBase> Create(int threadCount) override
+	std::unique_ptr<VolumeLoaderBase> Create(int threadCount) override
 	{
 		return CALL_TEMPLATED_FUNCTION2(CreateInternal, _datasetInfo.dataType, threadCount);
 	}
@@ -23,7 +27,7 @@ private:
 	ProjectInfo _projectinfo;
 
 	template <typename T>
-	std::unique_ptr<VolumeLoaderGenericBase> CreateInternal(int threadCount)
+	std::unique_ptr<VolumeLoaderBase> CreateInternal(int threadCount)
 	{
 		return std::make_unique<NetVolumeLoader<T>>(_projectinfo, threadCount, _projectManager);
 	}

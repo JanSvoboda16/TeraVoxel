@@ -3,6 +3,9 @@
 #include <TeraVoxel.Client.Core/NeuroVoxelServerService.h>
 #include <NeuroVoxel/CompressedDataset.h>
 
+/// <summary>
+/// Combines local compressed dataset with a server storage.
+/// </summary>
 class NeuroVoxelServerDataset : public NeuroVoxel::IReadableCompressedDataset
 {
 public:
@@ -11,6 +14,7 @@ public:
 	std::shared_ptr<NeuroVoxel::CompressionModel> GetNode(const Eigen::Vector3i& coordinates, int level) override;
 	bool NodeValid(const Eigen::Vector3i& coordinates, int level) override;
 	NeuroVoxel::DatasetMetadata& GetMetadata() override;
+
 private:
 	std::string _name;
 	NeuroVoxelServerService _service;

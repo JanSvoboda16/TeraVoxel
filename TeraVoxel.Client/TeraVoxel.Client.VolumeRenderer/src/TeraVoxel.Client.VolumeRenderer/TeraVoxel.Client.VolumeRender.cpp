@@ -1,5 +1,7 @@
-// TeraVoxel.Client.VolumeRender.cpp : Defines the functions for the static library.
-//
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 
 #include "TeraVoxel.Client.VolumeRenderer/pch.h"
 #include "TeraVoxel.Client.VolumeRenderer/framework.h"

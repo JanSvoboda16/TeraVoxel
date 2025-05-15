@@ -30,7 +30,7 @@ private:
 	std::shared_ptr<VolumeViewContext> _volumeViewContext;
 
 	// Saves the current mapping table to a file
-	void SaveToFile(std::string fileName);
+	void SaveTable(std::string fileName);
 	// Loads all table's names
 	void LoadTables();
 	// Loads the selected table

@@ -22,8 +22,8 @@ private:
 
 	void SetDatasetSourceView(int id);
 
-	std::unique_ptr<IView> _view;
-	std::shared_ptr<VolumeViewContext> _volumeViewContext;
-	int _selectedDataSourceId = 0;
+	std::unique_ptr<IView> _view; // NeuroVoxel OR NetProject
+	std::shared_ptr<VolumeViewContext> _volumeViewContext; // Shared
+	int _selectedDataSourceId = 1;
 };
 

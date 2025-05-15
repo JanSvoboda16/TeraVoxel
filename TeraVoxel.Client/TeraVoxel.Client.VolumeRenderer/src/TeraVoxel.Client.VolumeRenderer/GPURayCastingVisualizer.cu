@@ -9,7 +9,7 @@
 #include <cuda_fp16.h>
 #include <iostream>
 #include "TeraVoxel.Client.VolumeRenderer/GPURayCastingVolumeVisualizer.h"
-#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderBase.h"
+#include "TeraVoxel.Client.VolumeRenderer/VolumeLoaderGenericBase.h"
 #include <TeraVoxel.Client.Core/ProjectManager.h>
 #include "TeraVoxel.Client.VolumeRenderer/RayCastingUtilities.cuh"
 #include "TeraVoxel.Client.VolumeRenderer/GPURayCastingVolumeMemory.cuh"

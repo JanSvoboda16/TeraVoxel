@@ -8,6 +8,9 @@
 
 using Eigen::Vector3f;
 
+/// <summary>
+/// Shared functions for all ray casting implementations.
+/// </summary>
 class RayCastingUtilities
 {
 public:

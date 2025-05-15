@@ -1,9 +1,13 @@
+/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
 #include "TeraVoxel.Client.VolumeRenderer/NetVolumeLoader.h"
 #include <NeuroVoxel/MultiHashDataReader.h>
 
 template <typename T>
 NetVolumeLoader<T>::NetVolumeLoader(const ProjectInfo& projectInfo, int threadCount, const ProjectManager& projectManager) : 
-	VolumeLoaderBase<T>(projectInfo.ToBlockBasedDatasetInfo(), threadCount),
+	VolumeLoaderBaseGenericBase<T>(projectInfo.ToBlockBasedDatasetInfo(), threadCount),
 	_projectInfo(projectInfo)
 {
 	_projectManager = projectManager;

@@ -1,4 +1,8 @@
-﻿#include "TeraVoxel.Client.VolumeRenderer/GPURayCastingVolumeMemory.cuh"
+﻿/*
+ * Author: Jan Svoboda
+ * University: BRNO UNIVERSITY OF TECHNOLOGY, FACULTY OF INFORMATION TECHNOLOGY
+ */
+#include "TeraVoxel.Client.VolumeRenderer/GPURayCastingVolumeMemory.cuh"
 
 template <typename T>
 __global__ void downsampleTexture3D(cudaTextureObject_t inputTex, cudaSurfaceObject_t outputSurf, 
@@ -26,14 +30,14 @@ __global__ void downsampleTexture3D(cudaTextureObject_t inputTex, cudaSurfaceObj
 }
 
 template <typename T>
-TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBlockHandler texture_h_orig)
+TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBlock texture_h_orig)
 {
-    if (!Common::Data::SupportNormalizedFloat<T>() && (!std::is_floating_point<T>::value))
+    if (!Common::Data::SupportsNormalizedFloat<T>() && (!std::is_floating_point<T>::value))
     {
         return CreateDownscaledTexture<float>(texture_h_orig);
     }
 
-    TextureBlockHandler outputTexture;
+    TextureBlock outputTexture;
 
     cudaArray_t originalArray = texture_h_orig.array;
 
@@ -55,7 +59,7 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBl
     texDesc.addressMode[1] = cudaAddressModeClamp;
     texDesc.addressMode[2] = cudaAddressModeClamp;
     texDesc.filterMode = cudaFilterModeLinear;
-    texDesc.readMode = !Common::Data::SupportNormalizedFloat<T>() ? cudaReadModeElementType : cudaReadModeNormalizedFloat;
+    texDesc.readMode = !Common::Data::SupportsNormalizedFloat<T>() ? cudaReadModeElementType : cudaReadModeNormalizedFloat;
     texDesc.normalizedCoords = 0;
 
     cudaTextureObject_t newTexture;
@@ -64,19 +68,16 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBl
     outputTexture.array = newArray;
     outputTexture.texture = newTexture;
     outputTexture.downscale = texture_h_orig.downscale + 1;
-    outputTexture.coordinates = texture_h_orig.coordinates; // Pozice zůstává nezměněná
+    outputTexture.coordinates = texture_h_orig.coordinates; 
 
-    // Vytvoření výstupní surface
     cudaSurfaceObject_t outputSurface;
     cudaCreateSurfaceObject(&outputSurface, &resDesc);
 
-    // Definice bloků a mřížky pro downsampling (přizpůsobte velikost bloků podle potřeby)
     dim3 blockSize(8, 8, 8);
     dim3 gridSize((newWidth + blockSize.x - 1) / blockSize.x,
         (newHeight + blockSize.y - 1) / blockSize.y,
         (newDepth + blockSize.z - 1) / blockSize.z);
 
-    // Spuštění downsamplingového jádra
     downsampleTexture3D<T> << <gridSize, blockSize >> > (texture_h_orig.texture, outputSurface,
         newWidth, newHeight, newDepth, _valueMultiplier);
 
@@ -86,12 +87,12 @@ TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture(TextureBl
 }
 
 
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<uint8_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<uint16_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<uint32_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<uint64_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<float>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<int8_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<int16_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<int32_t>(TextureBlockHandler);
-template TextureBlockHandler GPURayCastingVolumeMemory::CreateDownscaledTexture<int64_t>(TextureBlockHandler);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<uint8_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<uint16_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<uint32_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<uint64_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<float>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<int8_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<int16_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<int32_t>(TextureBlock);
+template TextureBlock GPURayCastingVolumeMemory::CreateDownscaledTexture<int64_t>(TextureBlock);

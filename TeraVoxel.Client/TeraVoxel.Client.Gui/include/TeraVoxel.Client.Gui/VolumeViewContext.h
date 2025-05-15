@@ -3,7 +3,9 @@
 #include <TeraVoxel.Client.VolumeRenderer/Camera.cuh>
 #include <TeraVoxel.Client.Core/WindowNotification.h>
 
-
+/// <summary>
+/// This structure enables to edit scene across all windows. 
+/// </summary>
 struct VolumeViewContext
 {
 	// Contains a loaded scene
@@ -15,6 +17,7 @@ struct VolumeViewContext
 	WindowNotification sceneReplaced;
 	WindowNotification sceneUpdated;
 
+	// Scene should be edited only when object get's this notification.
 	WindowNotification sceneEditable;
 };
 
